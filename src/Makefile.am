@@ -5,6 +5,9 @@ endif
 if WITH_GUI
     bin_PROGRAMS += blokus
 endif
+if WITH_CLIENT
+    bin_PROGRAMS += blokus_client
+endif
 
 
 blokus_dedicated_SOURCES = \
@@ -33,6 +36,7 @@ stone.cpp stone.h \
 spielleiter.cpp spielleiter.h \
 spielserver.cpp spielserver.h \
 spielclient.cpp spielclient.h \
+guispielclient.cpp guispielclient.h \
 network.cpp network.h \
 turnpool.cpp turnpool.h \
 turn.cpp turn.h \
@@ -51,10 +55,25 @@ about.cpp about.h \
 helpbox.cpp helpbox.h \
 logger.cpp logger.h
 
+
+blokus_client_SOURCES = \
+client.cpp \
+spielclient.cpp spielclient.h \
+spielleiter.cpp spielleiter.h \
+stone.cpp stone.h \
+spiel.cpp spiel.h \
+player.cpp player.h \
+network.cpp network.h \
+turn.cpp turn.h \
+turnpool.cpp turnpool.h \
+ki.cpp ki.h \
+timer.cpp timer.h \
+constants.cpp constants.h
+
 blokus_CXXFLAGS='-DDATA_PREFIX="$(datadir)/blokus/"'
 
 textures = font.bmp wall.bmp ground.bmp field.bmp
-EXTRA_DIST = Blokus.dsp Blokus.dsw dedicated.dsp Blokus.ico Blokus.rc blokus.png blokus.xpm blokus.desktop resource.h $(textures)
+EXTRA_DIST = Blokus.dsp Blokus.dsw Blokus.sln Blokus.vcproj dedicated.vcproj dedicated.dsp Blokus.ico Blokus.rc blokus.png blokus.xpm blokus.desktop resource.h $(textures)
 
 if WITH_GUI
     nobase_dist_pkgdata_DATA = $(textures)

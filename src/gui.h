@@ -14,10 +14,9 @@
 #include "stoneeffect.h"
 #include "widgets.h"
 #include "glfont.h"
-#include "spielleiter.h"
+#include "guispielclient.h"
 #include "options.h"
 
-class CSpielClient;
 class CStone;
 class CIntro;
 class CChatBox;
@@ -194,7 +193,7 @@ private:
 	void showHint();
 public:
 	// Das eigentliche Spiel (der Client), connected oder nicht
-	CSpielClient * spiel;
+	CGUISpielClient * spiel;
 
 	// Rendert einen einzelnen Stein nach x/y in Feldkoordinaten, mit Farbe, alpha
 	void renderStone(int x,int y,int color,float alpha,bool doublesided)const;

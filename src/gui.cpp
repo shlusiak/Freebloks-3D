@@ -23,7 +23,7 @@
 #include "gui.h"
 #include "constants.h"
 #include "spielserver.h"
-#include "spielclient.h"
+#include "guispielclient.h"
 #include "player.h"
 #include "dialogs.h"
 #include "intro.h"
@@ -228,7 +228,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	}
 
 	/* Einen jungfraeulichen SpielClient erstellen */
-	spiel=new CSpielClient(this);
+	spiel=new CGUISpielClient(this);
 
 	/* SpielClient zu lokalen Server connecten */
 	err=spiel->Connect("127.0.0.1",TCP_PORT+1);
@@ -293,7 +293,7 @@ bool CGUI::joinMultiplayerGame(const char *host,int port,int players)
 	/* SpielClient entfernen */
 	if (spiel)delete spiel;
 	/* Und neuen SpielClient erstellen */
-	spiel=new CSpielClient(this);
+	spiel=new CGUISpielClient(this);
 
 	/* Versuchen, zu Server zu verbinden */
 	err=spiel->Connect(host,port);
@@ -329,7 +329,7 @@ void CGUI::run()
 	if (!window->createWindow())return;
 
 	/* Einen (unverbundenen) Spielclient erstellen */
-	spiel=new CSpielClient(this);
+	spiel=new CGUISpielClient(this);
 
 	/* Fenster sichtbar machen. */
 	window->show();
@@ -567,7 +567,8 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 					if (options.get(OPTION_ANIMATE_STONES))
 						addEffect(new CStoneRollEffect(this,stone,current_stone,spiel->current_player(),x,y,false));
 					/* Den SpielClient den Stein setzen lassen. Schickt ne Anfrage an den SpielServer. */
-					spiel->set_stone(stone, current_stone,y,x);
+					if (spiel->set_stone(stone, current_stone,y,x)==FIELD_ALLOWED)
+						newCurrentPlayer(spiel->current_player());
 					/* Keinen Stein auswaehlen. */
 					current_stone=-1;
 				}
