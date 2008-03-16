@@ -1,0 +1,4 @@
+Package: blokus
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: The Blokus board game in 3D with network support
