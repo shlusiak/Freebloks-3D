@@ -150,11 +150,8 @@ void CSpielServer::run()
 	   berechne Zug der KI */
 	if (m_current_player!=-1 && spieler[m_current_player]==PLAYER_COMPUTER)
 	{
-// 		CTimer::sleep(100);
-		CTimer timer;
 		/* Ermittle CTurn, den die KI jetzt setzen wuerde */
 		CTurn *turn=get_ki_turn(current_player(),ki_mode);
-// 		printf("Computer %d hat %.2f sek gedacht bei %d moeglichen Zuegen.\n",m_current_player,timer.elapsed(),get_number_of_possible_turns(current_player()));
 
 		if (turn!=0)
 		{
