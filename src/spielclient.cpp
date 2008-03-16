@@ -2,7 +2,7 @@
  * spielclient.cpp
  * Autor: Sascha Hlusiak
  *
- * Klasse fuer einen Netzwerk-Client. Das ist die Klasse mit direkter Verbindung zur GUI
+ * Klasse fuer einen Netzwerk-Client.
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -26,21 +26,17 @@
 #include <fcntl.h>
 #endif
 
-#include "gui.h"
-#include "stoneeffect.h"
 #include "spielclient.h"
-#include "gamedialogs.h"
 
 
 
 /**
  * Leeren SpielClient initialisieren
  **/
-CSpielClient::CSpielClient(CGUI* vgui)
+CSpielClient::CSpielClient()
 {
 	client_socket=0;
-	gui=vgui;
- 	status.clients=status.player=status.computer=0;
+	status.clients=status.player=status.computer=0;
 	status.width=status.height=20;
 	set_stone_numbers(0,0,0,0,0);
 	for (int i=0;i<STONE_SIZE_MAX;i++)
@@ -61,7 +57,7 @@ CSpielClient::~CSpielClient()
  * Rueckgabe: NULL bei Erfolg, sonst Zeiger auf Zeichenkette mit der Fehlermeldung
  **/
 
-const char* CSpielClient::Connect(const char* host,int port)
+const char* CSpielClient::Connect(const char* host,int port, int blocking)
 {
 #if (defined HAVE_GETADDRINFO) || (defined WIN32)
 	/* Dies beinhaltet auch IPv6 */
@@ -153,12 +149,15 @@ const char* CSpielClient::Connect(const char* host,int port)
 	 * zurueckkehren, wenn keine Daten vorliegen. 
 	 * Der Socket des Clients wird periodisch "gepollt".
 	 */
+	if (blocking == 0)
+	{
 #ifdef WIN32
-	unsigned long block=1;
-	ioctlsocket(client_socket,FIONBIO,&block);
+		unsigned long block=1;
+		ioctlsocket(client_socket,FIONBIO,&block);
 #else
-	fcntl(client_socket,F_SETFL,O_NONBLOCK);
+		fcntl(client_socket,F_SETFL,O_NONBLOCK);
 #endif
+	}
 
 	return NULL;
 }
@@ -227,7 +226,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 
 		/* Der Server hat einen aktuellen Spieler festgelegt */
 		case MSG_CURRENT_PLAYER: m_current_player=((NET_CURRENT_PLAYER*)data)->player;
-			if (gui)gui->newCurrentPlayer(m_current_player);
+			newCurrentPlayer(m_current_player);
 			break;
 
 		/* Nachricht des Servers ueber ein endgueltiges Setzen eines Steins auf das Feld */
@@ -246,33 +245,18 @@ void CSpielClient::process_message(NET_HEADER* data)
 			}
 			/* Zug der History anhaengen */
 			addHistory(s->player,stone,s->y,s->x);
-			/* Wenn kein lokaler Spieler, zeige eine Blink-Animation an */
-			if (gui && !is_local_player(s->player) && gui->getOptions()->get(OPTION_ANIMATE_STONES))
-				gui->addEffect(new CStoneRollEffect(
-					gui,get_player(s->player)->get_stone(s->stone),s->stone,s->player,s->x,s->y,false));
+			stoneWasSet(s);
 			break;
 		}
 		case MSG_STONE_HINT: {
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
-			/* Entsprechenden Stein des Spielers holen */
-			CStone *stone=get_player(s->player)->get_stone(s->stone);
-			if (stone && (stone->get_available()>0) && (s->player==current_player()))
-			{
-				/* Stein in richtige Position drehen */
-				stone->mirror_rotate_to(s->mirror_count,s->rotate_count);
-				/* Stein aufs echte Spielfeld setzen */
-				if (gui)gui->addEffect(new CStoneFadeEffect(gui,stone,s->player,s->x,s->y));
-				/* Den vorgeschlagenen Zug sogar auswaehlen. */
-				if (gui)gui->setCurrentStone(s->stone);
-				if (gui)gui->setHintEnable(true);
-			}
+			hintReceived(s);
 			break;
 		}
 
 		/* Server hat entschlossen, dass das Spiel vorbei ist */
 		case MSG_GAME_FINISH:{
-			/* Zeige einen Dialog mit einer entsprechenden Meldung an */
-			gui->addSubChild(new CGameFinishDialog(gui,this),false);
+			gameFinished();
 			break;
 		}
 
@@ -314,8 +298,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 		/* Server hat eine Chat-Nachricht geschickt. */
 		case MSG_CHAT: {
 			NET_CHAT* chat=(NET_CHAT*)data;
-			/* Den empfangen Text der Chat-Box der GUI hinzufuegen */
-			if (gui)gui->addChatMessage(chat->client,(char*)&chat->text[0]);
+			chatReceived(chat);
 			break;
 		}
 		/* Der Server hat eine neue Runde gestartet. Spiel zuruecksetzen */
@@ -335,19 +318,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 				}
 			}
 			m_current_player=-1;
-			// Den ersten lokalen Spieler ermitteln, und Ansicht der GUI genau
-			// dorthin rotieren
-			for (int i=0;i<PLAYER_MAX;i++)if (spieler[i]==PLAYER_LOCAL)
-			{
-				gui->setAngy(i*90.0);
-				break;
-			}
-			/* Entfernung der Kamera zum Spielfeld angemessen setzen, dass die 
-			   Steine immer alle drauf passen. */
-			int s=get_field_size_x();
-			if (get_field_size_y()>s)s=get_field_size_y();
-			if (s>20)gui->setZoom(30.0+(double)s-20.0);
-				else gui->setZoom(30.0);
+			gameStarted();
 			break;
 		}
 
@@ -355,10 +326,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 		case MSG_UNDO_STONE: {
 			CTurn *t=history->get_last_turn();
 			CStone *stone=get_player(t->get_playernumber())->get_stone(t->get_stone_number());
-			stone->mirror_rotate_to(t->get_mirror_count(),t->get_rotate_count());
-			if (gui && gui->getOptions()->get(OPTION_ANIMATE_STONES))
-				gui->addEffect(new CStoneRollEffect(
-					gui,stone,t->get_stone_number(),t->get_playernumber(),t->get_x(),t->get_y(),true));
+			stoneUndone(stone, t);
 			undo_turn(history);
 			break;
 		}
@@ -390,7 +358,6 @@ TSingleField CSpielClient::set_stone(CStone* stone, int stone_number, int y, int
 	/* Lokal keinen Spieler als aktiv setzen.
 	   Der Server schickt uns nachher den neuen aktiven Spieler zu */
 	set_noplayer();
-	if (gui)gui->newCurrentPlayer(m_current_player);
 	return FIELD_ALLOWED;
 }
 

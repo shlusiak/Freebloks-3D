@@ -20,18 +20,15 @@ private:
 	/* Socket Verbindung des Clients zum Spielserver */
 	int client_socket;
 
-	/* Manchmal muss der SpielClient Funktionen der GUI aufrufen */
-	CGUI *gui;
-
 	/* Letztes empfangene Status Pakets des Spielservers */
 	NET_SERVER_STATUS status;
 public:
-	CSpielClient(CGUI* vgui);
+	CSpielClient();
 	virtual ~CSpielClient();
 
 	/* Spielclient mit angegebenen Server an port verbinden
 	   Gibt Fehlerstring zurueck, oder NULL bei Erfolg */
-	const char* Connect(const char* host,int port);
+	const char* Connect(const char* host,int port, int blocking = 0);
 
 	/* Aktuelle Verbindung zum Spielserver trennen */
 	void Disconnect();
@@ -74,6 +71,15 @@ public:
 	const bool is_local_player()const { return is_local_player(m_current_player); }
 	/* true, wenn der Spieler ein lokaler Spieler ist */
 	const bool is_local_player(const int player)const;
+
+private:
+	virtual void newCurrentPlayer(const int player){};
+	virtual void stoneWasSet(NET_SET_STONE *s){};
+	virtual void hintReceived(NET_SET_STONE *s){};
+	virtual void gameFinished(){};
+	virtual void chatReceived(NET_CHAT* c){};
+	virtual void gameStarted(){};
+	virtual void stoneUndone(CStone *s, CTurn *t){};
 };
 
 #endif
