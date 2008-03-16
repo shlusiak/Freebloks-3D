@@ -81,7 +81,7 @@ void CSpielServer::add_client(int s)
 	{
 		char c[50];
 		/* Alle Clients ueber neuen Spieler informieren. */
-		sprintf(c,"Client %d joined\n",i);
+		sprintf(c,"Client %d joined",i);
 		send_server_msg(c);
 
 		/* Freien Platz gefunden, Client speichern */
