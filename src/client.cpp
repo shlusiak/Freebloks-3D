@@ -146,6 +146,7 @@ private:
 	CTimer timer;
 	virtual void gameStarted();
 	virtual void newCurrentPlayer(const int player);
+	virtual void chatReceived(NET_CHAT* c);
 	virtual void gameFinished();
 };
 
@@ -176,6 +177,14 @@ void CKISpielClient::newCurrentPlayer(const int player)
 	set_stone(stone, turn->get_stone_number(), turn->get_y(), turn->get_x());
 }
 
+void CKISpielClient::chatReceived(NET_CHAT* c)
+{
+	if (c->client == -1)
+		printf("  *  ");
+	else printf("Client %d: ", c->client);
+	printf("%s\n",c->text);
+}
+
 void CKISpielClient::gameFinished()
 {
 	int i;
@@ -183,7 +192,7 @@ void CKISpielClient::gameFinished()
 	for (i=0;i<PLAYER_MAX;i++)
 	{
 		CPlayer * player=get_player(i);
-		printf("Player %d has %d stones left and %d points.\n",i,get_stone_count(i),-player->get_stone_points_left());
+		printf("%c Player %d has %d stones left and %d points.\n",is_local_player(i)?'*':' ',i,get_stone_count(i),-player->get_stone_points_left());
 	}
 
 	Disconnect();
