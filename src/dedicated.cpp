@@ -31,6 +31,7 @@ static int max_humans=4;
 static GAMEMODE gamemode=GAMEMODE_4_COLORS_4_PLAYERS;
 static int width=20,height=20;
 static int ki_threads=2;
+static int ki_strength=KI_HARD;
 static int games_ran=0;
 static int games_running=0;
 static int max_running_games=5;
@@ -92,6 +93,8 @@ static void help()
 	printf("  -L                Listen on specified IP address. Default: OS default\n");
 	printf("  -h, --maxhumans   Define the maximum of human players per game (0-4)\n"
                "                    Default: %d\n",max_humans);
+	printf("  -k  --ki          Strength of AI. Lower number means stronger.\n"
+	       "                    Default: %d\n", ki_strength);
 	printf("  -m, --mode        The game mode for the hosted game. Valid modes:\n"
 	       "                    2: 2 colors, 2 players\n"
                "                    3: 2 colors, 4 players\n"
@@ -158,6 +161,22 @@ static void parseParams(int argc,char **argv)
 			if (max_humans<0 || max_humans>4)
 			{
 				printf("%s: Invalid number (%d). Must be between 0 and 4.\n",argv[i-1],max_humans);
+				exit(1);
+			}
+			i++;
+			continue;
+		}
+		if (strcmp("-k",argv[i])==0 || strcmp("--ki",argv[i])==0)
+		{
+			i++;
+			if (i==argc) {
+				printf("%s: Expecting parameter\n",argv[i-1]);
+				exit(1);
+			}
+			ki_strength=atoi(argv[i]);
+			if (ki_strength<0 || ki_strength>2000)
+			{
+				printf("%s: Invalid strength number (%d)\n",argv[i-1],ki_strength);
 				exit(1);
 			}
 			i++;
@@ -425,7 +444,7 @@ int main(int argc,char ** argv)
 	{
 		/* Ein neues Spiel soll erstellt werden.
 		   KI-Stufe ist schwer*/
-		listener->new_game(max_humans,KI_HARD,gamemode,ki_threads);
+		listener->new_game(max_humans,ki_strength,gamemode,ki_threads);
 		/* Groesse setzen */
 		listener->get_game()->set_field_size_and_new(height,width);
 		lock_mutex();
