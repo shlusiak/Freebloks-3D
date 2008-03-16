@@ -43,16 +43,13 @@ binary-arch:    checkroot build
 	$(checkdir)
 	rm -rf debian/tmp
 	install -d debian/tmp/DEBIAN $(docdir)
-	install -m 755 debian/postinst debian/prerm debian/tmp/DEBIAN
 	$(MAKE) INSTALL_PROGRAM="$(INSTALL_PROGRAM)" \
 		prefix=$$(pwd)/debian/tmp/usr install
-	cd debian/tmp && mv usr/info usr/man usr/share
+	cd debian/tmp
 	cp -a NEWS debian/copyright $(docdir)
 	cp -a debian/changelog $(docdir)/changelog.Debian
 	cp -a ChangeLog $(docdir)/changelog
 	cd $(docdir) && gzip -9 changelog changelog.Debian
-	gzip -r9 debian/tmp/usr/share/man
-	gzip -9 debian/tmp/usr/share/info/*
 	dpkg-shlibdeps debian/tmp/usr/bin/blokus
 	dpkg-gencontrol -isp
 	chown -R root:root debian/tmp

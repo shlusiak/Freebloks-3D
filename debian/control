@@ -3,6 +3,7 @@ Section: devel
 Priority: optional
 Maintainer: Sascha Hlusiak <mail@saschahlusiak.de>
 Standards-Version: 3.6.1
+Build-Depends: libglu1-mesa-dev, libx11-dev, libxpm-dev
 
 Package: blokus
 Architecture: any
