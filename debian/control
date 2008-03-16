@@ -1,3 +1,9 @@
+Source: blokus
+Section: devel
+Priority: optional
+Maintainer: Sascha Hlusiak <mail@saschahlusiak.de>
+Standards-Version: 3.6.1
+
 Package: blokus
 Architecture: any
 Depends: ${shlibs:Depends}
