@@ -23,6 +23,7 @@ static char* server = NULL;
 static int max_players=1;
 static int ki_threads=2;
 static int auto_start=0;
+static int ki_strength=KI_HARD;
 
 
 
@@ -33,10 +34,12 @@ static void help()
 	printf("  -p, --port        Specify the TCP port to accept connections. Default: %d\n",TCP_PORT);
 	printf("  -n, --maxplayers  Define the maximum of players to play by client\n"
                "                    Default: %d\n",max_players);
-	printf("  -t, --threads     Define number of threads to use for calculating moves\n"
-	       "                    Default: %d\n",ki_threads);
+	printf("  -k  --ki          Strength of AI. Lower number means stronger.\n"
+	       "                    Default: %d\n", ki_strength);
 	printf("  -s, --autostart   Start the game after connecting to server\n"
 	       "                    Default: not set\n");
+	printf("  -t, --threads     Define number of threads to use for calculating moves\n"
+	       "                    Default: %d\n",ki_threads);
 	printf("      --help        Display this help and exit\n");
 	exit(0);
 }
@@ -76,6 +79,23 @@ static void parseParams(int argc,char **argv)
 			if (max_players<0 || max_players>4)
 			{
 				printf("%s: Invalid number (%d). Must be between 0 and 4.\n",argv[i-1],max_players);
+				exit(1);
+			}
+			i++;
+			continue;
+		}
+
+		if (strcmp("-k",argv[i])==0 || strcmp("--ki",argv[i])==0)
+		{
+			i++;
+			if (i==argc) {
+				printf("%s: Expecting parameter\n",argv[i-1]);
+				exit(1);
+			}
+			ki_strength=atoi(argv[i]);
+			if (ki_strength<0 || ki_strength>2000)
+			{
+				printf("%s: Invalid strength number (%d)\n",argv[i-1],ki_strength);
 				exit(1);
 			}
 			i++;
@@ -144,7 +164,7 @@ void CKISpielClient::newCurrentPlayer(const int player)
 	if (!is_local_player())return;
 
 	/* Ermittle CTurn, den die KI jetzt setzen wuerde */
-	CTurn *turn=get_ki_turn(current_player(),500);
+	CTurn *turn=get_ki_turn(current_player(),ki_strength);
 	CStone *stone;
 	if (turn == NULL)
 	{

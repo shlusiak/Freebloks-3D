@@ -7,8 +7,8 @@
 
 
 const int KI_HARD = 5;
-const int KI_MEDIUM = 20;
-const int KI_EASY = 75;
+const int KI_MEDIUM = 50;
+const int KI_EASY = 120;
 
 
 typedef char TSingleStone;
