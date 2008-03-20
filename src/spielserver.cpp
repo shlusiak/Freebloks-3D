@@ -835,19 +835,38 @@ int CServerListener::wait_for_player(bool verbose)
 			{
 #if (defined HAVE_GETADDRINFO) || (defined WIN32)
 				char clienthost[NI_MAXHOST];
-
 				clienthost[0]='\0';
-				
+
+				printf("Connection from: ");
+				if (CLogger::logfile)
+				{
+					CLogger::logTime();
+					fprintf(CLogger::logfile,"Connection from: ");
+				}
+
+				/* Erst FQDN aufloesen */
+				retval = getnameinfo((sockaddr*)&client,l,
+					clienthost,sizeof(clienthost),
+					NULL,0,
+					NI_NAMEREQD);
+
+				if (retval == 0)
+				{
+					printf("%s, ",clienthost);
+					if (CLogger::logfile)
+						fprintf(CLogger::logfile,"%s, ",clienthost);
+				}
+
+				/* Dann IP aufloesen */
 				getnameinfo((sockaddr*)&client,l,
 					clienthost,sizeof(clienthost),
 					NULL,0,
 					NI_NUMERICHOST);
 
-				printf("Connection from: %s\n",clienthost);
+				printf("%s\n",clienthost);
 				if (CLogger::logfile)
 				{
-					CLogger::logTime();
-					fprintf(CLogger::logfile,"Connection from: %s\n",clienthost);
+					fprintf(CLogger::logfile,"%s\n",clienthost);
 					CLogger::flush();
 				}
 #else
