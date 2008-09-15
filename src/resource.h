@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by Blokus.rc
+// Used by Freebloks.rc
 //
 #define IDI_ICON                        102
 

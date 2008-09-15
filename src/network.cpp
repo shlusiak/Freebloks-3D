@@ -2,7 +2,7 @@
  * network.cpp
  * Autor: Sascha Hlusiak
  *
- * Funktionen fuer die Netzwerknachrichten des Blokus-eigenen Protokolls
+ * Funktionen fuer die Netzwerknachrichten des eigenen Protokolls
  **/
 
 #ifdef HAVE_CONFIG_H

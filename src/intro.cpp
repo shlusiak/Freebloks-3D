@@ -45,7 +45,7 @@ CIntro::~CIntro()
 
 /**
  * Steine initialisieren (Formen)
- * Und das Wort "blokus" vorbereiten
+ * Und das Wort "Free Bloks" vorbereiten
  **/
 void CIntro::init()
 {
@@ -101,17 +101,21 @@ void CIntro::init()
 	stones[13].rotate_right();	// X
 	stones[13].mirror_over_x();
 
-	addChar('b',0,1,9);
-	addChar('l',1,4,8);
-	addChar('o',2,7,9);
-	addChar('k',3,10,8);
-	addChar('u',1,13,9);
-	addChar('s',2,16,10);
+	addChar('f',3,4,5);
+	addChar('r',2,7,6);
+	addChar('e',1,10,5);
+	addChar('e',0,13,6);
+
+	addChar('b',0,2,12);
+	addChar('l',1,5,11);
+	addChar('o',2,8,12);
+	addChar('k',3,11,11);
+	addChar('s',2,14,13);
 }
 
 /**
  * Einen fliegenden Buchstaben 'c' der Farbe color hinzufuegen, dass er an x/y landet (linke obere Ecke)
- * Dazu wird er in einzelne Blokus-Steine zerlegt und diese hinzugefuegt.
+ * Dazu wird er in einzelne Steine zerlegt und diese hinzugefuegt.
  **/
 void CIntro::addChar(char c,int color,int x,int y)
 {

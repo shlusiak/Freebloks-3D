@@ -120,7 +120,7 @@ public:
 	CGUI();
 	~CGUI();
 	
-	// Hauptmethode, wird von der main() aus blokus.cpp aufgerufen.
+	// Hauptmethode, wird von der main() aus freebloks.cpp aufgerufen.
 	void run();
 
 	// Hilfetext ausgeben

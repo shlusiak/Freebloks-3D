@@ -2,7 +2,7 @@
  * dedicated.cpp
  * Autor: Sascha Hlusiak
  *
- * Hauptprogramm des dedizierten Blokus Servers!!
+ * Hauptprogramm des dedizierten Freebloks Servers!!
  * Der Server laeuft endlos durch, akzeptiert Verbindungen und laesst ggf. mehrere Spiele
  * gleichzeitig laufen.
  **/
@@ -406,7 +406,7 @@ int main(int argc,char ** argv)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2,0),&wsadata);
 #endif
-	printf("This is the almighty Dedicated Blokus Server. Have a nice day!\n");
+	printf("This is the almighty Dedicated Freebloks Server. Have a nice day!\n");
 	printf("Show help with `dedicated --help`\n");
 	printf("Waiting for Clients for connect...\n\n");
 

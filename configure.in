@@ -1,5 +1,5 @@
-AC_INIT(src/blokus.cpp)
-AM_INIT_AUTOMAKE(blokus, 1.1)
+AC_INIT(src/freebloks.cpp)
+AM_INIT_AUTOMAKE(freebloks, 1.1)
 
 AM_CONFIG_HEADER([config.h])
 

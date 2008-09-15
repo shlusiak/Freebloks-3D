@@ -2,7 +2,7 @@ Makefile.in
 configure
 *~
 dedicated.log
-blokus-*.tar.gz
+freebloks-*.tar.gz
 aclocal.m4
 autom4te.cache/*
 config.h
@@ -12,6 +12,6 @@ config.status
 stamp-h1
 .deps
 *.o
-blokus
-blokus_dedicated
-blokus_client
+freebloks
+freebloks_dedicated
+freebloks_client

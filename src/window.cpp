@@ -30,13 +30,13 @@
 #include "gui.h"
 
 // Titel des Fensters
-static const char* WINDOW_TITLE="Blokus 3D";
+static const char* WINDOW_TITLE="Freebloks 3D";
 // Startgroesse des Fensters (unter Windows ist das Fenster zusaetzlich noch maximiert
 static const int WND_SIZE_X=800;
 static const int WND_SIZE_Y=600;
 
 #ifdef WIN32
-// Die HINSTANCE des Programms. Wird in der Winmain() der blokus.cpp gesetzt.
+// Die HINSTANCE des Programms. Wird in der Winmain() der freebloks.cpp gesetzt.
 HINSTANCE hInstance=0;
 
 /**
@@ -124,11 +124,11 @@ bool CWindow::createWindow()
 	wndclass.hInstance=::hInstance;		// Unsere HINSTANCE des Progz
 	wndclass.hCursor=LoadCursor(NULL,IDC_ARROW);	// Fenster soll Pfeil als Cursor
 	wndclass.hIcon=LoadIcon(::hInstance,MAKEINTRESOURCE(IDI_ICON));	// Fenster soll eigenes Icon haben
-	wndclass.lpszClassName="BlokusWindowClass";	// Der Name unserer Fenster-Klasse. 
+	wndclass.lpszClassName="FreebloksWindowClass";	// Der Name unserer Fenster-Klasse. 
 	if (!RegisterClass(&wndclass))return false;	// Klasse bei Windows registrieren, bei Fehler raus
 
 	// Erstelle ein Win32-Fenster, standard Position, aber vorgegebene Groesse. Nix besonderes.
-	hWnd=CreateWindow("BlokusWindowClass",WINDOW_TITLE,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,CW_USEDEFAULT,CW_USEDEFAULT,WND_SIZE_X,WND_SIZE_Y,NULL,NULL,::hInstance,NULL);
+	hWnd=CreateWindow("FreebloksWindowClass",WINDOW_TITLE,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,CW_USEDEFAULT,CW_USEDEFAULT,WND_SIZE_X,WND_SIZE_Y,NULL,NULL,::hInstance,NULL);
 	if (hWnd==0)return false; // Bei Fehler raus
 
 	// Hier muss USERDATA des Fensters mit this assoziiert werden, damit die globale Fensterfunktion
@@ -170,7 +170,7 @@ bool CWindow::createWindow()
 
 	// Und verbinden einen OpenGL Kontext zu dem hDC und damit dem hWnd (Fenster). 
 	ctx=wglCreateContext(hDC);
-	// Ohne OpenGL-Kontext kein Blokus!
+	// Ohne OpenGL-Kontext kein Spiel!
 	if (ctx==0)return false;
 
 	// Kontext aktivieren, gilt global fuer die gesamte Anwendung.
@@ -442,7 +442,7 @@ bool CWindow::createWindow()
 #ifdef HAVE_X11_XPM_H
 	// Fenster ein Icon verpassen
 	{
-		#include "blokus.xpm"
+		#include "freebloks.xpm"
   		XpmImage I;
   		int ret;
 		Pixmap p,s;
@@ -450,7 +450,7 @@ bool CWindow::createWindow()
 		XWindowAttributes root_attr;
 		XpmAttributes attributes;
 
-  		ret=XpmCreateXpmImageFromData(blokus_xpm,&I,NULL);
+  		ret=XpmCreateXpmImageFromData(freebloks_xpm,&I,NULL);
 
 		if (ret==0)
 		{

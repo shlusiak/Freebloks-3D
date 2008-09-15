@@ -4,8 +4,8 @@
 
 inherit eutils games
 DESCRIPTION="Board game in 3D"
-HOMEPAGE="http://blokus.dyndns.org/"
-SRC_URI="http://blokus.dyndns.org/${P}.tar.gz"
+HOMEPAGE="http://saschahlusiak.de/blokus"
+SRC_URI="http://saschahlusiak.de/blokus/${P}.tar.gz"
 LICENSE="GPL-2"
 
 SLOT="0"
@@ -33,8 +33,8 @@ src_compile() {
 src_install() {
 	emake DESTDIR="${D}" install || die "emake install failed"
 	if use X ; then
-		newicon src/blokus.png ${PN}.png
-		make_desktop_entry blokus Blokus\ 3D ${PN}.png
+		newicon src/freebloks.png ${PN}.png
+		make_desktop_entry freebloks Freebloks\ 3D ${PN}.png
 	fi
 						
 	prepgamesdirs

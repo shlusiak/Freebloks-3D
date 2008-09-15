@@ -110,7 +110,7 @@ CGUI::~CGUI()
  **/
 void CGUI::printHelp()const
 {
-	printf("Usuage: blokus [OPTIONS]\n\n");
+	printf("Usuage: freebloks [OPTIONS]\n\n");
 	printf("  -c, --connect     Connect to a running network game\n");
 	printf("  -p, --port        Specify the TCP port to connect to. Default: %d\n",TCP_PORT);
 	printf("  -h, --humans      Number of huban players for the first game (0-4)\n"

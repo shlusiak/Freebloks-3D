@@ -36,7 +36,7 @@ public:
 /* Hier die Textzeilen der About-Box als Array of char*.
    NULL sind Leerzeilen. Die Texte werden zentriert ausgegeben. */
 static const char *AboutText[]={
-	"Blokus 3D",
+	"Freebloks 3D",
 	"(Build: "__DATE__")",
 	0,
 	0,
@@ -100,7 +100,7 @@ static const char *AboutText[]={
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	"42",
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	"Come on, play BLOKUS!",
+	"Come on, play FREEBLOKS!",
 	0,"'couse that's the purpose","of the game",
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	"One thing left to make you","close this dialog:",
@@ -191,7 +191,7 @@ void CAboutWidget::render(bool selection)
  * AboutBox Konstruktor.
  **/
 CAboutBox::CAboutBox()
-:CDialog(400,300,"About Blokus")
+:CDialog(400,300,"About Freebloks")
 {
 	/* Tuffige Farbe setzen */
 	setColor(0.7,0.2,0.4);

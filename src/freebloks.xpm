@@ -1,5 +1,5 @@
 /* XPM */
-static char * blokus_xpm[] = {
+static char * freebloks_xpm[] = {
 "32 32 272 2",
 "  	c None",
 ". 	c #C8C482",

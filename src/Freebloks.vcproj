@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="Blokus"
+	Name="Freebloks"
 	ProjectGUID="{E1CBC57B-21CE-4F5B-8922-DD6656CD052C}"
 	>
 	<Platforms>
@@ -41,7 +41,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/Blokus.tlb"
+				TypeLibraryName=".\Debug/Freebloks.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -51,7 +51,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/Blokus.pch"
+				PrecompiledHeaderFile=".\Debug/Freebloks.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
 				ProgramDataBaseFileName=".\Debug/"
@@ -75,11 +75,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib glu32.lib opengl32.lib ws2_32.lib"
-				OutputFile=".\Debug/Blokus.exe"
+				OutputFile=".\Debug/Freebloks.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/Blokus.pdb"
+				ProgramDatabaseFile=".\Debug/Freebloks.pdb"
 				SubSystem="2"
 				TargetMachine="1"
 			/>
@@ -95,7 +95,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/Blokus.bsc"
+				OutputFile=".\Debug/Freebloks.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -139,7 +139,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\Release/Blokus.tlb"
+				TypeLibraryName=".\Release/Freebloks.tlb"
 				HeaderFileName=""
 			/>
 			<Tool
@@ -153,7 +153,7 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/Blokus.pch"
+				PrecompiledHeaderFile=".\Release/Freebloks.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -174,10 +174,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib glu32.lib opengl32.lib ws2_32.lib"
-				OutputFile=".\Release/Blokus.exe"
+				OutputFile=".\Release/Freebloks.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\Release/Blokus.pdb"
+				ProgramDatabaseFile=".\Release/Freebloks.pdb"
 				SubSystem="2"
 				TargetMachine="1"
 			/>
@@ -193,7 +193,7 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/Blokus.bsc"
+				OutputFile=".\Release/Freebloks.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -237,7 +237,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="blokus.cpp"
+				RelativePath="freebloks.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -257,7 +257,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="Blokus.rc"
+				RelativePath="Freebloks.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -899,7 +899,7 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="Blokus.ico"
+				RelativePath="Freebloks.ico"
 				>
 			</File>
 		</Filter>

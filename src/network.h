@@ -2,7 +2,7 @@
  * network.h
  * Autor: Sascha Hlusiak
  *
- * Zentrale fuer Netzwerknachrichten des Blokus-eigenen Protokolls
+ * Zentrale fuer Netzwerknachrichten des eigenen Protokolls
  **/
 
 #ifndef __NETWORK_H_INCLUDED_
@@ -11,7 +11,7 @@
 
 #include "constants.h"
 
-/* Der Port, den Blokus per Default benutzen soll */
+/* Der Port, der per Default benutzen soll */
 const int TCP_PORT=59995;
 
 /* Pseudotypen fuer vorzeichenbehaftete/vorzeichenlose 8bit/16bit Zahlen */

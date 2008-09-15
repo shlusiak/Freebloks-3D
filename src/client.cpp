@@ -2,7 +2,7 @@
  * client.cpp
  * Autor: Sascha Hlusiak
  *
- * Hauptprogramm eines dedizierten Blokus Clients!!
+ * Hauptprogramm eines dedizierten Freebloks Clients!!
  * Das Programm verbindet sich zu einem Server und spielt
  * fuer eine angegebene Anzahl Spieler.
  **/
@@ -248,7 +248,7 @@ int main(int argc,char ** argv)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2,0),&wsadata);
 #endif
-	printf("This is the Dedicated Blokus Client. \n");
+	printf("This is the Dedicated Freebloks Client. \n");
 	printf("Show help with `client --help`\n");
 	printf("Connecting to %s... ", server);
 

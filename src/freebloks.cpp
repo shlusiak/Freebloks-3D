@@ -1,5 +1,5 @@
 /**
- * blokus.cpp
+ * freebloks.cpp
  * Autor: Sascha Hlusiak
  *
  * Hauptprogramm! Hier befindet sich die main() Routine

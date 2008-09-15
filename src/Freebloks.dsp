@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="Blokus" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="Freebloks" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** NICHT BEARBEITEN **
 
 # TARGTYPE "Win32 (x86) Application" 0x0101
 
-CFG=Blokus - Win32 Debug
+CFG=Freebloks - Win32 Debug
 !MESSAGE Dies ist kein gültiges Makefile. Zum Erstellen dieses Projekts mit NMAKE
 !MESSAGE verwenden Sie den Befehl "Makefile exportieren" und führen Sie den Befehl
 !MESSAGE 
-!MESSAGE NMAKE /f "Blokus.mak".
+!MESSAGE NMAKE /f "Freebloks.mak".
 !MESSAGE 
 !MESSAGE Sie können beim Ausführen von NMAKE eine Konfiguration angeben
 !MESSAGE durch Definieren des Makros CFG in der Befehlszeile. Zum Beispiel:
 !MESSAGE 
-!MESSAGE NMAKE /f "Blokus.mak" CFG="Blokus - Win32 Debug"
+!MESSAGE NMAKE /f "Freebloks.mak" CFG="Freebloks - Win32 Debug"
 !MESSAGE 
 !MESSAGE Für die Konfiguration stehen zur Auswahl:
 !MESSAGE 
-!MESSAGE "Blokus - Win32 Release" (basierend auf  "Win32 (x86) Application")
-!MESSAGE "Blokus - Win32 Debug" (basierend auf  "Win32 (x86) Application")
+!MESSAGE "Freebloks - Win32 Release" (basierend auf  "Win32 (x86) Application")
+!MESSAGE "Freebloks - Win32 Debug" (basierend auf  "Win32 (x86) Application")
 !MESSAGE 
 
 # Begin Project
@@ -29,7 +29,7 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "Blokus - Win32 Release"
+!IF  "$(CFG)" == "Freebloks - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -56,7 +56,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /machine:I386
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib glu32.lib opengl32.lib ws2_32.lib /nologo /subsystem:windows /machine:I386
 
-!ELSEIF  "$(CFG)" == "Blokus - Win32 Debug"
+!ELSEIF  "$(CFG)" == "Freebloks - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -87,8 +87,8 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "Blokus - Win32 Release"
-# Name "Blokus - Win32 Debug"
+# Name "Freebloks - Win32 Release"
+# Name "Freebloks - Win32 Debug"
 # Begin Group "Quellcodedateien"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -98,11 +98,11 @@ SOURCE=.\about.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\blokus.cpp
+SOURCE=.\freebloks.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\Blokus.rc
+SOURCE=.\Freebloks.rc
 # End Source File
 # Begin Source File
 
@@ -326,7 +326,7 @@ SOURCE=.\window.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=.\Blokus.ico
+SOURCE=.\Freebloks.ico
 # End Source File
 # End Group
 # End Target
