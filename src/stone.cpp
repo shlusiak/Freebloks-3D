@@ -33,7 +33,7 @@ void CStone::init(const int shape){
 
 const TSingleStone CStone::get_stone_field(const int y, const int x)const{
 	#ifdef _DEBUG
-		if (!is_position_inside_stone(y,x)) error_exit("Stone field mit is_position_inside_stone überprüfen!!", 23);
+		if (!is_position_inside_stone(y,x)) error_exit("Stone field mit is_position_inside_stone ï¿½berprï¿½fen!!", 23);
 	#endif
 	if (CStone::m_mirror_counter == 0){
 		if (CStone::m_rotate_counter == 0){
@@ -99,8 +99,8 @@ const int CStone::calculate_possible_turns_in_position(const CSpiel* spiel, cons
 	int mirror;
 	int count = 0;
 	
-	int rotate_count = CStone::m_rotate_counter;///debug siehe unten
-	int mirror_count = CStone::m_mirror_counter;///debug siehe unten
+	const int rotate_count = CStone::m_rotate_counter;///debug siehe unten
+	const int mirror_count = CStone::m_mirror_counter;///debug siehe unten
 
 	if (STONE_MIRRORABLE[CStone::m_shape] == MIRRORABLE_IMPORTANT) mirror = 1;
 	else mirror = 0;

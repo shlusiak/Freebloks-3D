@@ -207,9 +207,9 @@ int CKi::get_ultimate_points(CSpiel* follow_situation, const char playernumber, 
 		if (p != playernumber){
 			if (p != follow_situation->get_teammate(playernumber)){
 				summe -= follow_situation->get_position_points(p);
-				if (p == follow_situation->get_nemesis(playernumber)){
+//				if (p == follow_situation->get_nemesis(playernumber)){
 				//TODO: nemesis ber�cksichtigen
-				}
+//				}
 			}else{
 				//TODO: teammate ber�cksichtigen
 			}
