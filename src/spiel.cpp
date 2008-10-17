@@ -72,14 +72,14 @@ void CSpiel::set_stone_numbers(int einer, int zweier, int dreier, int vierer, in
 void CSpiel::set_teams(int player_team1_1, int player_team1_2, int player_team2_1, int player_team2_2){
 	
 	#ifdef _DEBUG 
-		//Überprüfung!
+		//ï¿½berprï¿½fung!
 		for (int p = 0; p < PLAYER_MAX; p++){
 			int count = 0;
 			if (player_team1_1 == p) count++;
 			if (player_team1_2 == p) count++;
 			if (player_team2_1 == p) count++;
 			if (player_team2_2 == p) count++;
-			if (count != 1) error_exit("Ungültige teamübergabe!", 20);
+			if (count != 1) error_exit("Ungï¿½ltige teamï¿½bergabe!", 20);
 		}
 	#endif
 
@@ -96,7 +96,7 @@ void CSpiel::set_teams(int player_team1_1, int player_team1_2, int player_team2_
 
 
 
-//für folgesituationen von CTurn
+//fï¿½r folgesituationen von CTurn
 CSpiel::CSpiel(int vorher_playernumber, const CSpiel* vorher_situation, const CTurn* turn){
 	CSpiel::m_field_size_x = vorher_situation->get_field_size_x();
 	CSpiel::m_field_size_y = vorher_situation->get_field_size_y();
@@ -166,20 +166,20 @@ CTurn* CSpiel::get_ki_turn(int playernumber, int ki_fehler){
 
 
 
-/** rückgabe ändern in bool?! **/
+/** rï¿½ckgabe ï¿½ndern in bool?! **/
 TSingleField CSpiel::is_valid_turn(CStone* stone, int playernumber, int startY, int startX)const{
 	#ifdef _DEBUG
 		if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
 	#endif
 	TSingleField valid = FIELD_DENIED;
 	TSingleField field_value;
-	if (!stone->get_available()) return FIELD_DENIED; //eventuell auslagern
+
 	for (int y = 0; y < stone->get_stone_size(); y++){
 		for (int x = 0; x < stone->get_stone_size(); x++){
 			if (stone->get_stone_field(y,x) != STONE_FIELD_FREE) {
 				if (!is_position_inside_field(y + startY, x + startX)) return FIELD_DENIED;
 
-				/*TODO::: eventuell ein array übergeben*/
+				/*TODO::: eventuell ein array ï¿½bergeben*/
 				field_value = CSpiel::get_game_field (playernumber, y + startY , x + startX);
 				if (field_value == FIELD_DENIED) return FIELD_DENIED;
 				if (field_value == FIELD_ALLOWED) valid = FIELD_ALLOWED;
@@ -221,7 +221,7 @@ void CSpiel::set_single_stone_for_player(const int playernumber, const int start
 
 
 
-/** rückgabe zu bool?! **/
+/** rï¿½ckgabe zu bool?! **/
 TSingleField CSpiel::set_stone(const CTurn* turn){
 	#ifdef _DEBUG
 		if (turn == 0) error_exit("turn ist nullpointer!", 20); //debug
@@ -235,7 +235,7 @@ TSingleField CSpiel::set_stone(const CTurn* turn){
 
 
 
-/** rückgabe zu bool?! **/
+/** rï¿½ckgabe zu bool?! **/
 TSingleField CSpiel::set_stone(CStone* stone, int playernumber, int startY, int startX){
 #ifdef _DEBUG
 	if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
@@ -271,7 +271,7 @@ void CSpiel::undo_turn(CTurnpool* turnpool){
 				if (stone->get_stone_field(y, x) != STONE_FIELD_FREE){
 					if (CSpiel::get_game_field(turn->get_y() + y, turn->get_x() + x) != turn->get_playernumber()) {
 						printf("y: %d, x: %d\n", turn->get_y() + y, turn->get_x() +x);
-						error_exit("Übergebener Turnpool fehlerhaft (undo turn)", 44);//return false;			
+						error_exit("ï¿½bergebener Turnpool fehlerhaft (undo turn)", 44);//return false;			
 					}
 				}
 			}
