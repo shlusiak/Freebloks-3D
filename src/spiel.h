@@ -53,7 +53,6 @@ class CSpiel{
 		
 		const int get_number_of_possible_turns(const int playernumber)const;
 		const int get_number_of_allowed_fields(const int playernumber)const ;
-		const int get_number_of_denied_fields(const int playernumber)const ;
 		const int get_stone_points_left(const int playernumber)const ;
 		const int get_position_points(const int playernumber)const ;
 		const int get_stone_count(const int playernumber)const ;
@@ -79,10 +78,10 @@ class CSpiel{
 		CPlayer* get_player(const int playernumber);
 		TSingleField is_valid_turn(CStone* stone, int player, int y, int x)const;
 		
-		const TSingleField get_game_field(const int playernumber, const int y, const int x)const; //für spielerrückgaben
-		const TSingleField get_game_field(const int y, const int x)const; //für feldrückgaben
+		const TSingleField get_game_field(const int playernumber, const int y, const int x)const; //fï¿½r spielerrï¿½ckgaben
+		const TSingleField get_game_field(const int y, const int x)const; //fï¿½r feldrï¿½ckgaben
 		
-		const char get_game_field_value(const int y, const int x)const; //für übergabe an andere spiel-klassen
+		const char get_game_field_value(const int y, const int x)const; //fï¿½r ï¿½bergabe an andere spiel-klassen
 		TSingleField* get_field_pointer()const;
 		
 		TSingleField set_stone(CStone* stone, int playernumber, int y, int x);
@@ -94,7 +93,7 @@ class CSpiel{
 
 
 inline 
-//für folgesituationen von CTurn
+//fï¿½r folgesituationen von CTurn
 const char CSpiel::get_game_field_value(const int y, const int x)const{
 	return CSpiel::m_game_field[y * CSpiel::m_field_size_x + x];
 }
@@ -201,14 +200,6 @@ const int CSpiel::get_number_of_possible_turns(const int playernumber)const{
 		if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
 	#endif
 	return CSpiel::m_player[playernumber].get_number_of_possible_turns();
-}
-
-inline
-const int CSpiel::get_number_of_denied_fields(const int playernumber)const{
-	#ifdef _DEBUG
-		if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
-	#endif
-	return CSpiel::m_player[playernumber].get_number_of_denied_fields();
 }
 
 inline

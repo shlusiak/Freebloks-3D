@@ -19,7 +19,6 @@ class CPlayer{
 		int m_number_of_possible_turns;
 		int m_position_points;
 		int m_number_of_allowed_fields;
-		int m_number_of_denied_fields;
 
 		int m_teammate;
 		int m_nemesis;
@@ -30,16 +29,15 @@ class CPlayer{
 		
 		CPlayer();
 
-		void init(const CSpiel* spiel, const int playernumber); //unbedingt ausführen!
+		void init(const CSpiel* spiel, const int playernumber); //unbedingt ausfï¿½hren!
 		void refresh_data(const CSpiel* spiel);	//wird von init automatsich aufgerufen!
-												//berechnet jetzt auch die möglichen züge!
+												//berechnet jetzt auch die mï¿½glichen zï¿½ge!
 
 		const int get_number()const; //liefert jetzt einen wert von 0 bis 3!
 		const int get_stone_points_left()const;
-		const int get_position_points()const; //gibt eine situationsbewertung zurück
+		const int get_position_points()const; //gibt eine situationsbewertung zurï¿½ck
 		const int get_number_of_possible_turns()const;
 		const int get_number_of_allowed_fields()const;
-		const int get_number_of_denied_fields()const;
 		const int get_stone_count()const;
 		
 		const int get_teammate()const;
@@ -49,7 +47,7 @@ class CPlayer{
 
 		CStone* get_stone(int stonenumber); //stonenumber von 0 bis (STONE_COUNT_MAX-1)!
 				
-		void init_recycle_player(const CPlayer* player_to_copy); //für folgesituationenen
+		void init_recycle_player(const CPlayer* player_to_copy); //fï¿½r folgesituationenen
 
 };
 
@@ -64,11 +62,6 @@ CPlayer::CPlayer()
 inline 
 CStone* CPlayer::get_stone(const int stonenumber){ 
 	return &CPlayer::m_stone[stonenumber];
-}
-
-inline
-const int CPlayer::get_number_of_denied_fields()const{
-	return CPlayer::m_number_of_denied_fields;
 }
 
 inline
