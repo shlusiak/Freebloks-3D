@@ -40,7 +40,6 @@ void CPlayer::refresh_data(const CSpiel* spiel){
 	CPlayer::m_number_of_possible_turns = 0;
 	CPlayer::m_position_points = 0;
 	CPlayer::m_stone_count = 0;
-	CPlayer::m_number_of_allowed_fields = 0;	
 
 	for (int n = 0; n < STONE_COUNT_ALL_SHAPES; n++){
 		CStone* stone = &CPlayer::m_stone[n];

@@ -52,7 +52,6 @@ class CSpiel{
 
 		
 		const int get_number_of_possible_turns(const int playernumber)const;
-		const int get_number_of_allowed_fields(const int playernumber)const ;
 		const int get_stone_points_left(const int playernumber)const ;
 		const int get_position_points(const int playernumber)const ;
 		const int get_stone_count(const int playernumber)const ;
@@ -200,14 +199,6 @@ const int CSpiel::get_number_of_possible_turns(const int playernumber)const{
 		if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
 	#endif
 	return CSpiel::m_player[playernumber].get_number_of_possible_turns();
-}
-
-inline
-const int CSpiel::get_number_of_allowed_fields(const int playernumber)const{
-	#ifdef _DEBUG
-		if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
-	#endif
-	return CSpiel::m_player[playernumber].get_number_of_allowed_fields();
 }
 
 inline
