@@ -18,7 +18,6 @@ class CPlayer{
 		int m_stone_count;
 		int m_number_of_possible_turns;
 		int m_position_points;
-		int m_number_of_allowed_fields;
 
 		int m_teammate;
 		int m_nemesis;
@@ -37,7 +36,6 @@ class CPlayer{
 		const int get_stone_points_left()const;
 		const int get_position_points()const; //gibt eine situationsbewertung zur�ck
 		const int get_number_of_possible_turns()const;
-		const int get_number_of_allowed_fields()const;
 		const int get_stone_count()const;
 		
 		const int get_teammate()const;
@@ -64,10 +62,6 @@ CStone* CPlayer::get_stone(const int stonenumber){
 	return &CPlayer::m_stone[stonenumber];
 }
 
-inline
-const int CPlayer::get_number_of_allowed_fields()const{
-	return CPlayer::m_number_of_allowed_fields;
-}
 
 inline
 const int CPlayer::get_number_of_possible_turns()const{
