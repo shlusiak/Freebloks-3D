@@ -20,6 +20,7 @@
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -59,6 +60,44 @@ CSpielClient::~CSpielClient()
 
 const char* CSpielClient::Connect(const char* host,int port, int blocking)
 {
+	if (port == 0)
+	{
+		sockaddr_un addr;
+
+		errno=0;
+		addr.sun_family=AF_UNIX;
+		strcpy(addr.sun_path, host);
+	
+		/* Ein Socket erstellen */
+		client_socket=socket(PF_UNIX,SOCK_STREAM,0);
+
+		if (client_socket==-1)return strerror(errno);
+		/* Jetzt versuchen, eine Verbindung zum Server aufzubauen */
+		if (connect(client_socket,(sockaddr*)&addr,sizeof(addr))==-1)
+		{
+			/* Verbindungsaufbau Fehlgeschlagen */
+			closesocket(client_socket);
+			client_socket=0;
+		#ifdef WIN32
+			return "Connection refused";
+		#else
+			return strerror(errno);
+		#endif
+		}
+		if (blocking == 0)
+		{
+#ifdef WIN32
+			unsigned long block=1;
+			ioctlsocket(client_socket,FIONBIO,&block);
+#else
+			fcntl(client_socket,F_SETFL,O_NONBLOCK);
+#endif
+		}
+
+		return NULL;
+	}
+
+
 #if (defined HAVE_GETADDRINFO) || (defined WIN32)
 	/* Dies beinhaltet auch IPv6 */
 	sockaddr_in *addr=NULL;
