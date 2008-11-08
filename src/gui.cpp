@@ -151,7 +151,7 @@ bool CGUI::parseCmdLine(int argc,char **argv)
 				printHelp();
 				return false;
 			}
-			if (atoi(argv[i])<1){
+			if (atoi(argv[i])<0){
 				printf("--port: Invalid parameter. Excepting port number\n\n");
 				printHelp();
 				return false;
@@ -204,6 +204,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 {
 	int r;
 	const char *err;
+	char socket_path[256];
 
 	/* Alle vorhandenen StoneEffects loeschen (bis auf Kopf der Liste) */
 	if (effects)effects->clear(); else effects=new CStoneEffect();
@@ -217,11 +218,14 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	/* Einen lokalen Server in einem sekundaerem Thread
 	   mit den uebergebenen Parametern starten. Der Server laeuft an
 	   Port (TCP_PORT+1) */
-	r=CSpielServer::run_server("127.0.0.1",TCP_PORT+1,PLAYER_MAX,diff,width,height,gamemode,einer,zweier,dreier,vierer,fuenfer,ki_threads);
+//	r=CSpielServer::run_server("127.0.0.1",TCP_PORT+1,PLAYER_MAX,diff,width,height,gamemode,einer,zweier,dreier,vierer,fuenfer,ki_threads);
+	sprintf(socket_path, P_tmpdir"/freebloks-%d", rand()%131072);
+
+	r=CSpielServer::run_server(socket_path,0,PLAYER_MAX,diff,width,height,gamemode,einer,zweier,dreier,vierer,fuenfer,ki_threads);
 	if (r!=0)
 	{
 		/* Bei Miserfolg Fehlerdialog ausgeben. */
-		char t[300];
+		char t[512];
 		sprintf(t,"Could not run local server:\n%s.",strerror(errno));
 		widgets.addSubChild(new CMessageBox(270,150,"Error",t));
 		/* Aber nicht abbrechen, evtl. laeuft ein Server trotzdem. */
@@ -231,7 +235,8 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	spiel=new CGUISpielClient(this);
 
 	/* SpielClient zu lokalen Server connecten */
-	err=spiel->Connect("127.0.0.1",TCP_PORT+1);
+	err=spiel->Connect(socket_path, 0);
+	unlink(socket_path);
 	/* Timer auf 0 setzen, damit das Connect keinen Sprung in der Animation
 	   bewirkt. */
 	timer.reset();
