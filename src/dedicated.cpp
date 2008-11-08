@@ -129,7 +129,7 @@ static void parseParams(int argc,char **argv)
 				exit(1);
 			}
 			port=atoi(argv[i]);
-			if (port<1 || port>65535)
+			if (port<0 || port>65535)
 			{
 				printf("%s: Invalid port number (%d)\n",argv[i-1],port);
 				exit(1);
