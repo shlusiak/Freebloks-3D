@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -686,6 +687,45 @@ int CServerListener::init(const char* interface_,int port)
 {
 	errno=0;
 
+	if (port == 0)
+	{
+		int listen_socket;
+		int i;
+		struct sockaddr_un my_addr;
+		errno=0;
+
+		num_listen_sockets = 0;
+		listen_socket=socket(PF_UNIX,SOCK_STREAM,0);
+		if (listen_socket <= 0)
+			return errno;
+
+		my_addr.sun_family=AF_UNIX;
+		strcpy(my_addr.sun_path, interface_);
+		i = 1;
+		if (setsockopt(listen_socket,SOL_SOCKET,SO_REUSEADDR,&i,sizeof(i))==-1)
+		{}
+		if (bind(listen_socket,(struct sockaddr*)&my_addr,sizeof(my_addr))!=0)
+		{
+			closesocket(listen_socket);
+			if (errno) return errno;
+		}
+		if (listen(listen_socket,5)==0)
+		{
+			listen_sockets[num_listen_sockets++] = listen_socket;
+		} else {
+			closesocket(listen_socket);
+		}
+		if (num_listen_sockets == 0)
+		{
+			if (errno) return errno;
+			return -1;
+		}
+		/* Erfolg */
+
+		return 0;
+	}
+
+
 #if (defined HAVE_GETADDRINFO) || (defined WIN32)
 	addrinfo hints,*res,*ressave;
 	char s_port[32];
@@ -712,13 +752,14 @@ int CServerListener::init(const char* interface_,int port)
 			int i;
 			/* Unter Linux doch SO_REUSEADDR verwenden, damit bind auch erfolgt, wenn ein Socket
 			  mit dem Port bereits existiert. */
+			i = 1;
 			if (setsockopt(listen_socket,SOL_SOCKET,SO_REUSEADDR,&i,sizeof(i))==-1)
 			{}
 #endif
 			if (bind(listen_socket,res->ai_addr,res->ai_addrlen)==0)
 			{
 				/* Mit listen einkommende Verbindungen akzeptieren */
-				if (listen(listen_socket,1)==0)
+				if (listen(listen_socket,5)==0)
 				{
 					listen_sockets[num_listen_sockets++] = listen_socket;
 				} else {
@@ -762,7 +803,7 @@ int CServerListener::init(const char* interface_,int port)
 
 	/* Socket an Quelladdresse binden */
 	if (bind(listen_socket[0],(sockaddr*)&addr,sizeof(addr))==-1)return errno;
-	if (listen(listen_sockets[0],1)==-1)return errno;
+	if (listen(listen_sockets[0],5)==-1)return errno;
 #endif
 
 	/* Erfolg */
