@@ -266,7 +266,7 @@ void CSpiel::undo_turn(CTurnpool* turnpool){
 	#ifdef _DEBUG
 		//check valid
 		if (turn == NULL) error_exit("Kein turn", 42); 
-		for (x = 0; y < stone->get_stone_size(); x++){
+		for (x = 0; x < stone->get_stone_size(); x++){
 			for (y = 0; y < stone->get_stone_size(); y++){
 				if (stone->get_stone_field(y, x) != STONE_FIELD_FREE){
 					if (CSpiel::get_game_field(turn->get_y() + y, turn->get_x() + x) != turn->get_playernumber()) {
