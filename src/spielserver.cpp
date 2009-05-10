@@ -693,6 +693,10 @@ int CServerListener::init(const char* interface_,int port)
 		int i;
 		struct sockaddr_un my_addr;
 		errno=0;
+		if (interface_ == NULL) {
+			errno = EINVAL;
+			return -1;
+		}
 
 		num_listen_sockets = 0;
 		listen_socket=socket(PF_UNIX,SOCK_STREAM,0);
