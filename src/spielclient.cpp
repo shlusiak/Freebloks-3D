@@ -60,6 +60,7 @@ CSpielClient::~CSpielClient()
 
 const char* CSpielClient::Connect(const char* host,int port, int blocking)
 {
+#ifndef WIN32
 	if (port == 0)
 	{
 		sockaddr_un addr;
@@ -78,24 +79,16 @@ const char* CSpielClient::Connect(const char* host,int port, int blocking)
 			/* Verbindungsaufbau Fehlgeschlagen */
 			closesocket(client_socket);
 			client_socket=0;
-		#ifdef WIN32
-			return "Connection refused";
-		#else
 			return strerror(errno);
-		#endif
 		}
 		if (blocking == 0)
 		{
-#ifdef WIN32
-			unsigned long block=1;
-			ioctlsocket(client_socket,FIONBIO,&block);
-#else
 			fcntl(client_socket,F_SETFL,O_NONBLOCK);
-#endif
 		}
 
 		return NULL;
 	}
+#endif
 
 
 #if (defined HAVE_GETADDRINFO) || (defined WIN32)

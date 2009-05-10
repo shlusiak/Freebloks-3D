@@ -687,6 +687,7 @@ int CServerListener::init(const char* interface_,int port)
 {
 	errno=0;
 
+#ifndef WIN32
 	if (port == 0)
 	{
 		int listen_socket;
@@ -728,6 +729,7 @@ int CServerListener::init(const char* interface_,int port)
 
 		return 0;
 	}
+#endif
 
 
 #if (defined HAVE_GETADDRINFO) || (defined WIN32)
