@@ -115,12 +115,12 @@ void CSpielServer::delete_client(int index,bool notify)
 		{
 			logger->logHeader(stdout);
 			sprintf(c,"Client %d left\n",index);
-			printf(c);
+			printf("%s", c);
 			if (logger->logfile)
 			{
 				logger->logTime();
 				logger->logHeader();
-				fprintf(logger->logfile,c);
+				fprintf(logger->logfile,"%s", c);
 				logger->flush();
 			}
 		}

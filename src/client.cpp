@@ -169,7 +169,7 @@ void CKISpielClient::newCurrentPlayer(const int player)
 	CStone *stone;
 	if (turn == NULL)
 	{
-		printf("Player %d: Did not find a valid move\n");
+		printf("Player %d: Did not find a valid move\n", player);
 		return;
 	}
 	stone = get_current_player()->get_stone(turn->get_stone_number());
