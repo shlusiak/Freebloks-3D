@@ -38,7 +38,7 @@ private:
 	CNewGameAdvancedDialog* advanced;
 	bool multiplayer;
 	CSpinBox* numberMaxPlayers;
-	CCheckBox* multithreading;
+	CSpinBox* multithreading;
 public:
 	CNewGameDialog(CGUI* gui,bool multiplayer);
 	virtual int processMouseEvent(TMouseEvent *event);

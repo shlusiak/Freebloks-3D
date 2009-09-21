@@ -34,7 +34,7 @@ static const int maxNumberStones=10;
 static int numberOfStones[5]={1,1,1,1,1};
 
 /* Multithreading in der KI verwenden, oder nicht */
-static bool ki_multithreading=false;
+static int ki_multithreading=1;
 
 /* Ausgewaehlter Server */
 static char* mp_oldserver=NULL;
@@ -42,7 +42,6 @@ static char* mp_oldserver=NULL;
 /* Groesse des Feldes */
 static int size_x=20,size_y=20;
 
-#define MULTITHREADING_THREADS (2)
 
 
 /**
@@ -141,7 +140,7 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 	text = "Local Players";
 	addChild(new CStaticText(30,130,text,this));
 	
-	localplayer = new CSpinBox(180,130,40,20,5010,0,4,1,this);
+	localplayer = new CSpinBox(150,130,40,20,5010,0,4,1,this);
 	addChild(localplayer);
 
 	if (multiplayer)
@@ -166,7 +165,8 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 
 	for (i=0;i<sizeof(numberOfStones)/sizeof(numberOfStones[0]);i++)
 		this->numberOfStones[i]=::numberOfStones[i];
-	multithreading=new CCheckBox(150,h-70,180,20,5011,"Use Multithreading",false,this);
+	addChild(new CStaticText(30,h-70,"Use Threads",this));
+	multithreading=new CSpinBox(150,h-73,40,20,5011,1,8,::ki_multithreading,this);
 	addChild(multithreading);
 
 	addChild(new CButton(10,h-35,90,25,2000,this,"Advanced"));
@@ -241,13 +241,12 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 			addSubChild(advanced=new CNewGameAdvancedDialog(size_x,size_y,numberOfStones));
 			advanced->checkConsistency();
 		}else{
-			int ki_threads;
 			::numberOfStones[0]=this->numberOfStones[0];
 			::numberOfStones[1]=this->numberOfStones[1];
 			::numberOfStones[2]=this->numberOfStones[2];
 			::numberOfStones[3]=this->numberOfStones[3];
 			::numberOfStones[4]=this->numberOfStones[4];
-			::ki_multithreading=multithreading->getCheck();
+			::ki_multithreading=multithreading->getValue();
 
 			::size_x=this->size_x;
 			::size_y=this->size_y;
@@ -256,10 +255,9 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 			if (min<=4)this->numberOfStones[3]=0;
 			if (min<=3)this->numberOfStones[2]=0;
 
-			ki_threads=multithreading->getCheck()?MULTITHREADING_THREADS:1;
 			if (!multiplayer)
-				GUI->startSingleplayerGame(m,localplayer->getValue() ,kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],ki_threads);
-			else GUI->startMultiplayerGame(m, numberMaxPlayers->getValue(), localplayer->getValue(), kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],ki_threads);
+				GUI->startSingleplayerGame(m,localplayer->getValue() ,kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading);
+			else GUI->startMultiplayerGame(m, numberMaxPlayers->getValue(), localplayer->getValue(), kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading);
 
 		return 1;
 		}

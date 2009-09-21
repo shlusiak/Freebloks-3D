@@ -739,7 +739,7 @@ int CServerListener::init(const char* interface_,int port)
 	sprintf(s_port,"%d",port);
 
 	memset(&hints,0,sizeof(hints));
-	hints.ai_flags=AI_PASSIVE;
+	hints.ai_flags=AI_PASSIVE | AI_ADDRCONFIG | AI_ALL;
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_STREAM;
 
