@@ -44,7 +44,7 @@ private:
 	int8 stone_numbers[STONE_SIZE_MAX];
 
 	/* ggf. Logdatei */
-	CGameLogger* logger;
+	CLogger* logger;
 
 
 	/* Fuege einen neuen Client der Liste bekannter Clients hinzu */
@@ -91,7 +91,7 @@ public:
 	void set_stone_numbers(int einer,int zweier,int dreier,int vierer,int fuenfer);
 
 	/* Logdatei setzen */
-	void setLogger(CGameLogger* l) { logger=l; }
+	void setLogger(CLogger* l) { logger=l; }
 
 	/* Startet einen Server lokal in einem Thread */
 	static int run_server(const char* interface_,int port,int maxhumans,int ki_mode,int width,int height,GAMEMODE gamemode,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads);
@@ -111,6 +111,8 @@ private:
 
 	/* Der CSpielServer, den der Listener aufbaut */
 	CSpielServer* server;
+	/* logger */
+	CLogger* logger;
 public:
 	CServerListener();
 	~CServerListener();
@@ -130,6 +132,9 @@ public:
 
 	/* Gibt aktuell erbautes Spiel zurueck */
 	CSpielServer* get_game() { return server; }
+	
+	/* Logdatei setzen */
+	void setLogger(CLogger* l) { logger=l; }
 };
 
 

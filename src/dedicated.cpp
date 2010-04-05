@@ -41,6 +41,8 @@ static HANDLE mutex;
 static pthread_mutex_t mutex;
 #endif
 static char* logfile = NULL;
+static CStdoutWriter logWriter;
+
 #ifndef _WIN32
 	static uid_t uid = 0;
 	static gid_t gid = 0;
@@ -355,34 +357,24 @@ void* gameRunThread(void* param)
 #endif
 {
 	CSpielServer* game=(CSpielServer*)param;
-
+	CGameLogger logger((CLogWriter*)&logWriter, games_ran);
+	
+	game->setLogger(&logger);
+	
 	lock_mutex();
-	CGameLogger logger(games_ran);
 	/* Das Spiel laeuft jetzt */
-	logger.logHeader(stdout);
-	printf("Game started with %d clients / %d players.\n",game->num_clients(),game->num_players());
-	if (logger.logfile)
-	{
-		logger.logTime();
-		logger.logHeader();
-		fprintf(logger.logfile,"Game started with %d clients / %d players. (%d games running)\n",game->num_clients(),game->num_players(),games_running);
-		logger.flush();
-	}
+	logger.logTime();
+	logger.logLine("Game started with %d clients / %d players. (%d games running)",game->num_clients(),game->num_players(),games_running);
 	unlock_mutex();
 
 	game->run();
 
 	lock_mutex();
 	games_running--;
-	logger.logHeader(stdout);
-	printf("Game terminating.\n");
-	if (logger.logfile)
-	{
-		logger.logTime();
-		logger.logHeader();
-		fprintf(logger.logfile,"Game terminating. (%d games running)\n",games_running);
-		logger.flush();
-	}
+
+	logger.logTime();
+	logger.logLine("Game terminating. (%d games running)",games_running);
+
 	unlock_mutex();
 	delete game;
 
@@ -397,6 +389,7 @@ int main(int argc,char ** argv)
 	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
 	   und Clients connecten laesst */
 	CServerListener* listener=new CServerListener();
+	CGameLogger logger((CLogWriter*)&logWriter, 0);
 
 	/* Kommandozeilenparameter verarbeiten */
 	parseParams(argc,argv);
@@ -425,9 +418,16 @@ int main(int argc,char ** argv)
 
 	if (logfile) 
 	{
+		CLogFileWriter *fw = new CLogFileWriter();
+		logWriter.addLogWriter(fw);
 		printf("Logging to: %s\n",logfile);
-		CLogger::createFile(logfile);
+		fw->createFile(logfile);
 	}
+
+
+	logger.logTime();
+	logger.logLine("Server starting\n");
+
 
 	/* Listener fuer Akzeptieren von Verbindungen einrichten */
 	ret=listener->init(_interface,port);
@@ -438,6 +438,8 @@ int main(int argc,char ** argv)
 	    return -1;
 	}
 	init_mutex();
+	
+	listener->setLogger(&logger);
 
 	/* Dedizierter Server laeuft endlos */
 	while (true)
@@ -448,7 +450,7 @@ int main(int argc,char ** argv)
 		/* Groesse setzen */
 		listener->get_game()->set_field_size_and_new(height,width);
 		lock_mutex();
-		listener->get_game()->setLogger(new CGameLogger(games_ran+1));
+		listener->get_game()->setLogger((CLogger*)&logger);
 		unlock_mutex();
 
 		/* Ein Spiel wurde erstellt, der Listener lauscht. Jetzt Spiel fuellen lassen
@@ -473,27 +475,18 @@ int main(int argc,char ** argv)
 		if (games_running>=max_running_games)
 		{
 			listener->close();
-			printf("!! Stopping to accept new connections due to too many running games\n");
-			fflush(stdout);
-			if (CLogger::logfile)
-			{
-				CLogger::logTime();
-				fprintf(CLogger::logfile,"!! Stopping accepting new connections due to too many running games\n");
-				CLogger::flush();
-			}
+			
+			logger.logTime();
+			logger.logLine("!! Stopping accepting new connections due to too many running games");
+
 			while (games_running>=max_running_games)
 			{
 				unlock_mutex();
 				CTimer::sleep(2000);
 				lock_mutex();
 			}
-			printf("!! Resuming to accept new connections\n");
-			if (CLogger::logfile)
-			{
-				CLogger::logTime();
-				fprintf(CLogger::logfile,"!! Resuming accepting new connections\n");
-				CLogger::flush();
-			}
+			logger.logTime();
+			logger.logLine("!! Resuming accepting new connections");
 
 			ret=listener->init(_interface,port);
 			if (ret!=0)
@@ -509,8 +502,6 @@ int main(int argc,char ** argv)
 	// TODO: Diese Codezeilen werden doch eh nie erreicht, aber egal.
 	delete listener;
 	destroy_mutex();
-	CLogger::flush();
-	CLogger::closeFile();
 
 #ifdef WIN32
 	/* Winsock sauber beenden */

@@ -14,47 +14,122 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include "logger.h"
 
 
+CLogWriter::~CLogWriter()
+{
+	if (next)
+		delete next;
+	next = NULL;
+}
 
-FILE* CLogger::logfile=NULL;
+void CLogWriter::log(const char* fmt, va_list va) {
+	if (next) {
+		va_list vc;
+		va_copy(vc, va);
+		next->log(fmt, vc);
+		va_end(vc);
+	}
+}
+
+void CLogWriter::addLogWriter(CLogWriter* _next) {
+	CLogWriter* cur = this;
+	while (cur->next)
+		cur = cur->next;
+	cur->next = _next;
+}
 
 
-void CLogger::createFile(const char* filename)
+
+void CStdoutWriter::log(const char* fmt, va_list va) {
+	CLogWriter::log(fmt, va);
+	
+	vprintf(fmt,va);
+}
+
+
+
+
+CLogFileWriter::CLogFileWriter()
+{
+	logfile = NULL;
+}
+
+CLogFileWriter::~CLogFileWriter()
+{
+	closeFile();
+}
+
+void CLogFileWriter::createFile(const char* filename)
 {
 	logfile=fopen(filename,"a");
 	if (logfile)
 	{
-		logTime();
-		fprintf(logfile,"Server starting\n");
-		flush();
+
 	} else {
 		perror("fopen: ");
 	}
 }
 
-void CLogger::closeFile()
+void CLogFileWriter::closeFile()
 {
 	if (logfile)
 	{
+		flush();
 		if (fclose(logfile))
 			perror("fclose: ");
 	}
 	logfile=NULL;
 }
 
-void CLogger::flush()
+void CLogFileWriter::flush()
 {
-	if (logfile) fflush(logfile);
+	if (logfile)
+		fflush(logfile);
 }
 
-/**
- * Schreibt die aktuelle Uhrzeit in die Datei
- **/
-void CLogger::logTime(FILE* file)
+void CLogFileWriter::log(const char* fmt, va_list va)
 {
-	if (file==NULL)return;
+	CLogWriter::log(fmt, va);
+	vfprintf(logfile, fmt,va);
+	flush();
+}
+
+
+
+void CLogger::logva(const char* fmt, va_list va)
+{
+	if (writer)
+		writer->log(fmt, va);
+}
+
+void CLogger::log(const char* fmt, ...)
+{
+	va_list va;
+	va_start(va,fmt);
+	logva(fmt, va);
+	va_end(va);
+}
+
+void CLogger::logLine(const char* fmt, ...)
+{
+	va_list va;
+	va_start(va,fmt);
+	logHeader();
+	logva(fmt, va);
+	if (fmt[strlen(fmt)-1]!='\n')
+		log("\n");
+	va_end(va);
+}
+
+
+/**
+ * Schreibt die aktuelle Uhrzeit
+ **/
+void CLogger::logTime()
+{
 	char zeitstring[256];
 	time_t zeit;
 	char *c;
@@ -62,23 +137,25 @@ void CLogger::logTime(FILE* file)
 	c=ctime(&zeit);
 	strcpy(zeitstring,c);
 	zeitstring[strlen(zeitstring)-1]='\0';
-	if (fprintf(file,"%s: ",zeitstring)==-1)
-		perror("fprintf: ");
+	log("         %s\n", zeitstring);
 }
 
 
 
 
-
-CGameLogger::CGameLogger(int _game_number)
+CGameLogger::CGameLogger(CLogWriter* _writer, int _game_number)
+:CLogger(_writer)
 {
 	game_number=_game_number;
 }
 
-void CGameLogger::logHeader(FILE* file)
+void CGameLogger::logHeader()
 {
-	if (file==NULL)return;
-	if (fprintf(file,"[%d]: ",game_number)==-1)
-		perror("fprintf: ");
+	if (game_number == 0) {
+		log("[-]: ", game_number);
+	} else {
+		log("[%d]: ", game_number);
+	}
 }
+
 

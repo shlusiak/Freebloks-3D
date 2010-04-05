@@ -1169,9 +1169,11 @@ void CGUI::render()
 		/* Dann Effekte rendern */
 		if (effects)effects->render();
 		/* Und die Steine aller 4 Spieler. */
-		for (int i=0;i<4;i++)
-		{
-			renderPlayerStones(i,1.0,false);
+		if (spiel) {
+			for (int i=0;i<4;i++)
+			{
+				renderPlayerStones(i,(spiel->isConnected() && spiel->current_player()!=-1)?1.0:0.3,false);
+			}
 		}
 	}
 

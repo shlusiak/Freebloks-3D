@@ -55,7 +55,6 @@ CSpielServer::CSpielServer(const int v_max_humans,const int v_ki_mode,const GAME
  **/
 CSpielServer::~CSpielServer()
 {
-	if (logger)delete logger;
 	for (int i=0;i<CLIENTS_MAX;i++)if (clients[i]!=0)
 		closesocket(clients[i]);
 }
@@ -83,6 +82,10 @@ void CSpielServer::add_client(int s)
 		char c[50];
 		/* Alle Clients ueber neuen Spieler informieren. */
 		sprintf(c,"Client %d joined",i);
+		if (logger)
+		{
+			logger->logLine(c);
+		}
 		send_server_msg(c);
 
 		/* Freien Platz gefunden, Client speichern */
@@ -111,18 +114,10 @@ void CSpielServer::delete_client(int index,bool notify)
 	if (notify)
 	{
 		char c[256];
+		sprintf(c,"Client %d left\n",index);
 		if (logger)
 		{
-			logger->logHeader(stdout);
-			sprintf(c,"Client %d left\n",index);
-			printf("%s", c);
-			if (logger->logfile)
-			{
-				logger->logTime();
-				logger->logHeader();
-				fprintf(logger->logfile,"%s", c);
-				logger->flush();
-			}
+			logger->logLine(c);
 		}
 		send_server_msg(c);
 	}
@@ -326,8 +321,9 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				/* Dann wird der naechste Spieler ermittelt*/
 				next_player();
 			}else{ // Spiel scheint nicht synchron zu sein
-				if (logger)logger->logHeader(stdout);
-				printf("Game seems to be out of sync.\n");
+				if (logger) {
+					logger->logLine("Game seems to be out of sync.\n");
+				}
 			}
 			/* Aktuellen Spieler den Clients mitteilen */
 			send_current_player();
@@ -354,15 +350,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 
 			if (logger)
 			{
-				logger->logHeader(stdout);
-				printf("Client %d: %s\n",client,((NET_CHAT*)data)->text);
-				if (logger->logfile)
-				{
-					logger->logTime();
-					logger->logHeader();
-					fprintf(logger->logfile,"Client %d: %s\n",client,((NET_CHAT*)data)->text);
-					logger->flush();
-				}
+				logger->logLine("Client %d: %s\n",client,((NET_CHAT*)data)->text);
 			}
 			break;
 
@@ -538,19 +526,15 @@ void CSpielServer::next_player()
 	send_all((NET_HEADER*)&data,sizeof(data),MSG_GAME_FINISH);
 
 	/* Statusmeldungen auf Konsole ausgeben (z.B. fuer dedicated Server) */
-	if (logger)logger->logHeader(stdout);
-	printf("-- Game finished! -- Took %.2f sek. --\n",timer.elapsed());
-	if (logger && logger->logfile){
-		logger->logTime();
-		logger->logHeader();
-		fprintf(logger->logfile,"-- Game finished! -- Took %.2f sek. --\n",timer.elapsed());
-		logger->flush();
+	if (logger){
+		logger->logLine("-- Game finished! -- Took %.2f sek. --\n",timer.elapsed());
 	}
 	for (i=0;i<PLAYER_MAX;i++)
 	{
 		CPlayer * player=get_player(i);
-		if (logger)logger->logHeader(stdout);
-		printf("Player %d has %d stones left and %d points.\n",i,get_stone_count(i),-player->get_stone_points_left());
+		if (logger) {
+			logger->logLine("Player %d has %d stones left and %d points.\n",i,get_stone_count(i),-player->get_stone_points_left());
+		}
 	}
 }
 
@@ -761,6 +745,14 @@ int CServerListener::init(const char* interface_,int port)
 			i = 1;
 			if (setsockopt(listen_socket,SOL_SOCKET,SO_REUSEADDR,&i,sizeof(i))==-1)
 			{}
+
+			if (res->ai_family == AF_INET6) {
+				i = 1;
+				if (setsockopt(listen_socket, IPPROTO_IPV6, IPV6_V6ONLY, &i, sizeof(i)) < 0) {
+					perror("setsockopt");
+				}
+			}
+
 #endif
 			if (bind(listen_socket,res->ai_addr,res->ai_addrlen)==0)
 			{
@@ -884,12 +876,12 @@ int CServerListener::wait_for_player(bool verbose)
 				char clienthost[NI_MAXHOST];
 				clienthost[0]='\0';
 
-				printf("Connection from: ");
-				if (CLogger::logfile)
-				{
-					CLogger::logTime();
-					fprintf(CLogger::logfile,"Connection from: ");
+				if (logger) {
+					logger->logTime();
+					logger->logHeader();
+					logger->log("Connection from: ");
 				}
+
 
 				/* Erst FQDN aufloesen */
 				retval = getnameinfo((sockaddr*)&client,l,
@@ -897,12 +889,8 @@ int CServerListener::wait_for_player(bool verbose)
 					NULL,0,
 					NI_NAMEREQD);
 
-				if (retval == 0)
-				{
-					printf("%s, ",clienthost);
-					if (CLogger::logfile)
-						fprintf(CLogger::logfile,"%s, ",clienthost);
-				}
+				if (retval == 0 && logger)
+					logger->log("%s, ",clienthost);
 
 				/* Dann IP aufloesen */
 				getnameinfo((sockaddr*)&client,l,
@@ -910,12 +898,8 @@ int CServerListener::wait_for_player(bool verbose)
 					NULL,0,
 					NI_NUMERICHOST);
 
-				printf("%s\n",clienthost);
-				if (CLogger::logfile)
-				{
-					fprintf(CLogger::logfile,"%s\n",clienthost);
-					CLogger::flush();
-				}
+				if (logger)
+					logger->log("%s\n",clienthost);
 #else
 				hostent *host;
 				host=gethostbyaddr((char*)&client.sin_addr.s_addr,sizeof(client.sin_addr.s_addr),AF_INET);
@@ -930,7 +914,6 @@ int CServerListener::wait_for_player(bool verbose)
 				printf("%d.%d.%d.%d\n",a,b,c,d);
 				if (CLogger::logfile)
 				{
-					CLogger::logTime();
 					fprintf(CLogger::logfile,"Connection from: ");
 					if (host)fprintf(CLogger::logfile,"%s, ",host->h_name);
 					fprintf(CLogger::logfile,"%d.%d.%d.%d\n",a,b,c,d);
@@ -955,7 +938,7 @@ int CServerListener::wait_for_player(bool verbose)
 void CServerListener::new_game(int max_humans,int ki_mode,GAMEMODE gamemode,int ki_threads)
 {
 //    if (server)delete server;
-    server=new CSpielServer(max_humans,ki_mode,gamemode);
-    server->set_ki_threads(ki_threads);
+	server=new CSpielServer(max_humans,ki_mode,gamemode);
+	server->set_ki_threads(ki_threads);
 }
 
