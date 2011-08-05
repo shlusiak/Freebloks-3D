@@ -16,23 +16,6 @@ void CPlayer::init(const CSpiel* spiel, const int playernumber){
 	}
 	CPlayer::refresh_data(spiel);
 }
-
-
-
-
-//*f�r followsituations CTurn
-void CPlayer::init_recycle_player(const CPlayer* player_to_copy){
-	CPlayer::m_number = player_to_copy->get_number();
-	CPlayer::m_nemesis = player_to_copy->get_nemesis();
-	CPlayer::m_teammate = player_to_copy->get_teammate();
-	memcpy(m_stone,player_to_copy->m_stone,sizeof(m_stone));
-// 	for (int i = 0; i < STONE_COUNT_ALL_SHAPES; i++){
-// 		CPlayer::m_stone[i].init(player_to_copy->get_stone(i));
-// 	}
-}
-
-
-
  
 void CPlayer::refresh_data(const CSpiel* spiel){
 	

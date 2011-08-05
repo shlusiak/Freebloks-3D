@@ -26,7 +26,7 @@ protected:
 	/* GUI zum Rendern der Steine */
 	CGUI *gui;
 	/* Der eigentliche Stein, auf den sich die Animation bezieht. */
-	CStone *stone;
+	CStone stone;
 	/* Und Spielernummer, dem der Stein gehoert. */
 	int player;
 public:

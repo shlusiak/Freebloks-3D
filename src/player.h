@@ -44,9 +44,6 @@ class CPlayer{
 		void set_nemesis(int playernumber);
 
 		CStone* get_stone(int stonenumber); //stonenumber von 0 bis (STONE_COUNT_MAX-1)!
-				
-		void init_recycle_player(const CPlayer* player_to_copy); //f�r folgesituationenen
-
 };
 
 

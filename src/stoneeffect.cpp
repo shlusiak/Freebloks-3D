@@ -23,7 +23,6 @@
  **/
 CStoneEffect::CStoneEffect()
 {
- 	stone=0;
 	gui=0;
 	next=0;
 	x=y=0;
@@ -41,8 +40,7 @@ CStoneEffect::CStoneEffect(CGUI *vgui,CStone *vstone,int vplayer,int vx,int vy)
 	gui=vgui;
 
 	/* Den stone kopieren und uebernehmen */
-	stone=new CStone;
-	stone->init(vstone);
+	stone=*vstone;
 }
 
 /**
@@ -56,9 +54,8 @@ CStoneEffect::CStoneEffect(CGUI *vgui,CTurn *turn,int vplayer)
 	player=vplayer;
 	gui=vgui;
 	/* Stone kopieren und Daten aus CTurn uebernehmen */
-	stone=new CStone;
-	stone->init(turn->get_stone_number());
-	stone->mirror_rotate_to(turn->get_mirror_count(),turn->get_rotate_count());
+	stone.init(turn->get_stone_number());
+	stone.mirror_rotate_to(turn->get_mirror_count(),turn->get_rotate_count());
 }
 
 /**
@@ -66,8 +63,6 @@ CStoneEffect::CStoneEffect(CGUI *vgui,CTurn *turn,int vplayer)
  **/
 CStoneEffect::~CStoneEffect()
 {
-	/* Dynamisch erstellten stone entfernen, wenn vorhanden. */
-	if (stone)delete stone;
 	/* Wenn Nachfolger existieren, diese mit entfernen (rekursiv) */
 	if (next)delete next;
 	next=0;
@@ -109,14 +104,15 @@ bool CStoneEffect::is_effected(int x,int y)
 	/* Wenn irgendein Effekt das Feld x/y behandelt: true. */
 	if (next)if (next->is_effected(x,y))return true;
 	/* Wenn garkein richtiger Effekt (stone==0): false */
-	if (stone==0)return false;
+	//if (stone==0)return false; /* FIXME */
+	if (gui==0)return false;
 	y-=this->y;
 	x-=this->x;
 	/* Wenn x/y ausserhalb unserer Grenzen des Steins: false */
-	if (x<0 || y<0 || x>=stone->get_stone_size() || y>=stone->get_stone_size())return false;
+	if (x<0 || y<0 || x>=stone.get_stone_size() || y>=stone.get_stone_size())return false;
 
 	/* Wenn unser Stein an der errechneten Stelle ein Element hat: true */
-	if (stone->get_stone_field(y,x)!=STONE_FIELD_FREE)return true;
+	if (stone.get_stone_field(y,x)!=STONE_FIELD_FREE)return true;
 	/* Sonst: false */
 	return false;
 }
@@ -160,9 +156,9 @@ void CStoneFadeEffect::render()
 	/* Andere Effekte rendern. */
 	CStoneEffect::render();
 	/* Und Stein an entsprechende Position auf dem Spielfeld rendern. */
-	for (i=0;i<stone->get_stone_size();i++)
-	for (j=0;j<stone->get_stone_size();j++)
-		if (stone->get_stone_field(j,i)!=STONE_FIELD_FREE)
+	for (i=0;i<stone.get_stone_size();i++)
+	for (j=0;j<stone.get_stone_size();j++)
+		if (stone.get_stone_field(j,i)!=STONE_FIELD_FREE)
 	{
 		gui->renderStone(i+x,j+y,player,(float)alpha,false);
 	}
@@ -188,9 +184,9 @@ CStoneRollEffect::CStoneRollEffect(CGUI *vgui, CStone *vstone,int stone_number,i
 	gui->getPlayerStonePos(vplayer,stone_number,&cx,&cy,&cz);
 	
 	/* Die Zielposition auf dem Feld in Welt-Koordinaten berechnen. */
-	dx=-(gui->spiel->get_field_size_x()-1)*stone_size+((double)x+(double)stone->get_stone_size()/2.0)*stone_size*2.0-stone_size;
+	dx=-(gui->spiel->get_field_size_x()-1)*stone_size+((double)x+(double)stone.get_stone_size()/2.0)*stone_size*2.0-stone_size;
 	dy=bevel_height;
-	dz=-(gui->spiel->get_field_size_y()-1)*stone_size+((double)y+(double)stone->get_stone_size()/2.0)*stone_size*2.0-stone_size;
+	dz=-(gui->spiel->get_field_size_y()-1)*stone_size+((double)y+(double)stone.get_stone_size()/2.0)*stone_size*2.0-stone_size;
 
 	{
 		/* Eine zufaellige Rotationsachse berechnen. */
@@ -249,14 +245,14 @@ void CStoneRollEffect::render()
 	glRotated(ang,axe_x,axe_y,axe_z);
 
 	/* Und einfach Stein rendern. */
-	for (i=0;i<stone->get_stone_size();i++)
-	for (j=0;j<stone->get_stone_size();j++)
-	if (stone->get_stone_field(j,i)!=STONE_FIELD_FREE)
+	for (i=0;i<stone.get_stone_size();i++)
+	for (j=0;j<stone.get_stone_size();j++)
+	if (stone.get_stone_field(j,i)!=STONE_FIELD_FREE)
 	{
 		glPushMatrix();
- 		glTranslated(+stone_size+((double)i-(double)stone->get_stone_size()/2.0)*stone_size*2.0,
+ 		glTranslated(+stone_size+((double)i-(double)stone.get_stone_size()/2.0)*stone_size*2.0,
 			0,
-			     +stone_size+((double)j-(double)stone->get_stone_size()/2.0)*stone_size*2.0);
+			     +stone_size+((double)j-(double)stone.get_stone_size()/2.0)*stone_size*2.0);
 		gui->renderStone(player,0.65f,false);
 		glPopMatrix();
 	}
@@ -303,14 +299,14 @@ void CStoneRollEffect::renderShadow()
 	glScaled(s,s,s);
 	glRotated(ang,axe_x,axe_y,axe_z);
 
-	for (i=0;i<stone->get_stone_size();i++)
-	for (j=0;j<stone->get_stone_size();j++)
-	if (stone->get_stone_field(j,i)!=STONE_FIELD_FREE)
+	for (i=0;i<stone.get_stone_size();i++)
+	for (j=0;j<stone.get_stone_size();j++)
+	if (stone.get_stone_field(j,i)!=STONE_FIELD_FREE)
 	{
 		glPushMatrix();
- 		glTranslated(+stone_size+((double)i-(double)stone->get_stone_size()/2.0)*stone_size*2.0,
+ 		glTranslated(+stone_size+((double)i-(double)stone.get_stone_size()/2.0)*stone_size*2.0,
 			0,
-			     +stone_size+((double)j-(double)stone->get_stone_size()/2.0)*stone_size*2.0);
+			     +stone_size+((double)j-(double)stone.get_stone_size()/2.0)*stone_size*2.0);
 		/* Und den Schatten eines kleinen Steins entlang der Richtung des Lichts berechnen. */
 		gui->renderStoneShadow(dir);
 		glPopMatrix();
@@ -324,7 +320,7 @@ void CStoneRollEffect::renderShadow()
  **/
 bool CStoneRollEffect::handle_player_stone(int player,int n_stone)
 {
-	if (reverse && this->player==player && stone->get_stone_shape()==n_stone)return true;
+	if (reverse && this->player==player && stone.get_stone_shape()==n_stone)return true;
 	return CStoneEffect::handle_player_stone(player,n_stone);
 }
 
@@ -435,14 +431,14 @@ void CPhysicalStone::render()
 	glTranslated(x,y,z);
 	glRotated(ang,ax,ay,az);
 
-	for (i=0;i<stone->get_stone_size();i++)
-	for (j=0;j<stone->get_stone_size();j++)
-	if (stone->get_stone_field(j,i)!=STONE_FIELD_FREE)
+	for (i=0;i<stone.get_stone_size();i++)
+	for (j=0;j<stone.get_stone_size();j++)
+	if (stone.get_stone_field(j,i)!=STONE_FIELD_FREE)
 	{
 		glPushMatrix();
- 		glTranslated(+stone_size+((double)i-(double)stone->get_stone_size()/2.0)*stone_size*2.0,
+ 		glTranslated(+stone_size+((double)i-(double)stone.get_stone_size()/2.0)*stone_size*2.0,
 			0,
-			     +stone_size+((double)j-(double)stone->get_stone_size()/2.0)*stone_size*2.0);
+			     +stone_size+((double)j-(double)stone.get_stone_size()/2.0)*stone_size*2.0);
 		gui->renderStone(player,0.65f,false);
 		glPopMatrix();
 	}
@@ -476,14 +472,14 @@ void CPhysicalStone::renderShadow()
 	glTranslated(x,y,z);
 	glRotated(ang,ax,ay,az);
 
-	for (i=0;i<stone->get_stone_size();i++)
-	for (j=0;j<stone->get_stone_size();j++)
-	if (stone->get_stone_field(j,i)!=STONE_FIELD_FREE)
+	for (i=0;i<stone.get_stone_size();i++)
+	for (j=0;j<stone.get_stone_size();j++)
+	if (stone.get_stone_field(j,i)!=STONE_FIELD_FREE)
 	{
 		glPushMatrix();
- 		glTranslated(+stone_size+((double)i-(double)stone->get_stone_size()/2.0)*stone_size*2.0,
+ 		glTranslated(+stone_size+((double)i-(double)stone.get_stone_size()/2.0)*stone_size*2.0,
 			0,
-			     +stone_size+((double)j-(double)stone->get_stone_size()/2.0)*stone_size*2.0);
+			     +stone_size+((double)j-(double)stone.get_stone_size()/2.0)*stone_size*2.0);
 		/* Und extrudiertes Schatten-Volume in Licht-Richtung rendern. */
 		gui->renderStoneShadow(dir);
 		glPopMatrix();

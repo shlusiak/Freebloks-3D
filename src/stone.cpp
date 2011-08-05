@@ -3,23 +3,7 @@
 #endif
 
 #include "stone.h"
-
 #include "spiel.h"
-
-
-
-
-
-
-
-
-void CStone::init(const CStone* stone){
-	CStone::m_available = stone->get_available();
-	CStone::m_shape = stone->get_stone_shape();
-	CStone::m_size = stone->get_stone_size();
-	CStone::m_rotate_counter = stone->get_rotate_counter();
-	CStone::m_mirror_counter = stone->get_mirror_counter();
-}
 
 
 

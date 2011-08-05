@@ -280,9 +280,7 @@ const TStoneField STONE_FIELD[STONE_COUNT_ALL_SHAPES]=
 class CSpiel;
 
 class CStone{
-	
 	private:
-
 		int m_available;
 		int m_shape;
 		int m_size;
@@ -290,13 +288,10 @@ class CStone{
 		int m_rotate_counter;
 		
 		const bool is_position_inside_stone(const int y, const int x)const; //braucht get_stone_field
-		
 
 	public: 
-
+		CStone():m_available(0),m_shape(0),m_mirror_counter(0),m_rotate_counter(0) {}
 		void init (const int shape);
-		void init (const CStone* const stone); //?
-		
 
 		const TSingleStone get_stone_field(const int y, const int x)const;
 		
