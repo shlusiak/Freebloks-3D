@@ -29,6 +29,8 @@ class CSpielServer:public CSpielleiter
 private:
 	friend class CServerListener;
 
+	CKi m_ki;
+
 	/* Die sockets der verbundenen Clients */
 	int clients[CLIENTS_MAX];
 	/* Maximale Anzahl menschlicher Spieler, der Rest ist fuer Computergegener reserviert */
@@ -95,6 +97,8 @@ public:
 
 	/* Startet einen Server lokal in einem Thread */
 	static int run_server(const char* interface_,int port,int maxhumans,int ki_mode,int width,int height,GAMEMODE gamemode,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads);
+
+	void set_ki_threads(int ki_threads) { m_ki.set_num_threads(ki_threads); }
 };
 
 

@@ -60,11 +60,9 @@ void CSpiel::set_field_size_and_new(int y, int x){
 
 void CSpiel::set_stone_numbers(int einer, int zweier, int dreier, int vierer, int fuenfer){
 	int counts[5] = {einer, zweier, dreier, vierer, fuenfer};
-	CSpiel::m_stone_count_all = 0;
 
 	for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){  
 		int size = CSpiel::m_player[0].get_stone(n)->get_stone_points();
-		CSpiel::m_stone_count_all += counts[size-1];
 		for (int p = 0; p < PLAYER_MAX; p++){
 			CStone* stone = CSpiel::m_player[p].get_stone(n);
 			stone->set_available(counts [stone->get_stone_points()-1]);
@@ -139,13 +137,6 @@ void CSpiel::init_field(){
 		CSpiel::set_game_field(CSpiel::get_player_start_y(p), CSpiel::get_player_start_x(p), PLAYER_BIT_ALLOWED[p]);
 	}
 }
-
-
-CTurn* CSpiel::get_ki_turn(int playernumber, int ki_fehler){
-	return m_ki.get_ki_turn(this, playernumber, ki_fehler);
-}
-
-
 
 /** r�ckgabe �ndern in bool?! **/
 TSingleField CSpiel::is_valid_turn(CStone* stone, int playernumber, int startY, int startX)const{

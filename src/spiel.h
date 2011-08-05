@@ -18,11 +18,8 @@
 class CSpiel{
 
 	private:
-
-		CKi m_ki;
 		int m_field_size_y;
 		int m_field_size_x;
-		int m_stone_count_all;
 
 		CPlayer m_player[PLAYER_MAX];
 		TSingleField* m_game_field;
@@ -71,9 +68,6 @@ class CSpiel{
 		void set_field_size(int y, int x) { m_field_size_y = y; m_field_size_x = x; }
 		void set_field_size_and_new(int y, int x);	 //startet neues spiel!
 		
-		
-		CTurn* get_ki_turn(int playernumber, int ki_fehler);
-		
 		CPlayer* get_player(const int playernumber);
 		TSingleField is_valid_turn(CStone* stone, int player, int y, int x)const;
 		TSingleField is_valid_turn(const CTurn* turn);
@@ -88,7 +82,6 @@ class CSpiel{
 		TSingleField set_stone(const CTurn* turn);
 
 		void undo_turn(CTurnpool* turnpool);
-		void set_ki_threads(int threads) { m_ki.set_num_threads(threads); }
 };
 
 
@@ -125,49 +118,35 @@ const TSingleField CSpiel::get_game_field(const int y, const int x)const{
 	return wert & 3;
 }
 
-
-
 inline
 const int CSpiel::get_field_size_x()const {
 	return CSpiel::m_field_size_x;
 }
-
 
 inline
 const int CSpiel::get_field_size_y()const{
 	return CSpiel::m_field_size_y;
 }
 
-
 inline
 const int CSpiel::get_player_max()const{
 	return PLAYER_MAX;
 }
-
-
-inline
-const int CSpiel::get_stone_count_max()const {
-	return CSpiel::m_stone_count_all;
-}
-
 
 inline
 const int CSpiel::get_stone_count(const int playernumber)const {
 	return CSpiel::m_player[playernumber].get_stone_count();
 }
 
-
 inline
 const int CSpiel::get_nemesis(const int playernumber)const {
 	return CSpiel::m_player[playernumber].get_nemesis();
 }
 
-
 inline
 const int CSpiel::get_teammate(const int playernumber)const {
 	return CSpiel::m_player[playernumber].get_teammate();
 }
-
 
 inline
 void CSpiel::set_game_field(const int y, const int x, const TSingleField value){

@@ -148,7 +148,7 @@ void CSpielServer::run()
 	if (m_current_player!=-1 && spieler[m_current_player]==PLAYER_COMPUTER)
 	{
 		/* Ermittle CTurn, den die KI jetzt setzen wuerde */
-		CTurn *turn=get_ki_turn(current_player(),ki_mode);
+		CTurn *turn=m_ki.get_ki_turn(this, current_player(),ki_mode);
 
 		if (turn!=0)
 		{
@@ -390,7 +390,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			break;
 		}
 		case MSG_REQUEST_HINT: {
-			CTurn *turn=get_ki_turn(((NET_REQUEST_HINT*)data)->player,KI_HARD);
+			CTurn *turn=m_ki.get_ki_turn(this,((NET_REQUEST_HINT*)data)->player,KI_HARD);
 			NET_SET_STONE d;
 
 			d.player=((NET_REQUEST_HINT*)data)->player;

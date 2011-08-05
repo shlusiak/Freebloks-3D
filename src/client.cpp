@@ -144,10 +144,16 @@ class CKISpielClient:public CSpielClient
 {
 private:
 	CTimer timer;
+	CKi ki;
 	virtual void gameStarted();
 	virtual void newCurrentPlayer(const int player);
 	virtual void chatReceived(NET_CHAT* c);
 	virtual void gameFinished();
+
+public:
+	CKISpielClient(int ki_threads) {
+		ki.set_num_threads(ki_threads);
+	}
 };
 
 
@@ -165,7 +171,7 @@ void CKISpielClient::newCurrentPlayer(const int player)
 	if (!is_local_player())return;
 
 	/* Ermittle CTurn, den die KI jetzt setzen wuerde */
-	CTurn *turn=get_ki_turn(current_player(),ki_strength);
+	CTurn *turn=ki.get_ki_turn(this, current_player(),ki_strength);
 	CStone *stone;
 	if (turn == NULL)
 	{
@@ -214,7 +220,6 @@ void runGame(CSpielClient* client)
 	for (i=0;i<max_players;i++) client->request_player();
 
 	if (auto_start) client->request_start();
-	client->set_ki_threads(ki_threads);
 	do {
 		s = client->poll();
 		if (s)
@@ -252,7 +257,7 @@ int main(int argc,char ** argv)
 	printf("Show help with `client --help`\n");
 	printf("Connecting to %s... ", server);
 
-	client = new CKISpielClient();
+	client = new CKISpielClient(ki_threads);
 	runGame(client);
 	delete client;
 
