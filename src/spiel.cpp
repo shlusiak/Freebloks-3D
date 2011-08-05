@@ -15,7 +15,7 @@ CSpiel::CSpiel(){
 	CSpiel::m_game_field = NULL;
 	CSpiel::m_field_size_y = DEFAULT_FIELD_SIZE_Y;
 	CSpiel::m_field_size_x = DEFAULT_FIELD_SIZE_X;
-	start_new_game();
+//	start_new_game();
 }
 
 
@@ -27,27 +27,11 @@ CSpiel::CSpiel(const int player_team1_1, const int player_team1_2, const int pla
 	CSpiel::set_teams(player_team1_1, player_team1_2, player_team2_1, player_team2_2);
 }
 
-CSpiel::CSpiel(int vorher_playernumber, const CSpiel* vorher_situation, const CTurn* turn){
-	CSpiel::m_field_size_x = vorher_situation->get_field_size_x();
-	CSpiel::m_field_size_y = vorher_situation->get_field_size_y();
-	
-	CSpiel::m_game_field = new TSingleField[CSpiel::m_field_size_x * CSpiel::m_field_size_y];
-	
+void CSpiel::follow_situation(int vorher_playernumber, const CSpiel* vorher_situation, const CTurn* turn) {
 	memcpy(m_game_field, vorher_situation->get_field_pointer(), CSpiel::m_field_size_x * CSpiel::m_field_size_y);
-
-
-	/*for (int x = 0; x < CSpiel::m_field_size_x; x++){
-		for (int y = 0; y < CSpiel::m_field_size_y; y++){
-			CSpiel::set_game_field(y, x, vorher_situation->get_game_field_value(y, x));
-		}
-	}*/
-// 	for (int p = 0; p < PLAYER_MAX; p++){
-// 		CSpiel::m_player[p].init_recycle_player(vorher_situation->get_player(p));
-// 	}
 	memcpy(m_player,vorher_situation->m_player,sizeof(m_player));
 	set_stone(turn);
 }
-
 
 const int CSpiel::get_player_start_x(const int playernumber)const{
 	switch (playernumber) {

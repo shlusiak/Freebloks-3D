@@ -86,7 +86,8 @@ void* kiThread(void* p)
 #endif
 {
 	THREADDATA *data=(THREADDATA*)p;
-	CSpiel* follow_situation;
+	CSpiel spiel;
+	
 	int new_points;
 #ifdef HAVE_PTHREAD_CREATE
 	if (data->from>data->to)pthread_exit((void*)0);
@@ -94,14 +95,17 @@ void* kiThread(void* p)
 	if (data->from>data->to)return NULL;
 #endif
 
-	follow_situation = data->ki->m_turnpool.get_turn(data->from)->get_follow_situation(data->spiel, data->current_player);
-	data->best_points = CKi::get_ultimate_points(follow_situation, data->current_player, data->ki_fehler, data->ki->m_turnpool.get_turn(data->from)); //Bewertung hier!!!
+	spiel.set_field_size(data->spiel->get_field_size_y(), data->spiel->get_field_size_x());
+	spiel.init_field();
+
+	spiel.follow_situation(data->current_player, data->spiel, data->ki->m_turnpool.get_turn(data->from));
+	data->best_points = CKi::get_ultimate_points(&spiel, data->current_player, data->ki_fehler, data->ki->m_turnpool.get_turn(data->from)); //Bewertung hier!!!
 	data->best = data->ki->m_turnpool.get_turn(data->from);
 
 	for (int n = data->from+1; n <= data->to; n++){
-		follow_situation = data->ki->m_turnpool.get_turn(n)->get_follow_situation(data->spiel, data->current_player);
-		new_points = CKi::get_ultimate_points(follow_situation, data->current_player, data->ki_fehler, data->ki->m_turnpool.get_turn(n)); //Bewertung hier!!!
-	
+		spiel.follow_situation(data->current_player, data->spiel, data->ki->m_turnpool.get_turn(n));
+		new_points = CKi::get_ultimate_points(&spiel, data->current_player, data->ki_fehler, data->ki->m_turnpool.get_turn(n)); //Bewertung hier!!!
+
 		if (new_points >= data->best_points) {
 			data->best = data->ki->m_turnpool.get_turn(n);
 			data->best_points = new_points;
@@ -118,6 +122,7 @@ CTurn* CKi::get_ultimate_turn(CSpiel* spiel, const char current_player, const in
 	
 	CTurn* best;
 	int best_points;
+	CSpiel follow_situation;
 	int i;
 #ifdef HAVE_PTHREAD_CREATE
 	pthread_t threads[8];
@@ -152,8 +157,12 @@ CTurn* CKi::get_ultimate_turn(CSpiel* spiel, const char current_player, const in
 	}
 
 	best = CKi::m_turnpool.get_turn(1);
-	best_points = get_ultimate_points(best->get_follow_situation(spiel, current_player), current_player, ki_fehler, best); //Bewertung hier!!!
+	follow_situation.set_field_size(data->spiel->get_field_size_y(), data->spiel->get_field_size_x());
+	follow_situation.init_field();
+	follow_situation.follow_situation(current_player, spiel, best);
 
+	best_points = get_ultimate_points(&follow_situation, current_player, ki_fehler, best); //Bewertung hier!!!
+ 
 	for (i=0;i<num_threads;i++)
 	{
 #ifdef HAVE_PTHREAD_CREATE

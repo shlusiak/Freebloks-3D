@@ -26,10 +26,7 @@ class CSpiel{
 
 		CPlayer m_player[PLAYER_MAX];
 		TSingleField* m_game_field;
-		
-		
-		void init_field();
-		
+				
 		const bool is_position_inside_field(const int y, const int x)const;
 		void refresh_player_data();
 
@@ -42,11 +39,13 @@ class CSpiel{
 
 		CSpiel();
 		CSpiel(const int player_team1_1, const int player_team1_2, const int player_team2_1, const int player_team2_2);
-		CSpiel(const int vorher_playernumber, const CSpiel* vorher_situation, const CTurn* turn);
 		
 		virtual ~CSpiel();
 		
-						/*PLAYER*/
+		void follow_situation(int vorher_playernumber, const CSpiel* vorher_situation, const CTurn* turn);
+		void init_field();
+
+		/*PLAYER*/
 		const int get_player_start_x(const int playernumber)const;
 		const int get_player_start_y(const int playernumber)const;
 
@@ -69,6 +68,7 @@ class CSpiel{
 
 		void set_teams(int player_team1_1, int player_team1_2, int player_team2_1, int player_team2_2);
 		void set_stone_numbers(int einer, int zweier, int dreier, int vierer, int fuenfer);
+		void set_field_size(int y, int x) { m_field_size_y = y; m_field_size_x = x; }
 		void set_field_size_and_new(int y, int x);	 //startet neues spiel!
 		
 		

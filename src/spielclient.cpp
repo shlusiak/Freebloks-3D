@@ -36,6 +36,7 @@
  **/
 CSpielClient::CSpielClient()
 {
+	start_new_game();
 	client_socket=0;
 	status.clients=status.player=status.computer=0;
 	status.width=status.height=20;

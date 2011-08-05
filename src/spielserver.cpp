@@ -40,6 +40,7 @@
 CSpielServer::CSpielServer(const int v_max_humans,const int v_ki_mode,const GAMEMODE v_gamemode)
 :ki_mode(v_ki_mode),max_humans(v_max_humans)
 {
+	start_new_game();
 	for (int i=0;i<CLIENTS_MAX;i++)
 		clients[i]=0;
 	m_gamemode=v_gamemode;

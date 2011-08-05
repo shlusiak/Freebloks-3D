@@ -25,8 +25,6 @@ class CTurn{
 
 		//zeiger auf nachfolger
 		CTurn* m_next;
-		
-		CSpiel* m_follow_situation;
 	public:
 		
 		CTurn(const CTurn* turn);
@@ -51,9 +49,7 @@ class CTurn{
 		const int get_playernumber()const;
 
 		CTurn* get_next()const;
-		
-		CSpiel* get_follow_situation(const CSpiel* spiel, const int playernumber);
-				
+						
 		void set_next(CTurn* next_turn);
 		void set_number(int number);
 		
