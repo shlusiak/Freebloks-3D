@@ -76,7 +76,8 @@ class CSpiel{
 		
 		CPlayer* get_player(const int playernumber);
 		TSingleField is_valid_turn(CStone* stone, int player, int y, int x)const;
-		
+		TSingleField is_valid_turn(const CTurn* turn);
+
 		const TSingleField get_game_field(const int playernumber, const int y, const int x)const; //f�r spielerr�ckgaben
 		const TSingleField get_game_field(const int y, const int x)const; //f�r feldr�ckgaben
 		
@@ -108,7 +109,7 @@ const TSingleField CSpiel::get_game_field(const int playernumber, const int y, c
 		if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
 	#endif
 	
-	TSingleField wert = CSpiel::get_game_field_value(y,x);
+	TSingleField wert = get_game_field_value(y,x);
 	if (wert >= PLAYER_BIT_HAVE_MIN) return FIELD_DENIED;
 	wert &= PLAYER_BIT_ADDR[playernumber];
 	if (wert == 0) return FIELD_FREE;
@@ -183,8 +184,7 @@ CPlayer* CSpiel::get_player(const int playernumber){
 
 inline
 const bool CSpiel::is_position_inside_field(const int y, const int x)const {
-	if (y >= 0 && y < CSpiel::m_field_size_y && x >= 0 && x < CSpiel::m_field_size_x) return true;
-	return false;
+	return (y >= 0 && y < CSpiel::m_field_size_y && x >= 0 && x < CSpiel::m_field_size_x);
 }
 
 inline

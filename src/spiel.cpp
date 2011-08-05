@@ -170,6 +170,12 @@ TSingleField CSpiel::is_valid_turn(CStone* stone, int playernumber, int startY, 
 	return valid;
 }
 
+TSingleField CSpiel::is_valid_turn(const CTurn* turn){
+	int playernumber = turn->get_playernumber();
+	CStone* stone = CSpiel::m_player[playernumber].get_stone(turn->get_stone_number());
+	stone->mirror_rotate_to(turn->get_mirror_count(), turn->get_rotate_count());
+	return is_valid_turn(stone, playernumber, turn->get_y(), turn->get_x());
+}
 
 void CSpiel::free_gamefield(int y, int x){
 	CSpiel::set_game_field(y, x, 0);
@@ -184,23 +190,17 @@ void CSpiel::set_single_stone_for_player(const int playernumber, const int start
 	CSpiel::set_game_field(startY , startX, PLAYER_BIT_HAVE_MIN | playernumber);
 	for (int y = startY-1; y <= startY+1; y++)if (y>=0 && y<m_field_size_y) {
 		for (int x = startX-1; x <= startX+1; x++)if (x>=0 && x<m_field_size_x){
-// 			if (CSpiel::is_position_inside_field(y,x)){
-				if (get_game_field(playernumber, y, x) != FIELD_DENIED){
-					if (y != startY && x != startX){
-						CSpiel::m_game_field[y * CSpiel::m_field_size_x + x] |= PLAYER_BIT_ALLOWED[playernumber];
-					}else{
-						CSpiel::m_game_field[y * CSpiel::m_field_size_x + x] &= ~PLAYER_BIT_ADDR[playernumber];
-						CSpiel::m_game_field[y * CSpiel::m_field_size_x + x] |= PLAYER_BIT_DENIED[playernumber];
-					}
+			if (get_game_field(playernumber, y, x) != FIELD_DENIED){
+				if (y != startY && x != startX){
+					CSpiel::m_game_field[y * CSpiel::m_field_size_x + x] |= PLAYER_BIT_ALLOWED[playernumber];
+				}else{
+					CSpiel::m_game_field[y * CSpiel::m_field_size_x + x] &= ~PLAYER_BIT_ADDR[playernumber];
+					CSpiel::m_game_field[y * CSpiel::m_field_size_x + x] |= PLAYER_BIT_DENIED[playernumber];
 				}
-// 			}
+			}
 		}
 	}
 }
-
-
-
-
 
 /** r�ckgabe zu bool?! **/
 TSingleField CSpiel::set_stone(const CTurn* turn){
@@ -221,7 +221,7 @@ TSingleField CSpiel::set_stone(CStone* stone, int playernumber, int startY, int 
 #ifdef _DEBUG
 	if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
 #endif
-	if (is_valid_turn(stone, playernumber, startY, startX) == FIELD_DENIED) return FIELD_DENIED;
+//	if (is_valid_turn(stone, playernumber, startY, startX) == FIELD_DENIED) return FIELD_DENIED;
 	
 	for (int y = 0; y < stone->get_stone_size(); y++){
 		for (int x = 0; x < stone->get_stone_size(); x++){
