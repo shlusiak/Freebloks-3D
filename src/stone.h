@@ -134,133 +134,133 @@ const int STONE_ROTATEABLE[STONE_COUNT_ALL_SHAPES] =
 						ROTATEABLE_TWO		//20
 					};
 
-const TSingleStone STONE_FIELD[STONE_COUNT_ALL_SHAPES][STONE_SIZE_MAX][STONE_SIZE_MAX]=
+const TStoneField STONE_FIELD[STONE_COUNT_ALL_SHAPES]=
 					{
-						1,8,8,8,8,	//0
+					  {1,8,8,8,8,	//0
 						8,8,8,8,8,
 						8,8,8,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						0,1,8,8,8,	//1
+						{0,1,8,8,8,	//1
 						0,1,8,8,8, 
 						8,8,8,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						1,0,8,8,8,	//2
+						{1,0,8,8,8,	//2
 						1,1,8,8,8,
 						8,8,8,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 										
-						0,1,0,8,8,	//3
+						{0,1,0,8,8,	//3
 						0,2,0,8,8,
 						0,1,0,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						1,1,8,8,8,	//4
+						{1,1,8,8,8,	//4
 						1,1,8,8,8,
 						8,8,8,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						0,1,0,8,8,	//5
+						{0,1,0,8,8,	//5
 						0,2,0,8,8,
 						1,1,0,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						0,1,0,8,8,	//6
+						{0,1,0,8,8,	//6
 						0,2,1,8,8,
 						0,1,0,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						0,0,0,8,8,	//7
+						{0,0,0,8,8,	//7
 						1,1,0,8,8,
 						0,1,1,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 
-						0,0,1,0,8,	//8
+						{0,0,1,0,8,	//8
 						0,0,2,0,8,
 						0,0,2,0,8,
 						0,0,1,0,8,
-						8,8,8,8,8,
-							
-						0,1,0,8,8,	//9
+						8,8,8,8,8,},
+						
+						{0,1,0,8,8,	//9
 						1,2,0,8,8,
 						1,1,0,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						1,1,0,8,8,	//10
+						{1,1,0,8,8,	//10
 						0,2,0,8,8,
 						1,1,0,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						0,1,0,8,8,	//11
+						{0,1,0,8,8,	//11
 						0,2,0,8,8,
 						1,2,1,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						1,0,0,8,8,	//12
+						{1,0,0,8,8,	//12
 						2,0,0,8,8,
 						1,2,1,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						1,1,0,8,8,	//13
+						{1,1,0,8,8,	//13
 						0,1,1,8,8,
 						0,0,1,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						1,0,0,8,8,	//14
+						{1,0,0,8,8,	//14
 						1,2,1,8,8,
 						0,0,1,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						1,0,0,8,8,	//15
+						{1,0,0,8,8,	//15
 						1,2,1,8,8,
 						0,1,0,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						0,1,0,8,8,	//16
+						{0,1,0,8,8,	//16
 						1,2,1,8,8,
 						0,1,0,8,8,
 						8,8,8,8,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 					
-						0,0,1,0,8,	//17
+						{0,0,1,0,8,	//17
 						0,0,2,0,8,
 						0,0,2,0,8,
 						0,1,1,0,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 	
-						0,0,1,0,8,	//18
+						{0,0,1,0,8,	//18
 						0,0,2,0,8,
 						0,1,1,0,8,
 						0,1,0,0,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 	
-						0,1,0,0,8,	//19
+						{0,1,0,0,8,	//19
 						0,2,1,0,8,
 						0,2,0,0,8,
 						0,1,0,0,8,
-						8,8,8,8,8,
+						8,8,8,8,8,},
 
-						0,0,1,0,0,	//20
+						{0,0,1,0,0,	//20
 						0,0,2,0,0,
 						0,0,2,0,0,
 						0,0,2,0,0,
-						0,0,1,0,0
+						0,0,1,0,0},
 					};
 
 
@@ -285,6 +285,7 @@ class CStone{
 
 		int m_available;
 		int m_shape;
+		int m_size;
 		int m_mirror_counter;
 		int m_rotate_counter;
 		
@@ -294,12 +295,12 @@ class CStone{
 	public: 
 
 		void init (const int shape);
-		void init (const CStone* stone); //?
+		void init (const CStone* const stone); //?
 		
 
 		const TSingleStone get_stone_field(const int y, const int x)const;
 		
-		const int calculate_possible_turns_in_position(const CSpiel* spiel, const int playernumber, const int fieldY, const int fieldX);
+		const int calculate_possible_turns_in_position(const CSpiel* const spiel, const int playernumber, const int fieldY, const int fieldX);
 
 		const int get_stone_size()const;
 		const int get_stone_points()const;
@@ -392,7 +393,7 @@ const int CStone::get_number()const{
 
 inline
 const int CStone::get_stone_size()const{
-	return STONE_SIZE[m_shape];
+	return m_size;
 }
 
 inline
@@ -402,7 +403,7 @@ const int CStone::get_stone_points()const{
 
 inline
 const bool CStone::is_position_inside_stone(const int y,const int x)const{ 
-	if (y < 0 || y >= STONE_SIZE[m_shape] || x < 0 || x >= STONE_SIZE[m_shape]) return false;
+	if (y < 0 || y >= m_size || x < 0 || x >= m_size) return false;
 	return true;
 }
 

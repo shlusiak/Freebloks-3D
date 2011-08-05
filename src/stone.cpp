@@ -16,6 +16,7 @@
 void CStone::init(const CStone* stone){
 	CStone::m_available = stone->get_available();
 	CStone::m_shape = stone->get_stone_shape();
+	CStone::m_size = stone->get_stone_size();
 	CStone::m_rotate_counter = stone->get_rotate_counter();
 	CStone::m_mirror_counter = stone->get_mirror_counter();
 }
@@ -23,11 +24,11 @@ void CStone::init(const CStone* stone){
 
 
 void CStone::init(const int shape){	
-	CStone::m_available = true;
+	CStone::m_available = 1;
 	CStone::m_shape = shape;
+	CStone::m_size = STONE_SIZE[CStone::m_shape];
 	CStone::m_rotate_counter = 0;
 	CStone::m_mirror_counter = 0;
-
 }
 
 
@@ -35,35 +36,39 @@ const TSingleStone CStone::get_stone_field(const int y, const int x)const{
 	#ifdef _DEBUG
 		if (!is_position_inside_stone(y,x)) error_exit("Stone field mit is_position_inside_stone �berpr�fen!!", 23);
 	#endif
+	int nx=x,ny=y;
 	if (CStone::m_mirror_counter == 0){
 		if (CStone::m_rotate_counter == 0){
-			return STONE_FIELD[CStone::m_shape][y][x];
-		}
-		if (CStone::m_rotate_counter == 1){
-			return STONE_FIELD[CStone::m_shape][STONE_SIZE[CStone::m_shape]-1-x][y];
-		}
-		if (CStone::m_rotate_counter == 2){
-			return STONE_FIELD[CStone::m_shape][STONE_SIZE[CStone::m_shape]-1-y][STONE_SIZE[CStone::m_shape]-1-x];
-		}
-		if (CStone::m_rotate_counter == 3){
-			return STONE_FIELD[CStone::m_shape][x][STONE_SIZE[CStone::m_shape]-1-y];
-		}
+			nx = y;
+			ny = x;
+		} else if (CStone::m_rotate_counter == 1){
+			nx = m_size-1-x;
+			ny = y;
+		} else if (CStone::m_rotate_counter == 2){
+			nx = m_size-1-y;
+			ny = m_size-1-x;
+		} else if (CStone::m_rotate_counter == 3){
+			nx = x;
+			ny = m_size-1-y;
+		} else error_exit("unbekannter steinzustand!", 15); //debug
 	}else{
 		if (CStone::m_rotate_counter == 0){
-			return STONE_FIELD[CStone::m_shape][STONE_SIZE[CStone::m_shape]-1-y][x];
-		}
-		if (CStone::m_rotate_counter == 1){
-			return STONE_FIELD[CStone::m_shape][x][y];
-		}
-		if (CStone::m_rotate_counter == 2){
-			return STONE_FIELD[CStone::m_shape][y][STONE_SIZE[CStone::m_shape]-1-x];
-		}
+			nx = m_size-1-y;
+			ny = x;
+		} else if (CStone::m_rotate_counter == 1){
+			nx = x;
+			ny = y;
+		} else if (CStone::m_rotate_counter == 2){
+			nx = y;
+			ny = m_size-1-x;
+		} else
 		if (CStone::m_rotate_counter == 3){
-			return STONE_FIELD[CStone::m_shape][STONE_SIZE[CStone::m_shape]-1-x][STONE_SIZE[CStone::m_shape]-1-y];
-		}
+			nx = m_size-1-x;
+			ny = m_size-1-y;
+		} else error_exit("unbekannter steinzustand!", 15); //debug
 	}
-	error_exit("unbekannter steinzustand!", 15); //debug
-	return 0;
+	
+	return STONE_FIELD[CStone::m_shape][nx][ny];
 }
 
 

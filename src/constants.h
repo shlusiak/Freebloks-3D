@@ -10,16 +10,9 @@ const int KI_HARD = 5;
 const int KI_MEDIUM = 50;
 const int KI_EASY = 120;
 
-
 typedef char TSingleStone;
 typedef unsigned char TSingleField;
 
-const TSingleField FIELD_FREE   =  240;
-const TSingleField FIELD_ALLOWED=  241;
-const TSingleField FIELD_DENIED =  255;
-
-const TSingleStone STONE_FIELD_FREE = 0;
-const TSingleStone STONE_FIELD_ALLOWED = 1;
 
 
 const int PLAYER_MAX   =  4;
@@ -58,6 +51,17 @@ const int MIRRORABLE_IMPORTANT = 2;
 const int ROTATEABLE_NOT   = 1;
 const int ROTATEABLE_TWO   = 2;
 const int ROTATEABLE_FOUR  = 4;
+
+
+typedef TSingleStone TStoneField[STONE_SIZE_MAX][STONE_SIZE_MAX];
+
+const TSingleField FIELD_FREE   =  240;
+const TSingleField FIELD_ALLOWED=  241;
+const TSingleField FIELD_DENIED =  255;
+
+const TSingleStone STONE_FIELD_FREE = 0;
+const TSingleStone STONE_FIELD_ALLOWED = 1;
+
 
 
 
