@@ -174,20 +174,24 @@ CTurn* CKi::get_ultimate_turn(CSpiel* spiel, const char current_player, const in
 
 
 void CKi::build_up_turnpool_biggest_x_stones(CSpiel* spiel, const char playernumber, const int max_stored_stones){
-	CKi::m_turnpool.delete_all_turns();
+	m_turnpool.begin_add();
 	int stored_stones = 0;
 	int stored_turns = 0;
 	for (int n = STONE_COUNT_ALL_SHAPES -1; n >= 0; n--){
 		CStone* stone = spiel->get_player(playernumber)->get_stone(n);
 		if (stone->get_available()){
 			calculate_possible_turns(spiel, stone, playernumber);
-			if (CKi::m_turnpool.get_number_of_stored_turns() > stored_turns){
+			if (m_turnpool.get_number_of_stored_turns() > stored_turns){
 				stored_stones++;
-				stored_turns = CKi::m_turnpool.get_number_of_stored_turns();
-				if (stored_stones >= max_stored_stones) return;
+				stored_turns = m_turnpool.get_number_of_stored_turns();
+				if (stored_stones >= max_stored_stones) {
+					m_turnpool.end_add();
+					return;
+				}
 			}
 		}
 	}
+	m_turnpool.end_add();
 }
 
 
@@ -201,17 +205,11 @@ int CKi::get_distance_points(CSpiel* follow_situation, const char playernumber, 
 
 
 int CKi::get_ultimate_points(CSpiel* follow_situation, const char playernumber, const int ki_fehler, const CTurn* turn){
-	
 	int summe = 0;
 	for (int p = 0; p < PLAYER_MAX; p++){
 		if (p != playernumber){
 			if (p != follow_situation->get_teammate(playernumber)){
 				summe -= follow_situation->get_position_points(p);
-//				if (p == follow_situation->get_nemesis(playernumber)){
-				//TODO: nemesis ber�cksichtigen
-//				}
-			}else{
-				//TODO: teammate ber�cksichtigen
 			}
 		}else{
 			summe += follow_situation->get_position_points(p);
@@ -225,7 +223,6 @@ int CKi::get_ultimate_points(CSpiel* follow_situation, const char playernumber, 
 
 
 CTurn* CKi::get_ki_turn(CSpiel* spiel, char playernumber, int ki_fehler){
-	
 	if (spiel->get_number_of_possible_turns(playernumber) == 0) return NULL;
 	return CKi::get_ultimate_turn(spiel, playernumber, ki_fehler);
 }

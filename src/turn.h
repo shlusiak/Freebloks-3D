@@ -11,9 +11,7 @@ class CPlayer;
 class CTurn{
 
 	private:
-		
 		int m_playernumber;
-		int m_turn_number;
 
 		int m_stone_number;
 		
@@ -23,25 +21,24 @@ class CTurn{
 		int m_y;
 		int m_x;
 
+		int m_turn_number;
+
 		//zeiger auf nachfolger
 		CTurn* m_next;
 		
 		CSpiel* m_follow_situation;
-		
-		
-		//void recycle_CTurn(int turnnumber, CStone* stone, int y, int x); nicht implementiert
-
-	
 	public:
 		
 		CTurn(const CTurn* turn);
 		CTurn(const int playernumber, const CStone* stone, const int y, const int x);
-		CTurn(const int turn_number, const int playernumber, const CStone* stone, const int y, const int x);
 
 		virtual ~CTurn();
 
-		void init_CTurn(const int turn_number, const int playernumber, const CStone* stone, const int y, const int x);
-
+		void init_CTurn(const CTurn* turn);
+		void init_CTurn(const int playernumber, const CStone* stone, const int y, const int x);
+ 
+		
+		
 		const int get_stone_number()const;
 		const int get_turn_number()const;
 		
