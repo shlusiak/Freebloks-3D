@@ -6,6 +6,7 @@
 #endif
 
 
+const int KI_PERFECT = 0;
 const int KI_HARD = 5;
 const int KI_MEDIUM = 50;
 const int KI_EASY = 120;

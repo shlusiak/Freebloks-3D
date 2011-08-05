@@ -47,9 +47,6 @@ private:
 	CLogger* logger;
 
 
-	/* Fuege einen neuen Client der Liste bekannter Clients hinzu */
-	void add_client(int s);
-
 	/* Entferne einen bestimmten Client aus der Liste. Bei notify=true wird ne
 	   Meldung ausgegeben. */
 	void delete_client(int index,bool notify);
@@ -80,6 +77,9 @@ public:
 
 	/* Gibt Anzahl der verbundenen Clients (nicht Spieler) zurueck */
 	int num_clients()const;
+
+	/* Fuege einen neuen Client der Liste bekannter Clients hinzu */
+	void add_client(int s);
 
 	/* Hauptschleife, verwaltet ein Spiel bis zum bitteren Ende */
 	void run();

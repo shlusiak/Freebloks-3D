@@ -19,10 +19,12 @@ AC_HEADER_TIME
 AC_ARG_WITH(gui,[  --without-gui 	don't compile the OpenGL user interface])
 AC_ARG_WITH(dedicated,[  --without-dedicated 	don't compile dedicated server])
 AC_ARG_WITH(client,[  --without-client 	don't compile dedicated client])
+AC_ARG_WITH(benchmark,[  --without-benchmark 	don't compile benchmark])
 
 AM_CONDITIONAL(WITH_DEDICATED, test "${with_dedicated}" != no)
 AM_CONDITIONAL(WITH_GUI, test "${with_gui}" != no)
 AM_CONDITIONAL(WITH_CLIENT, test "${with_client}" != no)
+AM_CONDITIONAL(WITH_BENCHMARK, test "${with_benchmark}" != no)
 
 # Checks for libraries.
 AC_CHECK_LIB([nsl], [gethostbyname])

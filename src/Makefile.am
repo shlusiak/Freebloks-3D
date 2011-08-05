@@ -8,12 +8,31 @@ endif
 if WITH_CLIENT
     bin_PROGRAMS += freebloks_client
 endif
+if WITH_BENCHMARK
+    bin_PROGRAMS += freebloks_benchmark
+endif
 
 
 freebloks_dedicated_SOURCES = \
 dedicated.cpp \
 spielleiter.cpp spielleiter.h \
 spielserver.cpp spielserver.h \
+stone.cpp stone.h \
+spiel.cpp spiel.h \
+player.cpp player.h \
+network.cpp network.h \
+turn.cpp turn.h \
+turnpool.cpp turnpool.h \
+ki.cpp ki.h \
+timer.cpp timer.h \
+constants.cpp constants.h \
+logger.cpp logger.h
+
+freebloks_benchmark_SOURCES = \
+benchmark.cpp \
+spielleiter.cpp spielleiter.h \
+spielserver.cpp spielserver.h \
+spielclient.cpp spielclient.h \
 stone.cpp stone.h \
 spiel.cpp spiel.h \
 player.cpp player.h \

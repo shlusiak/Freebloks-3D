@@ -30,6 +30,8 @@ public:
 	   Gibt Fehlerstring zurueck, oder NULL bei Erfolg */
 	const char* Connect(const char* host,int port, int blocking = 0);
 
+	void Connect(int client_socket, int blocking = 0);
+
 	/* Aktuelle Verbindung zum Spielserver trennen */
 	void Disconnect();
 

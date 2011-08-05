@@ -194,6 +194,16 @@ const char* CSpielClient::Connect(const char* host,int port, int blocking)
 	return NULL;
 }
 
+
+void CSpielClient::Connect(int client_socket, int blocking)
+{
+	this->client_socket = client_socket;
+	if (blocking == 0)
+	{
+		fcntl(client_socket,F_SETFL,O_NONBLOCK);
+	}
+}
+
 /** 
  *Verbindung zum Server trennen
  */
