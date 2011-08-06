@@ -90,7 +90,8 @@ inline void unlock_mutex()
 /* Hilfetext ausgeben */
 static void help()
 {
-	printf("Usuage: dedicated [OPTIONS]\n\n");
+	printf("Usuage: dedicated [OPTIONS]\n");
+	printf("v"VERSION", build: "__DATE__"\n\n");
 	printf("  -p, --port        Specify the TCP port to accept connections. Default: %d\n",TCP_PORT);
 	printf("  -L                Listen on specified IP address. Default: OS default\n");
 	printf("  -h, --maxhumans   Define the maximum of human players per game (0-4)\n"
@@ -112,7 +113,7 @@ static void help()
 	printf("      --user\n"
 	       "      --group       Drop privileges to that uid/gid\n");
 #endif
-	printf("      --help        Display this help and exit\n");
+	printf("      --help        Display this help and exit\n\n");
 	exit(0);
 }
 
