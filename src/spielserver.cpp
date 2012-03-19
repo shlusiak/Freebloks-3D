@@ -577,7 +577,8 @@ void* LocalServerThread(void* param)
 #endif
 	do
 	{
-		listener->wait_for_player();
+		sockaddr_storage client;
+		listener->wait_for_player(false, &client);
 		// Merken, wenn jemals ein Client verunden war
 		if (listener->get_game()->num_clients()>=1)hadClient=true;
 		// Stirb ab, wenn sich der letzte Client getrennt hat
@@ -815,15 +816,10 @@ int CServerListener::init(const char* interface_,int port)
  * Verarbeitet genau ein Netzwerkereignis, entwede Daten eines Clients, der bereits zum Server
  * verbunden ist, oder eine ankommende Verbindung.
  **/
-int CServerListener::wait_for_player(bool verbose)
+int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 {
 	/* Addresse des Clients, der sich gerade verbinden moechte */
 
-#if (defined HAVE_GETADDRINFO) || (defined WIN32)
-	sockaddr_storage client;
-#else
-	sockaddr_in client;
-#endif
 	/* Dateidestriptoren der Sockets, einer ist der listen_socket */
 	fd_set filedescriptors;
 	int retval;
@@ -835,7 +831,7 @@ int CServerListener::wait_for_player(bool verbose)
 #else
 	socklen_t l;
 #endif
-	l=sizeof(client);
+	l=sizeof(*client);
 
 	/* Fuettere filedescriptors mit den sockets der verbunden Clients, sowie des listen_socket */
 	FD_ZERO(&filedescriptors);
@@ -869,8 +865,8 @@ int CServerListener::wait_for_player(bool verbose)
 			if (FD_ISSET(listen_sockets[j],&filedescriptors))
 		{
 			/* Akzeptiere die Verbindung, cl ist der neue Client-Socket */
-			l=sizeof(client);
-			int cl=accept(listen_sockets[j],(sockaddr*)&client,&l);
+			l=sizeof(*client);
+			int cl=accept(listen_sockets[j],(sockaddr*)client,&l);
 			if (cl==-1)return -1;
 
 			if (verbose)
@@ -887,7 +883,7 @@ int CServerListener::wait_for_player(bool verbose)
 
 
 				/* Erst FQDN aufloesen */
-				retval = getnameinfo((sockaddr*)&client,l,
+				retval = getnameinfo((sockaddr*)client,l,
 					clienthost,sizeof(clienthost),
 					NULL,0,
 					NI_NAMEREQD);
@@ -896,7 +892,7 @@ int CServerListener::wait_for_player(bool verbose)
 					logger->log("%s, ",clienthost);
 
 				/* Dann IP aufloesen */
-				getnameinfo((sockaddr*)&client,l,
+				getnameinfo((sockaddr*)client,l,
 					clienthost,sizeof(clienthost),
 					NULL,0,
 					NI_NUMERICHOST);
@@ -905,9 +901,9 @@ int CServerListener::wait_for_player(bool verbose)
 					logger->log("%s\n",clienthost);
 #else
 				hostent *host;
-				host=gethostbyaddr((char*)&client.sin_addr.s_addr,sizeof(client.sin_addr.s_addr),AF_INET);
+				host=gethostbyaddr((char*)client->sin_addr.s_addr,sizeof(client->sin_addr.s_addr),AF_INET);
 				unsigned int a,b,c,d,i;
-				i=ntohl(client.sin_addr.s_addr);
+				i=ntohl(client->sin_addr.s_addr);
 				a=(i>>24)&0xFF;
 				b=(i>>16)&0xFF;
 				c=(i>>8)&0xFF;
@@ -924,7 +920,7 @@ int CServerListener::wait_for_player(bool verbose)
 				}
 #endif
 			}
-			
+
 			/* Fuege den neuen Socket dem CSpielServer als Client hinzu */
 			get_game()->add_client(cl);
 		}

@@ -9,6 +9,7 @@
 #ifndef __SPIELSERVER_H_INCLUDED_
 #define __SPIELSERVER_H_INCLUDED_
 
+#include <sys/socket.h>
 #include "spielleiter.h"
 #include "network.h"
 #include "timer.h"
@@ -126,7 +127,7 @@ public:
 	int init(const char* interface_,int port);
 
 	/* Lauscht an allen Netzwerksockets und verarbeitet eine Nachricht */
-	int wait_for_player(bool verbose=false);
+	int wait_for_player(bool verbose, sockaddr_storage *client);
 
 	/* Schliesst das listen_socket, sodass keine Verbindungen mehr akzeptiert werden */
 	void close();

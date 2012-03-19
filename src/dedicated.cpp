@@ -49,7 +49,12 @@ static char* logfile = NULL;
 static CStdoutWriter logWriter;
 static CServerListener* listener; /* the primary listener for new games */
 static const char* stats_socket_file = "/tmp/freebloks_stats";
-static time_t time_started;
+
+static struct {
+	time_t time_started;
+	int connections_v4, connections_v6;
+
+} stats;
 
 
 #ifndef _WIN32
@@ -134,12 +139,14 @@ static void print_stats(int fd) {
 		game = listener->get_game();
 
 	dprintf(fd, "##### STATS BEGIN #####\n");
-	dprintf(fd, "server_started: %d\n", (int)time_started);
+	dprintf(fd, "server_started: %d\n", (int)stats.time_started);
 	dprintf(fd, "server_now: %d\n", (int)time(NULL));
 	dprintf(fd, "clients: %d\n", game ? game->num_clients() : 0);
 	dprintf(fd, "players: %d\n", game ? game->num_players() : 0);
 	dprintf(fd, "running: %d\n", games_running);
 	dprintf(fd, "ran: %d\n", games_ran);
+	dprintf(fd, "connections_v4: %d\n", stats.connections_v4);
+	dprintf(fd, "connections_v6: %d\n", stats.connections_v6);
 	dprintf(fd, "##### STATS END #####\n");
 }
 
@@ -147,6 +154,10 @@ static void print_stats(int fd) {
  * connected clients */
 static void* stat_thread(void* param) {
 	char *file = (char*)param;
+
+	stats.time_started = time(NULL);
+	stats.connections_v4 = 0;
+	stats.connections_v6 = 0;
 
 	struct sockaddr_un addr;
 	char buf[100];
@@ -444,14 +455,20 @@ static int EstablishGame(CServerListener* listener)
 	int ret;
 	do
 	{
+		sockaddr_storage client;
+		client.ss_family = AF_UNSPEC;
 		/* Listener auf einen Client warten oder eine Netzwerknachricht verarbeiten lassen */
-		ret=listener->wait_for_player(true);
+		ret=listener->wait_for_player(true, &client);
 		/* Bei Fehler: Raus hier */
 		if (ret==-1)
 		{
-				perror("wait(): ");
+			perror("wait(): ");
 			return -1;
 		}
+		if (client.ss_family == AF_INET6)
+			stats.connections_v6++;
+		if (client.ss_family == AF_INET)
+			stats.connections_v4++;
 		/* Solange, wie kein aktueller Spieler festgelegt ist: Spiel laeuft noch nicht */
 	}while (listener->get_game()->current_player()==-1);
 	return 0;
@@ -549,7 +566,8 @@ int main(int argc,char ** argv)
 	init_mutex();
 
 	listener->setLogger(&logger);
-	time_started = time(NULL);
+
+
 	pthread_create(&pt, NULL, stat_thread, (void*)stats_socket_file);
 
 	/* Dedizierter Server laeuft endlos */
