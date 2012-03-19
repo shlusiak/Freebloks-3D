@@ -139,14 +139,14 @@ static void print_stats(int fd) {
 		game = listener->get_game();
 
 	dprintf(fd, "##### STATS BEGIN #####\n");
-	dprintf(fd, "server_started: %d\n", (int)stats.time_started);
-	dprintf(fd, "server_now: %d\n", (int)time(NULL));
-	dprintf(fd, "clients: %d\n", game ? game->num_clients() : 0);
-	dprintf(fd, "players: %d\n", game ? game->num_players() : 0);
-	dprintf(fd, "running: %d\n", games_running);
-	dprintf(fd, "ran: %d\n", games_ran);
-	dprintf(fd, "connections_v4: %d\n", stats.connections_v4);
-	dprintf(fd, "connections_v6: %d\n", stats.connections_v6);
+	dprintf(fd, "server_started %d\n", (int)stats.time_started);
+	dprintf(fd, "server_now %d\n", (int)time(NULL));
+	dprintf(fd, "clients %d\n", game ? game->num_clients() : 0);
+	dprintf(fd, "players %d\n", game ? game->num_players() : 0);
+	dprintf(fd, "running %d\n", games_running);
+	dprintf(fd, "ran %d\n", games_ran);
+	dprintf(fd, "connections_v4 %d\n", stats.connections_v4);
+	dprintf(fd, "connections_v6 %d\n", stats.connections_v6);
 	dprintf(fd, "##### STATS END #####\n");
 }
 
