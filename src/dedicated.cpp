@@ -12,11 +12,16 @@
 #endif
 
 #ifdef WIN32
-#include <winsock2.h>
+	#include <winsock2.h>
 #else
-#include <unistd.h>
-#include <pthread.h>
+	#include <unistd.h>
+	#include <pthread.h>
+	#include <sys/stat.h>
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <sys/un.h>
 #endif
+
 #include <string.h>
 #include <errno.h>
 #include "spielserver.h"
@@ -42,6 +47,10 @@ static pthread_mutex_t mutex;
 #endif
 static char* logfile = NULL;
 static CStdoutWriter logWriter;
+static CServerListener* listener; /* the primary listener for new games */
+static const char* stats_socket_file = "/tmp/freebloks_stats";
+static time_t time_started;
+
 
 #ifndef _WIN32
 	static uid_t uid = 0;
@@ -83,7 +92,99 @@ inline void unlock_mutex()
 #else
 	pthread_mutex_unlock(&mutex);
 #endif
+}
 
+/* client to connect to given unix domain socket and 'cat' the output from the server */
+static int dump_stats(const char *file) {
+	struct sockaddr_un addr;
+	char buf[100];
+	int fd,rc;
+
+	if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+		perror("socket error");
+		return(-1);
+	}
+
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, file, sizeof(addr.sun_path)-1);
+
+	if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+		perror("connect error");
+		return(-1);
+	}
+
+	while ( (rc=read(fd,buf,sizeof(buf))) > 0) {
+		printf("%.*s", rc, buf);
+	}
+	if (rc == -1) {
+		perror("read");
+		return(-1);
+	} else if (rc == 0) {
+		close(fd);
+	}
+
+	return 0;
+}
+
+/* dump stats to given file descriptor */
+static void print_stats(int fd) {
+	CSpielServer *game = NULL;
+	if (listener)
+		game = listener->get_game();
+
+	dprintf(fd, "##### STATS BEGIN #####\n");
+	dprintf(fd, "server_started: %d\n", (int)time_started);
+	dprintf(fd, "server_now: %d\n", (int)time(NULL));
+	dprintf(fd, "clients: %d\n", game ? game->num_clients() : 0);
+	dprintf(fd, "players: %d\n", game ? game->num_players() : 0);
+	dprintf(fd, "running: %d\n", games_running);
+	dprintf(fd, "ran: %d\n", games_ran);
+	dprintf(fd, "##### STATS END #####\n");
+}
+
+/* opens a unix domain socket, listens for connection and dumps the stat to
+ * connected clients */
+static void* stat_thread(void* param) {
+	char *file = (char*)param;
+
+	struct sockaddr_un addr;
+	char buf[100];
+	int fd,cl,rc;
+
+	unlink(file);
+	if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+		perror("error creating stats socket");
+		return NULL;
+	}
+
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strncpy(addr.sun_path, file, sizeof(addr.sun_path)-1);
+
+	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
+		perror("error binding stats socket");
+		return NULL;
+	}
+
+	if (listen(fd, 5) == -1) {
+		perror("error listening on stats socket");
+		return NULL;
+	}
+
+	while (1) {
+		if ( (cl = accept(fd, NULL, NULL)) == -1) {
+			perror("stats socket accept error");
+			continue;
+		}
+
+		print_stats(cl);
+		close(cl);
+	}
+
+	unlink(file);
+
+	return NULL;
 }
 
 
@@ -100,15 +201,16 @@ static void help()
 	       "                    Default: %d\n", ki_strength);
 	printf("  -m, --mode        The game mode for the hosted game. Valid modes:\n"
 	       "                    2: 2 colors, 2 players\n"
-               "                    3: 2 colors, 4 players\n"
-               "                    4: 4 colors, 4 players (Default)\n"
+		   "                    3: 2 colors, 4 players\n"
+		   "                    4: 4 colors, 4 players (Default)\n"
 	       "      --width       Width of the field. Default: 20\n"
 	       "      --height      Height of the field. Default: 20\n"
 	       "  -t, --threads     Define number of threads to use for calculating moves\n"
 	       "                    Default: %d\n",ki_threads);
 	printf("  -l, --limit       Maximum number of concurrent running games\n"
 	       "                    Default: 5\n");
-	printf("      --log         Log to file.\n");
+	printf("      --log         Log to file\n");
+	printf("      --stats       Dump stats from running server and exit\n");
 #ifndef _WIN32
 	printf("      --user\n"
 	       "      --group       Drop privileges to that uid/gid\n");
@@ -320,6 +422,10 @@ static void parseParams(int argc,char **argv)
 			i++;
 			continue;
 		}
+		if (strcmp("--stats",argv[i])==0)
+		{
+			exit(dump_stats(stats_socket_file));
+		}
 #endif
 
 		printf("Unrecognized commandline parameter: %s\n\n",argv[i]);
@@ -335,20 +441,20 @@ static void parseParams(int argc,char **argv)
  **/
 static int EstablishGame(CServerListener* listener)
 {
-    int ret;
-    do
-    {
-	/* Listener auf einen Client warten oder eine Netzwerknachricht verarbeiten lassen */
-	ret=listener->wait_for_player(true);
-	/* Bei Fehler: Raus hier */
-	if (ret==-1)
+	int ret;
+	do
 	{
-	        perror("wait(): ");
-		return -1;
-	}
-	/* Solange, wie kein aktueller Spieler festgelegt ist: Spiel laeuft noch nicht */
-    }while (listener->get_game()->current_player()==-1);
-    return 0;
+		/* Listener auf einen Client warten oder eine Netzwerknachricht verarbeiten lassen */
+		ret=listener->wait_for_player(true);
+		/* Bei Fehler: Raus hier */
+		if (ret==-1)
+		{
+				perror("wait(): ");
+			return -1;
+		}
+		/* Solange, wie kein aktueller Spieler festgelegt ist: Spiel laeuft noch nicht */
+	}while (listener->get_game()->current_player()==-1);
+	return 0;
 }
 
 #ifdef WIN32
@@ -389,7 +495,7 @@ int main(int argc,char ** argv)
 
 	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
 	   und Clients connecten laesst */
-	CServerListener* listener=new CServerListener();
+	listener=new CServerListener();
 	CGameLogger logger((CLogWriter*)&logWriter, 0);
 
 	/* Kommandozeilenparameter verarbeiten */
@@ -399,6 +505,8 @@ int main(int argc,char ** argv)
 	/* Winsock initialisieren */
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2,0),&wsadata);
+#else
+	pthread_t pt;
 #endif
 	printf("This is the almighty Dedicated Freebloks Server. Have a nice day!\n");
 	printf("Show help with `dedicated --help`\n");
@@ -439,8 +547,10 @@ int main(int argc,char ** argv)
 	    return -1;
 	}
 	init_mutex();
-	
+
 	listener->setLogger(&logger);
+	time_started = time(NULL);
+	pthread_create(&pt, NULL, stat_thread, (void*)stats_socket_file);
 
 	/* Dedizierter Server laeuft endlos */
 	while (true)
@@ -467,7 +577,6 @@ int main(int argc,char ** argv)
 		DWORD threadid;
 		CloseHandle(CreateThread(NULL,0,gameRunThread,(void*)listener->get_game(),0,&threadid));
 #else
-		pthread_t pt;
 		if (pthread_create(&pt,NULL,gameRunThread,(void*)listener->get_game()))
 			perror("pthread_create");
 		if (pthread_detach(pt))perror("pthread_detach");
@@ -510,3 +619,4 @@ int main(int argc,char ** argv)
 #endif
 	return 0;
 }
+
