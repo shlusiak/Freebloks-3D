@@ -141,6 +141,7 @@ static void print_stats(int fd) {
 	dprintf(fd, "##### STATS BEGIN #####\n");
 	dprintf(fd, "server_started %d\n", (int)stats.time_started);
 	dprintf(fd, "server_now %d\n", (int)time(NULL));
+	dprintf(fd, "server_running %d\n", (int)(time(NULL) - stats.time_started));
 	dprintf(fd, "clients %d\n", game ? game->num_clients() : 0);
 	dprintf(fd, "players %d\n", game ? game->num_players() : 0);
 	dprintf(fd, "running %d\n", games_running);
