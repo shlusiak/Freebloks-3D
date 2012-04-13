@@ -10,7 +10,7 @@ LICENSE="GPL-2"
 
 SLOT="0"
 
-KEYWORDS="~x86"
+KEYWORDS="~x86 ~amd64"
 IUSE="X dedicated"
 
 # Build-time dependencies, such as
@@ -36,6 +36,6 @@ src_install() {
 		newicon src/freebloks.png ${PN}.png
 		make_desktop_entry freebloks Freebloks\ 3D ${PN}.png
 	fi
-						
+
 	prepgamesdirs
 }
