@@ -1,0 +1,16 @@
+Makefile.in
+configure
+*~
+dedicated.log
+blokus-*.tar.gz
+aclocal.m4
+autom4te.cache/*
+config.h
+Makefile
+config.log
+config.status
+stamp-h1
+.deps
+*.o
+blokus
+blokus_dedicated
