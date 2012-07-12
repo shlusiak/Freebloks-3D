@@ -814,6 +814,7 @@ CTextEdit::CTextEdit(double x,double y,double w,double h,int id,const char *vtex
 	numbers=numbers_only;
 	animatefocused=0.0;
 	animatechar=1.0;
+	lastchar='\0';
 	hovered=focused=false;
 	m_committed=false;
 	/* Der Text in dem Edit soll links ausgerichtet sein. Koennte man auch auf false setzen,
