@@ -465,6 +465,7 @@ void CSpielServer::send_server_msg(const char *text)
 	chat->length=strlen(text);
 	/* Chat-Nachricht an alle Clients. */
 	send_all((NET_HEADER*)chat,sizeof(NET_CHAT)+strlen(text)+1,MSG_CHAT);
+	free(chat);
 }
 
 /**
