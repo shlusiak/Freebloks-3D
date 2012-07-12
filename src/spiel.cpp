@@ -126,7 +126,7 @@ void CSpiel::refresh_player_data(){
 
 
 void CSpiel::init_field(){ 
-	if (m_game_field != NULL) delete CSpiel::m_game_field;
+	if (m_game_field != NULL) delete[] CSpiel::m_game_field;
 	CSpiel::m_game_field = new TSingleField[CSpiel::m_field_size_y * CSpiel::m_field_size_x];
 	for (int y = 0; y < CSpiel::m_field_size_y; y++){
 		for (int x = 0; x < CSpiel::m_field_size_x ; x++){
