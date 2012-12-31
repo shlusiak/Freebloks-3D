@@ -140,6 +140,9 @@ void CSpielServer::run()
     timeval tv;
     int retval;
     int max;
+    int heartbeat;
+
+    heartbeat = 0;
 
     do
     {
@@ -178,6 +181,17 @@ void CSpielServer::run()
 
 		/* Ausgewaehlten aktuellen Spieler an alle Clients schicken */
 		send_current_player();
+	} else
+		heartbeat++;
+
+	if (heartbeat > 6) {
+		/* send out a server status message. this should result in
+		   timeouts, if the client disconnected and there is no data
+		   flowing.
+
+		   in worst case, heartbeats will be sent about every 30 sec */
+		heartbeat = 0;
+		send_server_status();
 	}
 
 
