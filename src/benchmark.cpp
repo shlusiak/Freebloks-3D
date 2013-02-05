@@ -202,7 +202,7 @@ int main(int argc,char ** argv)
 		return 1;
 	}
 
-	spiel = new CSpielServer(0, ki_strength, GAMEMODE_4_COLORS_4_PLAYERS);
+	spiel = new CSpielServer(0, ki_strength, GAMEMODE_4_COLORS_4_PLAYERS, 0);
 	spiel->set_ki_threads(ki_threads);
 	spiel->set_field_size_and_new(height, width);
 	spiel->add_client(s[1]);

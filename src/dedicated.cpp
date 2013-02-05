@@ -40,6 +40,7 @@ static int ki_strength=KI_HARD;
 static int games_ran=0;
 static int games_running=0;
 static int max_running_games=5;
+static int force_delay=1;
 #ifdef WIN32
 static HANDLE mutex;
 #else
@@ -219,6 +220,8 @@ static void help()
 	       "      --height      Height of the field. Default: 20\n"
 	       "  -t, --threads     Define number of threads to use for calculating moves\n"
 	       "                    Default: %d\n",ki_threads);
+	printf("      --no-delay    Default is to force computer moves to last at least 800ms.\n"
+		   "                    Use this flag to turn this off.\n");
 	printf("  -l, --limit       Maximum number of concurrent running games\n"
 	       "                    Default: 5\n");
 	printf("      --log         Log to file\n");
@@ -399,6 +402,12 @@ static void parseParams(int argc,char **argv)
 			i++;
 			continue;
 		}
+		if (strcmp("--no-delay", argv[i]) == 0)
+		{
+			i++;
+			force_delay = 0;
+			continue;
+		}
 #ifndef _WIN32
 		if (strcmp("--user",argv[i])==0)
 		{
@@ -576,7 +585,7 @@ int main(int argc,char ** argv)
 	{
 		/* Ein neues Spiel soll erstellt werden.
 		   KI-Stufe ist schwer*/
-		listener->new_game(max_humans,ki_strength,gamemode,ki_threads);
+		listener->new_game(max_humans,ki_strength,gamemode,ki_threads,force_delay);
 		/* Groesse setzen */
 		listener->get_game()->set_field_size_and_new(height,width);
 		lock_mutex();

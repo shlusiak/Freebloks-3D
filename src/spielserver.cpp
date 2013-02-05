@@ -37,8 +37,8 @@
 /**
  * Construktor: Leeren SpielServer erstellen, alles auf Standardeinstellung
  **/
-CSpielServer::CSpielServer(const int v_max_humans,const int v_ki_mode,const GAMEMODE v_gamemode)
-:ki_mode(v_ki_mode),max_humans(v_max_humans)
+CSpielServer::CSpielServer(const int v_max_humans,const int v_ki_mode,const GAMEMODE v_gamemode,int v_forceDelay)
+:ki_mode(v_ki_mode),max_humans(v_max_humans),forceDelay(v_forceDelay)
 {
 	start_new_game();
 	for (int i=0;i<CLIENTS_MAX;i++)
@@ -141,6 +141,7 @@ void CSpielServer::run()
     int retval;
     int max;
     int heartbeat;
+	CTimer timer;
 
     heartbeat = 0;
 
@@ -151,7 +152,10 @@ void CSpielServer::run()
 	if (m_current_player!=-1 && spieler[m_current_player]==PLAYER_COMPUTER)
 	{
 		/* Ermittle CTurn, den die KI jetzt setzen wuerde */
+		timer.reset();
 		CTurn *turn=m_ki.get_ki_turn(this, current_player(),ki_mode);
+		if (forceDelay && timer.elapsed() < 800)
+			timer.sleep(800 - timer.elapsed());
 
 		if (turn!=0)
 		{
@@ -629,7 +633,7 @@ int CSpielServer::run_server(const char* interface_,int port,int maxhumans,int k
 	}
 
 	// Listener fuer neues Spiel vorbereiten
-	listener->new_game(maxhumans,ki_mode,gamemode,ki_threads);
+	listener->new_game(maxhumans,ki_mode,gamemode,ki_threads,1);
 	listener->get_game()->set_field_size_and_new(height,width);
 	listener->get_game()->set_stone_numbers(einer,zweier,dreier,vierer,fuenfer);
 
@@ -949,10 +953,10 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
  * Erstellt ein neues Spiel mit max_humans menschlichen Spielern, der Rest ist fuer Computer
  * reserviert
  **/
-void CServerListener::new_game(int max_humans,int ki_mode,GAMEMODE gamemode,int ki_threads)
+void CServerListener::new_game(int max_humans,int ki_mode,GAMEMODE gamemode,int ki_threads,int forceDelay)
 {
 //    if (server)delete server;
-	server=new CSpielServer(max_humans,ki_mode,gamemode);
+	server=new CSpielServer(max_humans,ki_mode,gamemode,forceDelay);
 	server->set_ki_threads(ki_threads);
 }
 
