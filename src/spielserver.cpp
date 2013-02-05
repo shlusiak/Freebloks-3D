@@ -184,7 +184,7 @@ void CSpielServer::run()
 	} else
 		heartbeat++;
 
-	if (heartbeat > 6) {
+	if (heartbeat > 60) {
 		/* send out a server status message. this should result in
 		   timeouts, if the client disconnected and there is no data
 		   flowing.
@@ -201,7 +201,7 @@ void CSpielServer::run()
 		tv.tv_sec=0;
 		tv.tv_usec=0;
 	}else{
-		/* Bei menschlichen Spielern benutze kurzen Timeout */
+		/* Bei menschlichen Spielern benutze Timeout von 1s */
 		tv.tv_sec = 0;
 		tv.tv_usec = 500*1000;
 	}
