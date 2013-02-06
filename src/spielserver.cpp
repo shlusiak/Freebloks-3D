@@ -378,7 +378,6 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			}
 			/* Aktuellen Spieler den Clients mitteilen */
 			send_current_player();
-			CTimer::sleep(1000);
 			break;
 		}
 
