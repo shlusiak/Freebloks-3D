@@ -40,9 +40,12 @@
 CSpielServer::CSpielServer(const int v_max_humans,const int v_ki_mode,const GAMEMODE v_gamemode,int v_forceDelay)
 :ki_mode(v_ki_mode),max_humans(v_max_humans),forceDelay(v_forceDelay)
 {
+	int i;
 	start_new_game();
-	for (int i=0;i<CLIENTS_MAX;i++)
+	for (i=0;i<CLIENTS_MAX;i++) {
 		clients[i]=0;
+		names[i] = NULL;
+	}
 	m_gamemode=v_gamemode;
 	if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
 		set_teams(0,2,1,3);
@@ -56,8 +59,14 @@ CSpielServer::CSpielServer(const int v_max_humans,const int v_ki_mode,const GAME
  **/
 CSpielServer::~CSpielServer()
 {
-	for (int i=0;i<CLIENTS_MAX;i++)if (clients[i]!=0)
-		closesocket(clients[i]);
+	int i;
+	for (i=0;i<CLIENTS_MAX;i++) {
+		if (clients[i]!=0)
+			closesocket(clients[i]);
+		if (names[i])
+			free(names[i]);
+		names[i] = NULL;
+	}
 }
 
 /**
@@ -106,7 +115,9 @@ void CSpielServer::add_client(int s)
 void CSpielServer::delete_client(int index,bool notify)
 {
 	/* Alle Spieler, die der Client belegt hat, werden durch einen PLAYER_COMPUTER ersetzt */
-	for (int i=0;i<PLAYER_MAX;i++)if (spieler[i]==clients[index])spieler[i]=PLAYER_COMPUTER;
+	for (int i=0;i<PLAYER_MAX;i++)if (spieler[i]==clients[index]) {
+		spieler[i]=PLAYER_COMPUTER;
+	}
 	/* Socket zu dem Client schliessen */
 	if (closesocket(clients[index])==-1)perror("close: ");
 	clients[index]=0;
@@ -269,6 +280,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 	{
 		/* Der Client fordert einen lokalen Spieler an */
 		case MSG_REQUEST_PLAYER: {
+			NET_REQUEST_PLAYER *req = (NET_REQUEST_PLAYER*)(data);
 			NET_GRANT_PLAYER msg;
 			int n;
 			/* Sind nicht mehr Menschen erlaubt, verwirf die Nachricht */
@@ -290,6 +302,11 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				if (num_players()>=PLAYER_MAX)return;
 				/* Pick zufaellig einen Spieler raus */
 				n=rand()%PLAYER_MAX;
+				/* seit 1.5: optional ist ein Wunschspieler angegeben */
+				if (ntohs(data->data_length) > sizeof(NET_HEADER)) {
+					if (req->player >= 0 && req->player <= PLAYER_MAX)
+						n = req->player;
+				}
 				/* Suche den naechsten, der frei ist (!=PLAYER_COMPUTER) */
 				while (spieler[n]!=PLAYER_COMPUTER)n=(n+1)%PLAYER_MAX;
 			}
@@ -316,7 +333,20 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				/* Speichere socket des Spielers in dem spieler[] Array
 			   	So werden den Spielern wieder die Clients zugeordnet */
 				spieler[n]=clients[client];
+
 			}
+			/* setze Spielernamen */
+			if (names[client])
+				free(names[client]);
+			names[client] = NULL;
+			if (ntohs(data->data_length) > sizeof(NET_HEADER)) {
+				req->name[sizeof(req->name) - 1] = '\0';
+				if (strlen((char*)req->name) > 0) {
+					/* store client name */
+					names[client] = strdup((char*)req->name);
+				}
+			}
+
 			/* Aktuellen Serverstatus an Clients senden */
 			send_server_status();
 // 			printf("Client %d requested player (#%d)\n",client,n);
@@ -457,15 +487,37 @@ void CSpielServer::send_current_player()
 void CSpielServer::send_server_status()
 {
 	NET_SERVER_STATUS status;
+	int i;
 	int max=(m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS)?2:PLAYER_MAX;
 	status.player=num_players();
 	status.computer=max-num_players();
 	status.clients=num_clients();
 	status.width=get_field_size_x();
 	status.height=get_field_size_y();
-	for (int i=0;i<STONE_SIZE_MAX;i++)
+	for (i=0;i<STONE_SIZE_MAX;i++)
 		status.stone_numbers[i]=stone_numbers[i];
 	status.gamemode=m_gamemode;
+	for (i = 0; i < PLAYER_MAX; i++) {
+		if (spieler[i] == PLAYER_COMPUTER || spieler[i] == PLAYER_LOCAL)
+			status.spieler[i] = spieler[i];
+		else {
+			int j;
+			for (j = 0; j < CLIENTS_MAX; j++)
+				if (clients[j] == spieler[i])
+					status.spieler[i] = j;
+		}
+	}
+	for (i = 0; i < CLIENTS_MAX; i++) {
+		status.client_names[i][0] = '\0';
+		if (clients[i] != 0) {
+			if (names[i])
+				strcpy((char*)status.client_names[i], names[i]);
+			else {
+				sprintf((char*)status.client_names[i], "Client %d", i);
+			}
+		}
+	}
+
 	send_all((NET_HEADER*)&status,sizeof(status),MSG_SERVER_STATUS);
 }
 

@@ -217,7 +217,7 @@ void runGame(CSpielClient* client)
 		printf("Connected!\n\n");
 	}
 
-	for (i=0;i<max_players;i++) client->request_player();
+	for (i=0;i<max_players;i++) client->request_player(-1, NULL);
 
 	if (auto_start) client->request_start();
 	do {

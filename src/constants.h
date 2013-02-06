@@ -17,6 +17,7 @@ typedef unsigned char TSingleField;
 
 
 const int PLAYER_MAX   =  4;
+const int CLIENTS_MAX  =  8;
 
 const TSingleField PLAYER_BIT_ADDR[PLAYER_MAX] = {
 			  3, //0

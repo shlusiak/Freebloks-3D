@@ -10,15 +10,13 @@
 #define __SPIELSERVER_H_INCLUDED_
 
 #include <sys/socket.h>
+#include "constants.h"
 #include "spielleiter.h"
 #include "network.h"
 #include "timer.h"
 #include "logger.h"
 
 
-/* Maximale Anzahl Clients, die zu einem Spiel verbunden sein kann. 
-   Es gibt auch Zuschauer! */
-#define CLIENTS_MAX (8)
 #define LISTEN_SOCKETS_MAX (8)
 
 /**
@@ -34,6 +32,10 @@ private:
 
 	/* Die sockets der verbundenen Clients */
 	int clients[CLIENTS_MAX];
+
+	/* seit 1.5: Namen der verbundenen Clients */
+	char *names[CLIENTS_MAX];
+
 	/* Maximale Anzahl menschlicher Spieler, der Rest ist fuer Computergegener reserviert */
 	const int max_humans;
 
