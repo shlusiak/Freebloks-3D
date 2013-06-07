@@ -516,9 +516,6 @@ void CSpielServer::send_server_status()
 		if (clients[i] != 0) {
 			if (names[i])
 				strcpy((char*)status.client_names[i], names[i]);
-			else {
-				sprintf((char*)status.client_names[i], "Client %d", i);
-			}
 		}
 	}
 
