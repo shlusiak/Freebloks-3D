@@ -50,7 +50,7 @@ int network_send(int target,NET_HEADER *header,uint16 data_length,uint8 msg_type
 	if (recv(target,&c,1,MSG_PEEK|MSG_DONTWAIT)==0)return -1;
 #endif
 	/* Nachricht versenden */
-	if (send(target,(char*)header,data_length,0)!=-1)return 0;
+	if (send(target,(char*)header,data_length,MSG_NOSIGNAL)!=-1)return 0;
 	perror("send: ");
 	return -1;
 }
