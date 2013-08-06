@@ -204,7 +204,8 @@ int main(int argc,char ** argv)
 
 	spiel = new CSpielServer(0, ki_strength, GAMEMODE_4_COLORS_4_PLAYERS, 0);
 	spiel->set_ki_threads(ki_threads);
-	spiel->set_field_size_and_new(height, width);
+	spiel->set_field_size(width, height);
+	spiel->start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
 	spiel->add_client(s[1]);
 
 	if (pthread_create(&pt,NULL,clientThread,(void*)&s[0]))

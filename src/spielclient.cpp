@@ -36,7 +36,7 @@
  **/
 CSpielClient::CSpielClient()
 {
-	start_new_game();
+	start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
 	client_socket=0;
 	status.clients=status.player=status.computer=0;
 	status.width=status.height=20;
@@ -321,8 +321,10 @@ void CSpielClient::process_message(NET_HEADER* data)
 			   lokale Spielfeldgroesse hier anpassen */
 			status.width=s->width;
 			status.height=s->height;
-			if (status.width!=get_field_size_x() || status.height!=get_field_size_y())
-				set_field_size_and_new(status.height,status.width);
+			if (status.width!=get_field_size_x() || status.height!=get_field_size_y()) {
+				set_field_size(status.width, status.height);
+				start_new_game((GAMEMODE)s->gamemode);
+			}
 			{
 				bool changed=false;
 				for (int i=0;i<STONE_SIZE_MAX;i++)
@@ -335,7 +337,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 			m_gamemode=(GAMEMODE)s->gamemode;
 			if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
 				set_teams(0,2,1,3);
-			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS)
+			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode == GAMEMODE_DUO)
 			{
 				for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
 					get_player(1)->get_stone(n)->set_available(0);
@@ -347,11 +349,6 @@ void CSpielClient::process_message(NET_HEADER* data)
 				memcpy(status.client_names, s->client_names, sizeof(s->client_names));
 				for (i = 0; i < PLAYER_MAX; i++) {
 					status.spieler[i] = s->spieler[i];
-					printf("Spieler %d: %d\n", i, status.spieler[i]);
-				}
-				for (int i = 0; i < CLIENTS_MAX; i++) {
-					if (strlen((char*)status.client_names[i]) > 0)
-						printf("Client %d: %s\n", i, (char*)status.client_names[i]);
 				}
 			}
 		}
@@ -365,14 +362,14 @@ void CSpielClient::process_message(NET_HEADER* data)
 		}
 		/* Der Server hat eine neue Runde gestartet. Spiel zuruecksetzen */
 		case MSG_START_GAME: {
-			CSpiel::start_new_game();
+			CSpiel::start_new_game(m_gamemode);
 			/* Unbedingt history leeren. */
 			if (history)history->delete_all_turns();
 
 			set_stone_numbers(status.stone_numbers[0],status.stone_numbers[1],status.stone_numbers[2],status.stone_numbers[3],status.stone_numbers[4]);
 			if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
 				set_teams(0,2,1,3);
-			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS)
+			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO)
 			{
 				for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
 					get_player(1)->get_stone(n)->set_available(0);

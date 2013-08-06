@@ -216,6 +216,7 @@ static void help()
 	       "                    2: 2 colors, 2 players\n"
 		   "                    3: 2 colors, 4 players\n"
 		   "                    4: 4 colors, 4 players (Default)\n"
+		   "                    5: Blokus Duo\n"
 	       "      --width       Width of the field. Default: 20\n"
 	       "      --height      Height of the field. Default: 20\n"
 	       "  -t, --threads     Define number of threads to use for calculating moves\n"
@@ -311,14 +312,15 @@ static void parseParams(int argc,char **argv)
 				exit(1);
 			}
 			int mode=atoi(argv[i]);
-			if (mode<2 || mode>4)
+			if (mode<2 || mode>5)
 			{
-				printf("%s: Invalid mode (%d). Must be one of 1, 2 or 3.\n",argv[i-1],mode);
+				printf("%s: Invalid mode (%d). Must be one of 2, 3, 4 or 5.\n",argv[i-1],mode);
 				exit(1);
 			}
 			if (mode==2)gamemode=GAMEMODE_2_COLORS_2_PLAYERS;
 			if (mode==3)gamemode=GAMEMODE_4_COLORS_2_PLAYERS;
 			if (mode==4)gamemode=GAMEMODE_4_COLORS_4_PLAYERS;
+			if (mode==5)gamemode=GAMEMODE_DUO;
 			i++;
 			continue;
 		}
@@ -587,7 +589,8 @@ int main(int argc,char ** argv)
 		   KI-Stufe ist schwer*/
 		listener->new_game(max_humans,ki_strength,gamemode,ki_threads,force_delay);
 		/* Groesse setzen */
-		listener->get_game()->set_field_size_and_new(height,width);
+		listener->get_game()->set_field_size(width, height);
+		listener->get_game()->start_new_game(gamemode);
 		lock_mutex();
 		listener->get_game()->setLogger((CLogger*)&logger);
 		unlock_mutex();
