@@ -349,11 +349,6 @@ void CSpielClient::process_message(NET_HEADER* data)
 				memcpy(status.client_names, s->client_names, sizeof(s->client_names));
 				for (i = 0; i < PLAYER_MAX; i++) {
 					status.spieler[i] = s->spieler[i];
-					printf("Spieler %d: %d\n", i, status.spieler[i]);
-				}
-				for (int i = 0; i < CLIENTS_MAX; i++) {
-					if (strlen((char*)status.client_names[i]) > 0)
-						printf("Client %d: %s\n", i, (char*)status.client_names[i]);
 				}
 			}
 		}
