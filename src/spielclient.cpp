@@ -335,7 +335,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 			m_gamemode=(GAMEMODE)s->gamemode;
 			if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
 				set_teams(0,2,1,3);
-			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS)
+			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode == GAMEMODE_DUO)
 			{
 				for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
 					get_player(1)->get_stone(n)->set_available(0);
@@ -372,7 +372,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 			set_stone_numbers(status.stone_numbers[0],status.stone_numbers[1],status.stone_numbers[2],status.stone_numbers[3],status.stone_numbers[4]);
 			if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
 				set_teams(0,2,1,3);
-			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS)
+			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO)
 			{
 				for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
 					get_player(1)->get_stone(n)->set_available(0);

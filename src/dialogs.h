@@ -27,6 +27,7 @@ private:
 	CCheckBox* playerMode2;
 	CCheckBox* playerMode3;
 	CCheckBox* playerMode4;
+	CCheckBox* playerMode5;
 	CCheckBox* diffEasy;
 	CCheckBox* diffNormal;
 	CCheckBox* diffHard;

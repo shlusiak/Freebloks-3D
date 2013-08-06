@@ -115,7 +115,7 @@ int CMainMenu::processMouseEvent(TMouseEvent *event)
  *man kann den Spielmodus, Spielstärke, Anzahl lokaler Spieler, und Feldgrösse ändern
  **/
 CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
-:CDialog(350,310,"Singleplayer Settings")
+:CDialog(350,330,"Singleplayer Settings")
 {	
 	const char* text = "Playermode";
 	int i;
@@ -127,26 +127,29 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 	if (multiplayer)setSize(w,h+30);
 
 	addChild(new CStaticText(30,70,text,this));
-	playerMode2 = new CCheckBox(150,50,156,20,5001,"2 Player 2 Colors",false,this);
-	playerMode3 = new CCheckBox(150,70,156,20,5003,"2 Player 4 Colors",false,this);
-	playerMode4 = new CCheckBox(150,90,156,20,5002,"4 Player 4 Colors",true,this);
+	playerMode5 = new CCheckBox(150,50,156,20,5004,"Blokus Duo",false,this);
+	playerMode2 = new CCheckBox(150,70,156,20,5001,"2 Player 2 Colors",false,this);
+	playerMode3 = new CCheckBox(150,90,156,20,5003,"2 Player 4 Colors",false,this);
+	playerMode4 = new CCheckBox(150,110,156,20,5002,"4 Player 4 Colors",true,this);
 
 	addChild(playerMode2);
 	addChild(playerMode3);
 	addChild(playerMode4);
+	addChild(playerMode5);
 	playerMode2->addCheckBox(playerMode3);
 	playerMode2->addCheckBox(playerMode4);
+	playerMode2->addCheckBox(playerMode5);
 
 	text = "Local Players";
-	addChild(new CStaticText(30,130,text,this));
+	addChild(new CStaticText(30,150,text,this));
 	
-	localplayer = new CSpinBox(150,130,40,20,5010,0,4,1,this);
+	localplayer = new CSpinBox(150,150,40,20,5010,0,4,1,this);
 	addChild(localplayer);
 
 	if (multiplayer)
 	{
-		addChild(new CStaticText(30,160,"Maximum humans:",this));
-		numberMaxPlayers=new CSpinBox(180,160,40,20,5040,0,4,4,this);
+		addChild(new CStaticText(30,180,"Maximum humans:",this));
+		numberMaxPlayers=new CSpinBox(180,180,40,20,5040,0,4,4,this);
 		addChild(numberMaxPlayers);
 	}
 
@@ -211,6 +214,12 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 		playermode = 3;
 		localplayer->setMax(2);
 		break;
+	case 5004:
+		playermode = 5;
+		localplayer->setMax(2);
+		size_x = 14;
+		size_y = 14;
+		break;
 	case 5013:
 	case 5015:
 		break;
@@ -231,6 +240,7 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 
 		if (playermode==2)m=GAMEMODE_2_COLORS_2_PLAYERS;
 		if (playermode==3)m=GAMEMODE_4_COLORS_2_PLAYERS;
+		if (playermode==5)m=GAMEMODE_DUO;
 
 		if (	(numberOfStones[0]==0)&&
 			(numberOfStones[1]==0)&&

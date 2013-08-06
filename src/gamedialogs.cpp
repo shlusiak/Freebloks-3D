@@ -202,6 +202,7 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CSpielClient *client)
 	/* Alle Plaetze durchgehen, und sofern der Platz ueberhaupt existiert... */
 	for (i=0;i<PLAYER_MAX;i++)if (
 		   (client->get_gamemode()==GAMEMODE_2_COLORS_2_PLAYERS && (place[i]==0 || place[i]==2))
+		|| (client->get_gamemode()==GAMEMODE_DUO && (place[i]==0 || place[i]==2))
 		|| (client->get_gamemode()==GAMEMODE_4_COLORS_4_PLAYERS)
 		|| (client->get_gamemode()==GAMEMODE_4_COLORS_2_PLAYERS && (place[i]==0 || place[i]==1))
 		)
