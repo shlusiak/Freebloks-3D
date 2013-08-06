@@ -33,7 +33,19 @@ typedef struct
 	uint16 data_length;	/* Laenge des Datenpakets in Byte (network-byte-order) */
 	uint8 msg_type;		/* Kennzahl der Nachricht, um den Typ festzustellen */
 	uint8  check2;		/* Eine Checksumme um falsche Header zu erkennen */
-} NET_HEADER,NET_REQUEST_PLAYER,NET_START_GAME,NET_GAME_FINISH,NET_REQUEST_UNDO;
+} NET_HEADER,NET_START_GAME,NET_GAME_FINISH,NET_REQUEST_UNDO;
+
+/**
+ * Nachricht, um einen Spieler anzufordern. Enthält Wunschfarbe oder -1 für egal
+ **/
+
+typedef struct
+{
+	NET_HEADER header;
+	/* added in 1.5 */
+	int8 player;
+	uint8 name[16];
+} NET_REQUEST_PLAYER;
 
 /**
  * NET_GRANT_PLAYER: Server gewaehrt dem Client einen Spieler
@@ -68,6 +80,9 @@ typedef struct
 	int8 width,height; /* Groesse des Spielfelds */
 	int8 stone_numbers[STONE_SIZE_MAX]; /* Anzahl der Steine bestimmter Groessen */
 	int8 gamemode;
+	/* added in 1.5 */
+	int8 spieler[PLAYER_MAX];
+	uint8 client_names[CLIENTS_MAX][16]; /* names for each client */
 } NET_SERVER_STATUS;
 
 /**

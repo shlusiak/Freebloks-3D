@@ -247,9 +247,15 @@ const char* CSpielClient::poll()
  * Erbitte Spielserver um einen lokalen Spieler.
  * Server schickt eine Spielernummer an den Client zurueck.
  **/
-void CSpielClient::request_player()const
+void CSpielClient::request_player(int wish_player, char* name)const
 {
 	NET_REQUEST_PLAYER data;
+	data.player = wish_player;
+	if (name == NULL)
+		data.name[0] = '\0';
+	else
+		strncpy((char*)&data.name[0], name, sizeof(data.name));
+	data.name[sizeof(data.name) - 1] = '\0';
 	send_message((NET_HEADER*)&data,sizeof(data),MSG_REQUEST_PLAYER);
 }
 
@@ -334,6 +340,18 @@ void CSpielClient::process_message(NET_HEADER* data)
 				for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
 					get_player(1)->get_stone(n)->set_available(0);
 					get_player(3)->get_stone(n)->set_available(0);
+				}
+			}
+			if (ntohs(data->data_length) == sizeof(NET_SERVER_STATUS)) {
+				int i;
+				memcpy(status.client_names, s->client_names, sizeof(s->client_names));
+				for (i = 0; i < PLAYER_MAX; i++) {
+					status.spieler[i] = s->spieler[i];
+					printf("Spieler %d: %d\n", i, status.spieler[i]);
+				}
+				for (int i = 0; i < CLIENTS_MAX; i++) {
+					if (strlen((char*)status.client_names[i]) > 0)
+						printf("Client %d: %s\n", i, (char*)status.client_names[i]);
 				}
 			}
 		}

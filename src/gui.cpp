@@ -257,7 +257,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 		return false;
 	}
 	/* Jetzt [players] lokale Spieler anfordern. */
-	for (int i=0;i<players;i++)spiel->request_player();
+	for (int i=0;i<players;i++)spiel->request_player(-1, NULL);
 	/* Da das Spiel lokal ist, kann direkt losgelegt werden. Spielstart anfordern */
 	spiel->request_start();
 	/* Erfolg */
@@ -323,7 +323,7 @@ bool CGUI::joinMultiplayerGame(const char *host,int port,int players)
 		return false;
 	}else{
 		/* [players] lokale Spieler anfordern. */
-		for (int i=0;i<players;i++)spiel->request_player();
+		for (int i=0;i<players;i++)spiel->request_player(-1, NULL);
 		/* Dann modal den StartGameDialog als Lobby anzeigen. */
 		widgets.addSubChild(new CStartGameDialog(spiel,this,host));
 		/* Erfolg, Verbindung steht. */
