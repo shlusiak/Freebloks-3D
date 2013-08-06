@@ -131,8 +131,13 @@ void CSpiel::init_field(){
 }
 
 void CSpiel::set_seeds(GAMEMODE gamemode) {
-	for (int p = 0; p < PLAYER_MAX; p++){
-		CSpiel::set_game_field(CSpiel::get_player_start_y(p), CSpiel::get_player_start_x(p), PLAYER_BIT_ALLOWED[p]);
+	if (gamemode == GAMEMODE_DUO) {
+		set_game_field(m_field_size_y - 4, 4, PLAYER_BIT_ALLOWED[0]);
+		set_game_field(4, m_field_size_x - 4, PLAYER_BIT_ALLOWED[2]);
+	} else {
+		for (int p = 0; p < PLAYER_MAX; p++){
+			CSpiel::set_game_field(CSpiel::get_player_start_y(p), CSpiel::get_player_start_x(p), PLAYER_BIT_ALLOWED[p]);
+		}
 	}
 }
 
