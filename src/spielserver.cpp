@@ -301,7 +301,9 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 						n = req->player;
 				}
 				/* Suche den naechsten, der frei ist (!=PLAYER_COMPUTER) */
-				while (spieler[n]!=PLAYER_COMPUTER)n=(n+2)%2;
+				n = 2 - n;
+				if (spieler[n] != PLAYER_COMPUTER)
+					return;
 			}else{
 				/* Wenn alle Spieler vergeben, raus */
 				if (num_players()>=PLAYER_MAX)return;
