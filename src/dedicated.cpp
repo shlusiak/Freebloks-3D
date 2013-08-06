@@ -587,7 +587,8 @@ int main(int argc,char ** argv)
 		   KI-Stufe ist schwer*/
 		listener->new_game(max_humans,ki_strength,gamemode,ki_threads,force_delay);
 		/* Groesse setzen */
-		listener->get_game()->set_field_size_and_new(height,width);
+		listener->get_game()->set_field_size(width, height);
+		listener->get_game()->start_new_game(gamemode);
 		lock_mutex();
 		listener->get_game()->setLogger((CLogger*)&logger);
 		unlock_mutex();

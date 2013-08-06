@@ -41,7 +41,7 @@ CSpielServer::CSpielServer(const int v_max_humans,const int v_ki_mode,const GAME
 :ki_mode(v_ki_mode),max_humans(v_max_humans),forceDelay(v_forceDelay)
 {
 	int i;
-	start_new_game();
+	start_new_game(v_gamemode);
 	for (i=0;i<CLIENTS_MAX;i++) {
 		clients[i]=0;
 		names[i] = NULL;
@@ -550,7 +550,7 @@ void CSpielServer::start_game()
 
 	/* Spiel zuruecksetzen */
 	if (history)history->delete_all_turns();
-	CSpiel::start_new_game();
+	CSpiel::start_new_game(m_gamemode);
 	CSpiel::set_stone_numbers(stone_numbers[0],stone_numbers[1],stone_numbers[2],stone_numbers[3],stone_numbers[4]);
 
 	/* Wenn nur mit zwei Farben gespielt wird, nehme Spieler 1 und 3 alle Steine weg */
@@ -687,7 +687,8 @@ int CSpielServer::run_server(const char* interface_,int port,int maxhumans,int k
 
 	// Listener fuer neues Spiel vorbereiten
 	listener->new_game(maxhumans,ki_mode,gamemode,ki_threads,1);
-	listener->get_game()->set_field_size_and_new(height,width);
+	listener->get_game()->set_field_size(width, height);
+	listener->get_game()->start_new_game(gamemode);
 	listener->get_game()->set_stone_numbers(einer,zweier,dreier,vierer,fuenfer);
 
 	// Einen Thread starten, der sich um das Spiel kuemmert
