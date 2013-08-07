@@ -386,7 +386,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 			CTurn *t=history->get_last_turn();
 			CStone *stone=get_player(t->get_playernumber())->get_stone(t->get_stone_number());
 			stoneUndone(stone, t);
-			undo_turn(history);
+			undo_turn(history, m_gamemode);
 			break;
 		}
 		default: printf("FEHLER: unbekannte Nachricht empfangen: #%d\n",data->msg_type);

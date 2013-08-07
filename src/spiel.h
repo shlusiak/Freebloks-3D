@@ -80,7 +80,7 @@ class CSpiel{
 		TSingleField set_stone(CStone* stone, int playernumber, int y, int x);
 		TSingleField set_stone(const CTurn* turn);
 
-		void undo_turn(CTurnpool* turnpool);
+		void undo_turn(CTurnpool* turnpool, GAMEMODE gamemode);
 };
 
 
