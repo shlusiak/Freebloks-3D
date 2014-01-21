@@ -78,7 +78,7 @@ CGUI::CGUI()
 	startupParams.firststart=true;
 	startupParams.intro=true;
 	startupParams.humans=1;
-	startupParams.threads=1;
+	startupParams.threads=2;
 
 
 	/* Kamera initialisieren */

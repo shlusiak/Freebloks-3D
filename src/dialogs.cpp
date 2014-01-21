@@ -12,6 +12,9 @@
 #ifdef HAVE_CONFIG_H
   #include "config.h"
 #endif
+#ifdef HAVE_UNISTD_H
+  #include <unistd.h>
+#endif
 
 #include "widgets.h"
 #include "dialogs.h"
@@ -34,7 +37,7 @@ static const int maxNumberStones=10;
 static int numberOfStones[5]={1,1,1,1,1};
 
 /* Multithreading in der KI verwenden, oder nicht */
-static int ki_multithreading=1;
+static int ki_multithreading=2;
 
 /* Ausgewaehlter Server */
 static char* mp_oldserver=NULL;
