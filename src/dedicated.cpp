@@ -100,6 +100,7 @@ inline void unlock_mutex()
 #endif
 }
 
+#ifndef WIN32
 /* client to connect to given unix domain socket and 'cat' the output from the server */
 static int dump_stats(const char *file) {
 	struct sockaddr_un addr;
@@ -199,6 +200,7 @@ static void* stat_thread(void* param) {
 
 	return NULL;
 }
+#endif
 
 
 /* Hilfetext ausgeben */
@@ -580,7 +582,9 @@ int main(int argc,char ** argv)
 	listener->setLogger(&logger);
 
 
+#ifndef WIN32
 	pthread_create(&pt, NULL, stat_thread, (void*)stats_socket_file);
+#endif
 
 	/* Dedizierter Server laeuft endlos */
 	while (true)

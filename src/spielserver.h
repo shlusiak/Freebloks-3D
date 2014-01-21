@@ -9,7 +9,9 @@
 #ifndef __SPIELSERVER_H_INCLUDED_
 #define __SPIELSERVER_H_INCLUDED_
 
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
 #include "constants.h"
 #include "spielleiter.h"
 #include "network.h"

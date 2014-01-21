@@ -27,10 +27,16 @@ CLogWriter::~CLogWriter()
 
 void CLogWriter::log(const char* fmt, va_list va) {
 	if (next) {
+#ifdef va_copy
 		va_list vc;
 		va_copy(vc, va);
 		next->log(fmt, vc);
 		va_end(vc);
+#else
+		va_start(va, fmt);
+		next->log(fmt, va);
+		va_end(va);
+#endif
 	}
 }
 

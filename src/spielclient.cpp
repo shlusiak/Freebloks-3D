@@ -201,7 +201,12 @@ void CSpielClient::Connect(int client_socket, int blocking)
 	this->client_socket = client_socket;
 	if (blocking == 0)
 	{
+#ifdef HAVE_FCNTL_H
 		fcntl(client_socket,F_SETFL,O_NONBLOCK);
+#else
+		unsigned long block=1;
+		ioctlsocket(client_socket,FIONBIO,&block);
+#endif
 	}
 }
 
