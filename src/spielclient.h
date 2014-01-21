@@ -45,7 +45,7 @@ public:
 	const char* poll();
 
 	/* Schickt eine Anfrage fuer einen lokalen Spieler an den Server */
-	void request_player(int wish_player, char* name)const;
+	void request_player(int wish_player, const char* name)const;
 
 	/* Schickt eine Anfrage fuer Spielstart an den Server */
 	void request_start()const;

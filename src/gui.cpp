@@ -272,7 +272,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
  * maxhumans gibt maximale Anzahl menschlicher Spieler an, der Rest wird von
  * Computergegnern belegt
  **/
-bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int maxhumans,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads)
+bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int maxhumans,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads, const char* name)
 {
 	/* Einen Server auf dem Rechner starten. */
 	int r=CSpielServer::run_server(NULL,TCP_PORT,maxhumans,diff,width,height,gamemode,einer,zweier,dreier,vierer,fuenfer,ki_threads);
@@ -287,7 +287,7 @@ bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int maxhumans,int localplayers
 	}
 
 	/* Spiel beitreten, und [localplayers] lokale Spieler anfordern */
-	return joinMultiplayerGame("localhost",TCP_PORT,localplayers);
+	return joinMultiplayerGame("localhost",TCP_PORT,localplayers, name);
 }
 
 /**
@@ -295,7 +295,7 @@ bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int maxhumans,int localplayers
  * _host ist der Name des Servers (in Form "rechner[:port]")
  * Es werden players lokale Spieler angefordert
  **/
-bool CGUI::joinMultiplayerGame(const char *host,int port,int players)
+bool CGUI::joinMultiplayerGame(const char *host, int port, int players, const char* name)
 {
 	const char *err;
 
@@ -311,7 +311,7 @@ bool CGUI::joinMultiplayerGame(const char *host,int port,int players)
 	spiel=new CGUISpielClient(this);
 
 	/* Versuchen, zu Server zu verbinden */
-	err=spiel->Connect(host,port);
+	err=spiel->Connect(host, port);
 	/* Timer auf 0 setzen, damit das Connect keinen Sprung in der Animation
 	   verursacht */
 	timer.reset();
@@ -325,7 +325,9 @@ bool CGUI::joinMultiplayerGame(const char *host,int port,int players)
 		return false;
 	}else{
 		/* [players] lokale Spieler anfordern. */
-		for (int i=0;i<players;i++)spiel->request_player(-1, NULL);
+		for (int i=0;i<4;i++)
+			if ((players & (1 << i)) != 0)
+				spiel->request_player(i, name);
 		/* Dann modal den StartGameDialog als Lobby anzeigen. */
 		widgets.addSubChild(new CStartGameDialog(spiel,this,host));
 		/* Erfolg, Verbindung steht. */
@@ -471,7 +473,7 @@ void CGUI::startFirstGame()
 	startupParams.firststart=false;
 
 	if (startupParams.remotehost)
-		joinMultiplayerGame(startupParams.remotehost,startupParams.remoteport,startupParams.humans);
+		joinMultiplayerGame(startupParams.remotehost,startupParams.remoteport,startupParams.humans, NULL);
 	else startSingleplayerGame(GAMEMODE_4_COLORS_4_PLAYERS,startupParams.humans,KI_MEDIUM,20,20, 1,1,1,1,1,startupParams.threads);
 }
 

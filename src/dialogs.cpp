@@ -41,6 +41,7 @@ static int ki_multithreading=2;
 
 /* Ausgewaehlter Server */
 static char* mp_oldserver=NULL;
+static char* oldname="";
 
 /* Groesse des Feldes */
 static int size_x=20,size_y=20;
@@ -270,7 +271,7 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 
 			if (!multiplayer)
 				GUI->startSingleplayerGame(m,localplayer->getValue() ,kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading);
-			else GUI->startMultiplayerGame(m, numberMaxPlayers->getValue(), localplayer->getValue(), kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading);
+			else GUI->startMultiplayerGame(m, numberMaxPlayers->getValue(), localplayer->getValue(), kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading, NULL);
 
 		return 1;
 		}
@@ -447,24 +448,31 @@ void CNewGameAdvancedDialog::execute(double elapsed)
 
 
 CConnectToMPlayer::CConnectToMPlayer(CGUI* gui)
-:CDialog(350,160,"Connect to Multiplayer Game")
+:CDialog(350,170,"Connect to Multiplayer Game")
 {
-	const char* text = "Local Players:";
+	const char* text;
 	setColor(0.1,0.6,0.0);
 
 	addChild(new CButton((w-70)/2-40,h-35,70,25,1011,this,"Join"));
 	addChild(new CButton(w/2+5,h-35,70,25,1,this,"Cancel"));
 
-	addChild(new CStaticText(90,50,text,this));
-	localplayer = new CSpinBox(210,50,40,20,5070,0,4,1,this);
-	addChild(localplayer);
-	
+	text = oldname;
+	addChild(new CStaticText(10, 53, "Name:", this));
+	nameField = new CTextEdit(60, 51, 90, 20, 15002, oldname, false, this);
+	addChild(nameField);
+	nameField->setFocus();
+
+	int i = rand() % 4;
+	addChild(yellow = new CCheckBox(170, 40, 70, 20, 15010, "Yellow", i == 0, this));
+	addChild(red = new CCheckBox(270, 40, 70, 20, 15011, "Red", i == 1, this));
+	addChild(blue = new CCheckBox(170, 62, 70, 20, 15012, "Blue", i == 2, this));
+	addChild(green = new CCheckBox(270, 62, 70, 20, 15013, "Green", i == 3, this));
+
 	text=mp_oldserver;
 	if (text==NULL)text=DEFAULT_SERVER;
-	textField = new CTextEdit(10,90,260,20,15000,text,false,this);
-	addChild(textField);
-	textField->setFocus();
-	portField= new CSpinBox(280,90,60,20,15001,1023,65535,59995,this);
+	serverField = new CTextEdit(10,100,260,20,15000,text,false,this);
+	addChild(serverField);
+	portField= new CSpinBox(280,100,60,20,15001,1023,65535,59995,this);
 	addChild(portField);
 
 	GUI = gui;
@@ -475,14 +483,25 @@ int CConnectToMPlayer::processMouseEvent(TMouseEvent *event)
 	int r=CDialog::processMouseEvent(event);
 	switch (r)
 	{
-	case 1011:
-		if (GUI->joinMultiplayerGame(textField->getText(),portField->getValue(),localplayer->getValue()))
+	case 1011: {
+		const char *name = nameField->getText();
+		if (strcmp(name, "") == 0)
+			name = NULL;
+		int players = 0;
+		if (blue->getCheck()) players |= 0x01;
+		if (yellow->getCheck()) players |= 0x02;
+		if (red->getCheck()) players |= 0x04;
+		if (green->getCheck()) players |= 0x08;
+
+		if (GUI->joinMultiplayerGame(serverField->getText(), portField->getValue(), players, name))
 		{
 			if (mp_oldserver)free(mp_oldserver);
-			mp_oldserver=strdup(textField->getText());
+			mp_oldserver=strdup(serverField->getText());
+			oldname = strdup(nameField->getText());
 			return 1;
 		}
 		break;
+	}
 	default:
 		break;
 	}

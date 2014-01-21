@@ -252,7 +252,7 @@ const char* CSpielClient::poll()
  * Erbitte Spielserver um einen lokalen Spieler.
  * Server schickt eine Spielernummer an den Client zurueck.
  **/
-void CSpielClient::request_player(int wish_player, char* name)const
+void CSpielClient::request_player(int wish_player, const char* name)const
 {
 	NET_REQUEST_PLAYER data;
 	data.player = wish_player;

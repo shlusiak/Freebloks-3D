@@ -73,8 +73,9 @@ class CConnectToMPlayer:public CDialog
 {
 private:
 	CGUI* GUI;	
-	CSpinBox* localplayer,*portField;
-	CTextEdit* textField;
+	CSpinBox* portField;
+	CCheckBox *blue,*red,*yellow,*green;
+	CTextEdit* serverField, *nameField;
 	int maxlokal;
 public:
 	CConnectToMPlayer(CGUI* gui);
