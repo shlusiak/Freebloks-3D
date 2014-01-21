@@ -121,7 +121,7 @@ int CMainMenu::processMouseEvent(TMouseEvent *event)
 CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 :CDialog(350,330,"Singleplayer Settings")
 {	
-	const char* text = "Playermode";
+	const char* text;
 	int i;
 
 	this->multiplayer=multiplayer;
@@ -130,11 +130,22 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 	setColor(0.1,0.6,0.0);
 	if (multiplayer)setSize(w,h+30);
 
-	addChild(new CStaticText(30,70,text,this));
-	playerMode5 = new CCheckBox(150,50,156,20,5004,"Blokus Duo",false,this);
-	playerMode2 = new CCheckBox(150,70,156,20,5001,"2 Player 2 Colors",false,this);
-	playerMode3 = new CCheckBox(150,90,156,20,5003,"2 Player 4 Colors",false,this);
-	playerMode4 = new CCheckBox(150,110,156,20,5002,"4 Player 4 Colors",true,this);
+	if (multiplayer) {
+		text = "Your name";
+		addChild(new CStaticText(30, 51, text, this));
+		text = oldname;
+		nameField = new CTextEdit(150, 50, 190, 20, 15002, oldname, false, this);
+		addChild(nameField);
+		nameField->setFocus();
+	} else
+		nameField = NULL;
+
+
+	addChild(new CStaticText(30,h-250,"Mode",this));
+	playerMode5 = new CCheckBox(150,h-280,156,20,5004,"Blokus Duo",false,this);
+	playerMode2 = new CCheckBox(150,h-260,156,20,5001,"2 Player 2 Colors",false,this);
+	playerMode3 = new CCheckBox(150,h-240,156,20,5003,"2 Player 4 Colors",false,this);
+	playerMode4 = new CCheckBox(150,h-220,156,20,5002,"4 Player 4 Colors",true,this);
 
 	addChild(playerMode2);
 	addChild(playerMode3);
@@ -144,18 +155,12 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 	playerMode2->addCheckBox(playerMode4);
 	playerMode2->addCheckBox(playerMode5);
 
-	text = "Local Players";
-	addChild(new CStaticText(30,150,text,this));
-	
-	localplayer = new CSpinBox(150,150,40,20,5010,0,4,1,this);
-	addChild(localplayer);
-
-	if (multiplayer)
-	{
-		addChild(new CStaticText(30,180,"Maximum humans:",this));
-		numberMaxPlayers=new CSpinBox(180,180,40,20,5040,0,4,4,this);
-		addChild(numberMaxPlayers);
-	}
+	i = rand() % 4;
+	addChild(new CStaticText(30, h-178, "Your colors", this));
+	addChild(yellow = new CCheckBox(150, h-190, 70, 20, 15010, "Yellow", i == 0, this));
+	addChild(red = new CCheckBox(255, h-190, 70, 20, 15011, "Red", i == 1, this));
+	addChild(blue = new CCheckBox(150, h-170, 70, 20, 15012, "Blue", i == 2, this));
+	addChild(green = new CCheckBox(255, h-170, 70, 20, 15013, "Green", i == 3, this));
 
 	text = "Difficulty";
 	addChild(new CStaticText(30,h-120,text,this));
@@ -206,21 +211,39 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 		size_x=advanced->size_x->getValue();
 		size_y=advanced->size_y->getValue();
 		break;
-	case 5001:
+	case 5001: /* 2 player 2 color */
 		playermode = 2;
-		localplayer->setMax(2);
+		blue->setEnabled(true);
+		red->setEnabled(true);
+		yellow->setEnabled(false);
+		green->setEnabled(false);
+		yellow->setCheck(false);
+		green->setCheck(false);
 		break;
-	case 5002:
+	case 5002:	/* 4 players */
 		playermode = 4;
-		localplayer->setMax(4);
+		blue->setEnabled(true);
+		red->setEnabled(true);
+		yellow->setEnabled(true);
+		green->setEnabled(true);
 		break;
-	case 5003:
+	case 5003:	/* 2 player 4 colors */
 		playermode = 3;
-		localplayer->setMax(2);
+		blue->setEnabled(true);
+		red->setEnabled(false);
+		red->setCheck(false);
+		yellow->setEnabled(true);
+		green->setEnabled(false);
+		green->setCheck(false);
 		break;
-	case 5004:
+	case 5004: /* duo */
 		playermode = 5;
-		localplayer->setMax(2);
+		blue->setEnabled(true);
+		red->setEnabled(true);
+		yellow->setEnabled(false);
+		green->setEnabled(false);
+		yellow->setCheck(false);
+		green->setCheck(false);
 		size_x = 14;
 		size_y = 14;
 		break;
@@ -269,11 +292,25 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 			if (min<=4)this->numberOfStones[3]=0;
 			if (min<=3)this->numberOfStones[2]=0;
 
-			if (!multiplayer)
-				GUI->startSingleplayerGame(m,localplayer->getValue() ,kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading);
-			else GUI->startMultiplayerGame(m, numberMaxPlayers->getValue(), localplayer->getValue(), kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading, NULL);
+			const char *name = NULL;
+			if (multiplayer) {
+				name = nameField->getText();
+				if (strcmp(name, "") == 0)
+					name = NULL;
+			}
+			int players = 0;
+			if (blue->getCheck()) players |= 0x01;
+			if (yellow->getCheck()) players |= 0x02;
+			if (red->getCheck()) players |= 0x04;
+			if (green->getCheck()) players |= 0x08;
 
-		return 1;
+			if (!multiplayer)
+				GUI->startSingleplayerGame(m, players, kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading);
+			else {
+				GUI->startMultiplayerGame(m, players, kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading, name);
+				oldname = strdup(nameField->getText());
+			}
+			return 1;
 		}
 		}
 		break;

@@ -33,12 +33,12 @@ private:
 	CCheckBox* diffHard;
 	int playermode;
 	int kindOfDiff;
-	CSpinBox* localplayer;
+	CCheckBox *blue,*red,*yellow,*green;
+	CTextEdit *nameField;
 	int size_x,size_y;
 	int numberOfStones[5];
 	CNewGameAdvancedDialog* advanced;
 	bool multiplayer;
-	CSpinBox* numberMaxPlayers;
 	CSpinBox* multithreading;
 public:
 	CNewGameDialog(CGUI* gui,bool multiplayer);

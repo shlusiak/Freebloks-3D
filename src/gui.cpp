@@ -259,7 +259,9 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 		return false;
 	}
 	/* Jetzt [players] lokale Spieler anfordern. */
-	for (int i=0;i<players;i++)spiel->request_player(-1, NULL);
+	for (int i=0;i<4;i++)
+		if ((players & (1 << i)) != 0)
+			spiel->request_player(i, NULL);
 	/* Da das Spiel lokal ist, kann direkt losgelegt werden. Spielstart anfordern */
 	spiel->request_start();
 	/* Erfolg */
@@ -272,10 +274,10 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
  * maxhumans gibt maximale Anzahl menschlicher Spieler an, der Rest wird von
  * Computergegnern belegt
  **/
-bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int maxhumans,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads, const char* name)
+bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads, const char* name)
 {
 	/* Einen Server auf dem Rechner starten. */
-	int r=CSpielServer::run_server(NULL,TCP_PORT,maxhumans,diff,width,height,gamemode,einer,zweier,dreier,vierer,fuenfer,ki_threads);
+	int r=CSpielServer::run_server(NULL,TCP_PORT,4,diff,width,height,gamemode,einer,zweier,dreier,vierer,fuenfer,ki_threads);
 	if (r!=0)
 	{
 		/* Wenn Fehler, dann Dialogbox ausgeben */

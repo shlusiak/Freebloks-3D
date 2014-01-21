@@ -224,7 +224,7 @@ public:
 	// Startet ein Einzelspielerspiel
 	bool startSingleplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads);
 	// Hostet und startet ein Mehrspielerspiel
-	bool startMultiplayerGame(GAMEMODE gamemode,int maxhumans,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads, const char* name);
+	bool startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads, const char* name);
 	// Tritt einem Mehrspielerspiel bei
 	bool joinMultiplayerGame(const char *host,int port,int localplayers, const char* name);
 
