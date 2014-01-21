@@ -910,11 +910,12 @@ int CServerListener::init(const char* interface_,int port)
 #ifndef WIN32	
 	/* Unter Linux doch SO_REUSEADDR verwenden, damit bind auch erfolgt, wenn ein Socket
 	   mit dem Port bereits existiert. */
+	int i = 1;
 	if (setsockopt(listen_sockets[0],SOL_SOCKET,SO_REUSEADDR,&i,sizeof(i))==-1)return errno;
 #endif
 
 	/* Socket an Quelladdresse binden */
-	if (bind(listen_socket[0],(sockaddr*)&addr,sizeof(addr))==-1)return errno;
+	if (bind(listen_sockets[0],(sockaddr*)&addr,sizeof(addr))==-1)return errno;
 	if (listen(listen_sockets[0],5)==-1)return errno;
 #endif
 

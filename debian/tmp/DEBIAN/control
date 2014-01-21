@@ -1,0 +1,9 @@
+Package: freebloks
+Version: 1.4.0-1
+Architecture: amd64
+Maintainer: Sascha Hlusiak <mail@saschahlusiak.de>
+Installed-Size: 1104
+Depends: libc6 (>= 2.4), libgcc1 (>= 1:4.1.1), libgl1-mesa-glx | libgl1, libglu1-mesa | libglu1, libstdc++6 (>= 4.1.1), libx11-6, libxpm4
+Section: devel
+Priority: optional
+Description: Clone of the Blokus board game in 3D with network support
