@@ -319,6 +319,18 @@ void CSpielClient::process_message(NET_HEADER* data)
 		case MSG_SERVER_STATUS:
 		{
 			NET_SERVER_STATUS *s=(NET_SERVER_STATUS*)data;
+			int version = 1;
+
+			if (ntohs(data->data_length) >= 143 + 5)
+				version = 2;
+
+			if (ntohs(data->data_length) >= 143 + 7) {
+				version = s->version;
+				status.version_min = s->version_min;
+			} else
+				status.version_min = 1;
+
+			status.version = version;
 			status.clients=s->clients;
 			status.player=s->player;
 			status.computer=s->computer;
@@ -349,7 +361,8 @@ void CSpielClient::process_message(NET_HEADER* data)
 					get_player(3)->get_stone(n)->set_available(0);
 				}
 			}
-			if (ntohs(data->data_length) == sizeof(NET_SERVER_STATUS)) {
+
+			if (version >= 2) {
 				int i;
 				memcpy(status.client_names, s->client_names, sizeof(s->client_names));
 				for (i = 0; i < PLAYER_MAX; i++) {

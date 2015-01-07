@@ -554,6 +554,8 @@ void CSpielServer::send_server_status()
 				strcpy((char*)status.client_names[i], names[i]);
 		}
 	}
+	status.version = NET_SERVER_STATUS_VERSION;
+	status.version_min = 1;
 
 	send_all((NET_HEADER*)&status,sizeof(status),MSG_SERVER_STATUS);
 }

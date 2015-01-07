@@ -21,7 +21,7 @@ typedef unsigned short uint16;
 typedef unsigned char uint8;
 
 /* Die folgen Daten sollen nicht an Bytegrenzen ausgerichtet werden
-   um Compiler- und Betriebssystemunabhängig zu sein. */
+   um Compiler- und Betriebssystemunabhï¿½ngig zu sein. */
 #pragma pack(1)
 
 /* Header, stets der Kopf einer Netzwerknachricht.
@@ -36,7 +36,7 @@ typedef struct
 } NET_HEADER,NET_START_GAME,NET_GAME_FINISH,NET_REQUEST_UNDO;
 
 /**
- * Nachricht, um einen Spieler anzufordern. Enthält Wunschfarbe oder -1 für egal
+ * Nachricht, um einen Spieler anzufordern. Enthï¿½lt Wunschfarbe oder -1 fï¿½r egal
  **/
 
 typedef struct
@@ -80,10 +80,17 @@ typedef struct
 	int8 width,height; /* Groesse des Spielfelds */
 	int8 stone_numbers[STONE_SIZE_MAX]; /* Anzahl der Steine bestimmter Groessen */
 	int8 gamemode;
-	/* added in 1.5 */
+	/* added in 1.5, version 2 */
 	int8 spieler[PLAYER_MAX];
 	uint8 client_names[CLIENTS_MAX][16]; /* names for each client */
+	/* added in 1.6, version 3 */
+	int8 version;
+	int8 version_min;
 } NET_SERVER_STATUS;
+
+#define NET_SERVER_STATUS_VERSION (3)
+
+
 
 /**
  * Eine Chat-Nachricht mit Text. Verschickt vom Client an die Server und zurueck.
