@@ -27,7 +27,7 @@
 
 
 /* Standardserver zum Verbinden */
-const char* DEFAULT_SERVER="blokus.mooo.com";
+const char* DEFAULT_SERVER="blokus.saschahlusiak.de";
 
 
 static const int maxNumberStones=10;
