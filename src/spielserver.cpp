@@ -294,7 +294,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			/* Ebenso, wenn das Spiel bereits laeuft */
 			if (m_current_player!=-1) return;
 
-			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO)
+			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO || m_gamemode==GAMEMODE_JUNIOR)
 			{
 				/* Wenn bereits zwei Spieler drin sind, raus */
 				if (num_players()>=2)return;
@@ -529,7 +529,7 @@ void CSpielServer::send_server_status()
 {
 	NET_SERVER_STATUS status;
 	int i;
-	int max=(m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO)?2:PLAYER_MAX;
+	int max=(m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO || m_gamemode==GAMEMODE_JUNIOR)?2:PLAYER_MAX;
 	status.player=num_players();
 	status.computer=max-num_players();
 	status.clients=num_clients();
@@ -595,7 +595,7 @@ void CSpielServer::start_game()
 	CSpiel::set_stone_numbers(stone_numbers);
 
 	/* Wenn nur mit zwei Farben gespielt wird, nehme Spieler 1 und 3 alle Steine weg */
-	if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO)
+	if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO || m_gamemode==GAMEMODE_JUNIOR)
 	{
 		for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
 			get_player(1)->get_stone(n)->set_available(0);

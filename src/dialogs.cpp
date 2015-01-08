@@ -119,7 +119,7 @@ int CMainMenu::processMouseEvent(TMouseEvent *event)
  *man kann den Spielmodus, Spielstärke, Anzahl lokaler Spieler, und Feldgrösse ändern
  **/
 CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
-:CDialog(350,330,"Singleplayer Settings")
+:CDialog(370,330,"Singleplayer Settings")
 {	
 	const char* text;
 	int i;
@@ -142,7 +142,8 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 
 
 	addChild(new CStaticText(30,h-250,"Mode",this));
-	playerMode5 = new CCheckBox(150,h-280,156,20,5004,"Blokus Duo",false,this);
+	playerMode5 = new CCheckBox(150,h-300,156,20,5004,"Blokus Duo",false,this);
+	playerMode6 = new CCheckBox(150,h-280,156,20,5005,"Blokus Junior",false,this);
 	playerMode2 = new CCheckBox(150,h-260,156,20,5001,"2 Player 2 Colors",false,this);
 	playerMode3 = new CCheckBox(150,h-240,156,20,5003,"2 Player 4 Colors",false,this);
 	playerMode4 = new CCheckBox(150,h-220,156,20,5002,"4 Player 4 Colors",true,this);
@@ -151,9 +152,11 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 	addChild(playerMode3);
 	addChild(playerMode4);
 	addChild(playerMode5);
+	addChild(playerMode6);
 	playerMode2->addCheckBox(playerMode3);
 	playerMode2->addCheckBox(playerMode4);
 	playerMode2->addCheckBox(playerMode5);
+	playerMode2->addCheckBox(playerMode6);
 
 	i = rand() % 4;
 	addChild(new CStaticText(30, h-178, "Your colors", this));
@@ -247,6 +250,17 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 		size_x = 14;
 		size_y = 14;
 		break;
+	case 5005: /* junior */
+		playermode = 6;
+		blue->setEnabled(true);
+		red->setEnabled(true);
+		yellow->setEnabled(false);
+		green->setEnabled(false);
+		yellow->setCheck(false);
+		green->setCheck(false);
+		size_x = 14;
+		size_y = 14;
+		break;
 	case 5013:
 	case 5015:
 		break;
@@ -268,8 +282,9 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 		if (playermode==2)m=GAMEMODE_2_COLORS_2_PLAYERS;
 		if (playermode==3)m=GAMEMODE_4_COLORS_2_PLAYERS;
 		if (playermode==5)m=GAMEMODE_DUO;
+		if (playermode==6)m=GAMEMODE_JUNIOR;
 
-		if (	(numberOfStones[0]==0)&&
+		if ((numberOfStones[0]==0)&&
 			(numberOfStones[1]==0)&&
 			(min<=3 || numberOfStones[2]==0)&&
 			(min<=4 || numberOfStones[3]==0)&&
@@ -309,13 +324,26 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 			int dreier = numberOfStones[2];
 			int vierer = numberOfStones[3];
 			int fuenfer = numberOfStones[4];
-			int8 a[STONE_COUNT_ALL_SHAPES] = {
+			int8 a_default[STONE_COUNT_ALL_SHAPES] = {
 					einer,
 					zweier,
 					dreier, dreier,
 					vierer, vierer, vierer, vierer, vierer,
 					fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer,
 			};
+			int8 a_junior[STONE_COUNT_ALL_SHAPES] = {
+					2,
+					2,
+					2, 2,
+					2, 2, 2, 2, 2,
+					2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0
+			};
+
+			int8* a;
+			if (m == GAMEMODE_JUNIOR)
+				a = a_junior;
+			else
+				a = a_default;
 
 			if (!multiplayer)
 				GUI->startSingleplayerGame(m, players, kindOfDiff, size_x, size_y,a,::ki_multithreading);

@@ -142,7 +142,7 @@ void CSpiel::set_seeds(GAMEMODE gamemode) {
 	#define set_seed(x, y, player) \
 		if (get_game_field(player, y, x) == FIELD_FREE) \
 			set_game_field(y, x, PLAYER_BIT_ALLOWED[player]);
-	if (gamemode == GAMEMODE_DUO) {
+	if (gamemode == GAMEMODE_DUO || gamemode == GAMEMODE_JUNIOR) {
 		set_seed(4, m_field_size_y - 5, 0);
 		set_seed(m_field_size_x - 5, 4, 2);
 	} else {
