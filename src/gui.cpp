@@ -202,7 +202,7 @@ bool CGUI::parseCmdLine(int argc,char **argv)
  * width/height (breite/hoehe) und Anzahl Einer, Zweier, etc.
  * Rueckgabewert: Erfolg
  **/
-bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads)
+bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int width,int height,int8 stone_numbers[],int ki_threads)
 {
 	int r;
 	const char *err;
@@ -229,7 +229,8 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	port = 0;
 #endif
 
-	r=CSpielServer::run_server(path,port,PLAYER_MAX,diff,width,height,gamemode,einer,zweier,dreier,vierer,fuenfer,ki_threads);
+
+	r=CSpielServer::run_server(path,port,PLAYER_MAX,diff,width,height,gamemode,stone_numbers,ki_threads);
 	if (r!=0)
 	{
 		/* Bei Miserfolg Fehlerdialog ausgeben. */
@@ -274,10 +275,10 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
  * maxhumans gibt maximale Anzahl menschlicher Spieler an, der Rest wird von
  * Computergegnern belegt
  **/
-bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads, const char* name)
+bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ki_threads, const char* name)
 {
 	/* Einen Server auf dem Rechner starten. */
-	int r=CSpielServer::run_server(NULL,TCP_PORT,4,diff,width,height,gamemode,einer,zweier,dreier,vierer,fuenfer,ki_threads);
+	int r=CSpielServer::run_server(NULL,TCP_PORT,4,diff,width,height,gamemode,stone_numbers,ki_threads);
 	if (r!=0)
 	{
 		/* Wenn Fehler, dann Dialogbox ausgeben */
@@ -476,7 +477,7 @@ void CGUI::startFirstGame()
 
 	if (startupParams.remotehost)
 		joinMultiplayerGame(startupParams.remotehost,startupParams.remoteport,startupParams.humans, NULL);
-	else startSingleplayerGame(GAMEMODE_4_COLORS_4_PLAYERS,startupParams.humans,KI_MEDIUM,20,20, 1,1,1,1,1,startupParams.threads);
+	else startSingleplayerGame(GAMEMODE_4_COLORS_4_PLAYERS,startupParams.humans,KI_MEDIUM,20,20, NULL,startupParams.threads);
 }
 
 

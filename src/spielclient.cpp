@@ -342,14 +342,23 @@ void CSpielClient::process_message(NET_HEADER* data)
 				set_field_size(status.width, status.height);
 				start_new_game((GAMEMODE)s->gamemode);
 			}
+			if (version <= 2)
 			{
 				bool changed=false;
 				for (int i=0;i<STONE_SIZE_MAX;i++)
 				{
+					changed |= (status.stone_numbers_obsolete[i] != s->stone_numbers_obsolete[i]);
+					status.stone_numbers_obsolete[i]=s->stone_numbers_obsolete[i];
+				}
+				if (changed)set_stone_numbers(status.stone_numbers_obsolete[0],status.stone_numbers_obsolete[1],status.stone_numbers_obsolete[2],status.stone_numbers_obsolete[3],status.stone_numbers_obsolete[4]);
+			} else {
+				bool changed = false;
+				for (int i=0;i<STONE_COUNT_ALL_SHAPES;i++)
+				{
 					changed |= (status.stone_numbers[i] != s->stone_numbers[i]);
 					status.stone_numbers[i]=s->stone_numbers[i];
 				}
-				if (changed)set_stone_numbers(status.stone_numbers[0],status.stone_numbers[1],status.stone_numbers[2],status.stone_numbers[3],status.stone_numbers[4]);
+				if (changed) set_stone_numbers(status.stone_numbers);
 			}
 			m_gamemode=(GAMEMODE)s->gamemode;
 			if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
@@ -384,7 +393,10 @@ void CSpielClient::process_message(NET_HEADER* data)
 			/* Unbedingt history leeren. */
 			if (history)history->delete_all_turns();
 
-			set_stone_numbers(status.stone_numbers[0],status.stone_numbers[1],status.stone_numbers[2],status.stone_numbers[3],status.stone_numbers[4]);
+			if (status.version <= 2)
+				set_stone_numbers(status.stone_numbers_obsolete[0],status.stone_numbers_obsolete[1],status.stone_numbers_obsolete[2],status.stone_numbers_obsolete[3],status.stone_numbers_obsolete[4]);
+			else
+				set_stone_numbers(status.stone_numbers);
 			if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
 				set_teams(0,2,1,3);
 			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO)

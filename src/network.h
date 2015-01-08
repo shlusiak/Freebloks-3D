@@ -78,7 +78,7 @@ typedef struct
 	NET_HEADER header;
 	int8 player,computer,clients; /* Anzahl menschlicher Spieler, Computerspieler und verbundener Clients */
 	int8 width,height; /* Groesse des Spielfelds */
-	int8 stone_numbers[STONE_SIZE_MAX]; /* Anzahl der Steine bestimmter Groessen */
+	int8 stone_numbers_obsolete[STONE_SIZE_MAX]; /* Anzahl der Steine bestimmter Groessen, OBSOLETE */
 	int8 gamemode;
 	/* added in 1.5, version 2 */
 	int8 spieler[PLAYER_MAX];
@@ -86,6 +86,7 @@ typedef struct
 	/* added in 1.6, version 3 */
 	int8 version;
 	int8 version_min;
+	int8 stone_numbers[STONE_COUNT_ALL_SHAPES]; /* Anzahl bestimmter Steine */
 } NET_SERVER_STATUS;
 
 #define NET_SERVER_STATUS_VERSION (3)

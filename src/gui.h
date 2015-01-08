@@ -222,9 +222,9 @@ public:
 	void getPlayerStonePos(int player,int stone,double *dx,double *dy,double *dz)const;
 
 	// Startet ein Einzelspielerspiel
-	bool startSingleplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads);
+	bool startSingleplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ki_threads);
 	// Hostet und startet ein Mehrspielerspiel
-	bool startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int einer,int zweier,int dreier,int vierer,int fuenfer,int ki_threads, const char* name);
+	bool startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ki_threads, const char* name);
 	// Tritt einem Mehrspielerspiel bei
 	bool joinMultiplayerGame(const char *host,int port,int localplayers, const char* name);
 

@@ -12,6 +12,7 @@
 #include "constants.h"
 #include "ki.h"
 #include "turnpool.h"
+#include "network.h"
 
 class CSpiel{
 
@@ -65,7 +66,8 @@ class CSpiel{
 		const int get_max_stone_size()const;
 
 		void set_teams(int player_team1_1, int player_team1_2, int player_team2_1, int player_team2_2);
-		void set_stone_numbers(int einer, int zweier, int dreier, int vierer, int fuenfer);
+		virtual void set_stone_numbers(int8 stone_numbers[]);
+		virtual void set_stone_numbers(int einer, int zweier, int dreier, int vierer, int fuenfer);
 		
 		CPlayer* get_player(const int playernumber);
 		TSingleField is_valid_turn(CStone* stone, int player, int y, int x)const;

@@ -304,10 +304,23 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 			if (red->getCheck()) players |= 0x04;
 			if (green->getCheck()) players |= 0x08;
 
+			int einer = numberOfStones[0];
+			int zweier = numberOfStones[1];
+			int dreier = numberOfStones[2];
+			int vierer = numberOfStones[3];
+			int fuenfer = numberOfStones[4];
+			int8 a[STONE_COUNT_ALL_SHAPES] = {
+					einer,
+					zweier,
+					dreier, dreier,
+					vierer, vierer, vierer, vierer, vierer,
+					fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer,
+			};
+
 			if (!multiplayer)
-				GUI->startSingleplayerGame(m, players, kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading);
+				GUI->startSingleplayerGame(m, players, kindOfDiff, size_x, size_y,a,::ki_multithreading);
 			else {
-				GUI->startMultiplayerGame(m, players, kindOfDiff, size_x, size_y,numberOfStones[0],numberOfStones[1],numberOfStones[2],numberOfStones[3],numberOfStones[4],::ki_multithreading, name);
+				GUI->startMultiplayerGame(m, players, kindOfDiff, size_x, size_y,a,::ki_multithreading, name);
 				oldname = strdup(nameField->getText());
 			}
 			return 1;
