@@ -251,7 +251,7 @@ void CSpielServer::run()
 		}
 	}while (retval>0);
 
-    /* Der Server laeuft in der Schleife, solange noch mindestens ein Client verbunden ist. 
+    /* Der Server laeuft in der Schleife, solange noch mindestens ein Client verbunden ist.
        Sind alle Clients getrennt, wird der Server hier beendet. */
     }while (num_clients()>0);
 }
@@ -448,7 +448,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 
 		/* Ein Client will eine Zugzuruecknahme */
 		case MSG_REQUEST_UNDO: {
-			/* Zugzuruecknahme ist nur bei einem Client oder einem Menschlichem 
+			/* Zugzuruecknahme ist nur bei einem Client oder einem Menschlichem
 			   Spieler zulaessig. */
 			if (num_clients()>1 && num_players()>1)
 			{
@@ -494,8 +494,10 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 		}
 		case MSG_REQUEST_GAME_MODE: {
 			NET_REQUEST_GAME_MODE* r = (NET_REQUEST_GAME_MODE*)data;
-			if (m_current_player > -1)
+			if (m_current_player > -1) {
+				send_server_status();
 				break;
+			}
 			if (r->version >= 1) {
 				if (ntohs(r->header.data_length) < sizeof(NET_HEADER) + 25)
 					break;
@@ -507,18 +509,24 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				set_field_size(r->width, r->height);
 				m_gamemode = (GAMEMODE)r->gamemode;
 
+				/* FIXME: support GAMEMODE_4_COLORS_2_PLAYERS */
 				if (m_gamemode == GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode == GAMEMODE_DUO || m_gamemode == GAMEMODE_JUNIOR) {
 					NET_REVOKE_PLAYER rev;
 
-					if (spieler[1] != PLAYER_COMPUTER) {
-						rev.player = 1;
-						network_send(spieler[1],(NET_HEADER*)&rev,sizeof(NET_REVOKE_PLAYER),MSG_REVOKE_PLAYER);
-						spieler[1]=PLAYER_COMPUTER;
-					}
-					if (spieler[3] != PLAYER_COMPUTER) {
-						rev.player = 3;
-						network_send(spieler[3],(NET_HEADER*)&rev,sizeof(NET_REVOKE_PLAYER),MSG_REVOKE_PLAYER);
-						spieler[3]=PLAYER_COMPUTER;
+					for (int i = 1; i <= 3; i += 2) if (spieler[i] != PLAYER_COMPUTER) {
+						rev.player = i;
+						network_send(spieler[i],(NET_HEADER*)&rev,sizeof(NET_REVOKE_PLAYER),MSG_REVOKE_PLAYER);
+
+						// searching for free slot and grant player
+						for (int j = 0; j <= 2; j += 2) if (spieler[j] == PLAYER_COMPUTER) {
+							spieler[j] = spieler[i];
+							NET_GRANT_PLAYER g;
+							g.player = j;
+							network_send(spieler[j],(NET_HEADER*)&g,sizeof(NET_GRANT_PLAYER),MSG_GRANT_PLAYER);
+							break;
+						}
+
+						spieler[i]=PLAYER_COMPUTER;
 					}
 				}
 
@@ -661,7 +669,7 @@ void CSpielServer::next_player()
 	for (i=0;i<PLAYER_MAX;i++)
 	{
 		m_current_player=(m_current_player+1)%PLAYER_MAX;
-		/* Wenn der naechste Spieler in der Reihe noch mindestens einen freien Zug hat, 
+		/* Wenn der naechste Spieler in der Reihe noch mindestens einen freien Zug hat,
 		   ist dieser dran. Sonst muss er aussetzen, und der uebernaechste wird probiert. */
 		if (get_number_of_possible_turns(m_current_player)>0)
 		{
@@ -720,7 +728,7 @@ void* LocalServerThread(void* param)
 {
 	/* Wir brauchen erst einen Listener */
 	CServerListener* listener=(CServerListener*)param;
-	/* Der Thread soll sterben, wenn sich ein Spieler verbunden und wieder getrennt hat, 
+	/* Der Thread soll sterben, wenn sich ein Spieler verbunden und wieder getrennt hat,
 	   ohne dass das Spiel gestartet wurde */
 	bool hadClient=false;
 #ifdef WIN32
@@ -894,7 +902,7 @@ int CServerListener::init(const char* interface_,int port)
 		listen_socket=socket(res->ai_family,res->ai_socktype,res->ai_protocol);
 		if (listen_socket>=0)
 		{
-#ifndef WIN32	
+#ifndef WIN32
 			int i;
 			/* Unter Linux doch SO_REUSEADDR verwenden, damit bind auch erfolgt, wenn ein Socket
 			  mit dem Port bereits existiert. */
