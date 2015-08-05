@@ -22,7 +22,7 @@
 #define LISTEN_SOCKETS_MAX (8)
 
 /**
- * Zentraler SpielServer, zu dem sich die SpielClients verbinden. 
+ * Zentraler SpielServer, zu dem sich die SpielClients verbinden.
  * Wird vom SpielListener errichtet
  **/
 class CSpielServer:public CSpielleiter
@@ -128,8 +128,8 @@ private:
 public:
 	CServerListener();
 	~CServerListener();
-	
-	/* Bereitet den Listener vor, an der angegebenen Schnittstellt und 
+
+	/* Bereitet den Listener vor, an der angegebenen Schnittstellt und
 	   dem Port Verbindungen zu akzeptieren. */
 	int init(const char* interface_,int port);
 
@@ -144,7 +144,7 @@ public:
 
 	/* Gibt aktuell erbautes Spiel zurueck */
 	CSpielServer* get_game() { return server; }
-	
+
 	/* Logdatei setzen */
 	void setLogger(CLogger* l) { logger=l; }
 };
