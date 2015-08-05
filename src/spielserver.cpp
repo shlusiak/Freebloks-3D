@@ -399,12 +399,14 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
 			/* Den entsprechenden Stein aus den Daten zusammensuchen */
 			if (s->player != m_current_player) {
-				logger->logLine("WARNING: Ignoring move from non-current player.\n");
+				if (logger)
+					logger->logLine("WARNING: Ignoring move from non-current player.\n");
 				send_current_player();
 				return;
 			}
 			if (clients[client] != spieler[s->player]) {
-				logger->logLine("WARNING: Client does not own player! Ignoring move.\n");
+				if (logger)
+					logger->logLine("WARNING: Client does not own player! Ignoring move.\n");
 				send_current_player();
 				return;
 			}
@@ -800,6 +802,31 @@ int CSpielServer::run_server(const char* interface_,int port,int maxhumans,int k
 #endif
 	// Erfolg
 	return 0;
+}
+
+/**
+ * Assigns all players that have been marked as PLAYER_LOCAL to the first connected client.
+ * This is for the server, which does not have local players to support "resume", where local players
+ * can only be assigned to clients after they have joined.
+ */
+void CSpielServer::assign_local_players()
+{
+	int s = -1;
+	int i;
+	for (i = 0; i < CLIENTS_MAX; i++) {
+		if (clients[i] != -1) {
+			s = clients[i];
+			break;
+		}
+	}
+	if (s == -1)
+		return;
+
+	for (i = 0; i < PLAYER_MAX; i++) {
+		if (spieler[i] == PLAYER_LOCAL) {
+			setSpieler(i, s);
+		}
+	}
 }
 
 
