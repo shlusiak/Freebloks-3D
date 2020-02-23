@@ -21,7 +21,7 @@ typedef unsigned short uint16;
 typedef unsigned char uint8;
 
 /* Die folgen Daten sollen nicht an Bytegrenzen ausgerichtet werden
-   um Compiler- und Betriebssystemunabhï¿½ngig zu sein. */
+   um Compiler- und Betriebssystemunabhängig zu sein. */
 #pragma pack(1)
 
 /* Header, stets der Kopf einer Netzwerknachricht.
@@ -36,7 +36,7 @@ typedef struct
 } NET_HEADER,NET_START_GAME,NET_GAME_FINISH,NET_REQUEST_UNDO;
 
 /**
- * Nachricht, um einen Spieler anzufordern. Enthï¿½lt Wunschfarbe oder -1 fï¿½r egal
+ * Nachricht, um einen Spieler anzufordern. Enthält Wunschfarbe oder -1 für egal
  **/
 
 typedef struct

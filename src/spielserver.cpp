@@ -173,7 +173,7 @@ void CSpielServer::run()
 		if (forceDelay && timer.elapsed() < 800)
 			timer.sleep(800 - timer.elapsed());
 
-		if (turn!=0)
+		if (turn != NULL)
 		{
 			/* Datenstruktur fuellen, die an die Clients geschickt werden soll. */
 			NET_SET_STONE data;
@@ -347,14 +347,18 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			   	So werden den Spielern wieder die Clients zugeordnet */
 				spieler[n]=clients[client];
 			}
-			/* setze Spielernamen */
-			if (names[client] == NULL) {
-				if (ntohs(data->data_length) > sizeof(NET_HEADER)) {
-					req->name[sizeof(req->name) - 1] = '\0';
-					if (strlen((char*)req->name) > 0) {
-						/* store client name */
-						names[client] = strdup((char*)req->name);
-					}
+
+
+			if (ntohs(data->data_length) > sizeof(NET_HEADER)) {
+				req->name[sizeof(req->name) - 1] = '\0';
+				if (strlen((char*)req->name) > 0) {
+					// TODO: Allow setting name per player, not per client
+
+					/* store client name */
+					if (names[client] != NULL)
+						free(names[client]);
+
+					names[client] = strdup((char*)req->name);
 				}
 			}
 

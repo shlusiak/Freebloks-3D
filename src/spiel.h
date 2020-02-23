@@ -26,8 +26,6 @@ class CSpiel{
 		const bool is_position_inside_field(const int y, const int x)const;
 		void refresh_player_data();
 
-		void set_game_field(const int y, const int x, const TSingleField value);
-
 		void set_single_stone_for_player(const int playernumber, const int y, const int x);
 		void free_gamefield(int y, int x);
 
@@ -36,18 +34,19 @@ class CSpiel{
 		CSpiel();
 		CSpiel(const int width, const int height);
 		CSpiel(const int player_team1_1, const int player_team1_2, const int player_team2_1, const int player_team2_2);
-		
+
 		virtual ~CSpiel();
-		
+
 		void follow_situation(int vorher_playernumber, const CSpiel* vorher_situation, const CTurn* turn);
 		void init_field();
 		void set_seeds(enum GAMEMODE gamemode);
+		void set_game_field(const int y, const int x, const TSingleField value);
 
 		/*PLAYER*/
 		const int get_player_start_x(const int playernumber)const;
 		const int get_player_start_y(const int playernumber)const;
 
-		
+
 		const int get_number_of_possible_turns(const int playernumber)const;
 		const int get_stone_points_left(const int playernumber)const ;
 		const int get_position_points(const int playernumber)const ;
@@ -58,17 +57,15 @@ class CSpiel{
 
 		void start_new_game(GAMEMODE gamemode);
 		void set_field_size(int x, int y) { m_field_size_x = x; m_field_size_y = y; }
-		
+
 		const int get_field_size_x()const;
 		const int get_field_size_y()const;
 		const int get_player_max()const;
-		const int get_stone_count_max()const;
 		const int get_max_stone_size()const;
 
 		void set_teams(int player_team1_1, int player_team1_2, int player_team2_1, int player_team2_2);
 		virtual void set_stone_numbers(int8 stone_numbers[]);
-		virtual void set_stone_numbers(int einer, int zweier, int dreier, int vierer, int fuenfer);
-		
+
 		CPlayer* get_player(const int playernumber);
 		TSingleField is_valid_turn(CStone* stone, int player, int y, int x)const;
 		TSingleField is_valid_turn(const CTurn* turn);
@@ -86,8 +83,8 @@ class CSpiel{
 };
 
 
-inline 
-//f�r folgesituationen von CTurn
+//fuer folgesituationen von CTurn
+inline
 const char CSpiel::get_game_field_value(const int y, const int x)const{
 	return CSpiel::m_game_field[y * CSpiel::m_field_size_x + x];
 }
@@ -102,7 +99,7 @@ const TSingleField CSpiel::get_game_field(const int playernumber, const int y, c
 	#ifdef _DEBUG
 		if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
 	#endif
-	
+
 	TSingleField wert = get_game_field_value(y,x);
 	if (wert >= PLAYER_BIT_HAVE_MIN) return FIELD_DENIED;
 	wert &= PLAYER_BIT_ADDR[playernumber];

@@ -25,9 +25,9 @@
 #include "network.h"
 
 /**
- * Bereitet die Netzwerknachricht *header 
- * mit der Laenge data_length 
- * und dem Typ msg_type vor, 
+ * Bereitet die Netzwerknachricht *header
+ * mit der Laenge data_length
+ * und dem Typ msg_type vor,
  * und verschickt sie an target
  *
  * Rueckgabe: 0 bei Erfolg, -1 bei Fehler
@@ -50,11 +50,7 @@ int network_send(int target,NET_HEADER *header,uint16 data_length,uint8 msg_type
 	if (recv(target,&c,1,MSG_PEEK|MSG_DONTWAIT)==0)return -1;
 #endif
 	/* Nachricht versenden */
-#ifdef MSG_NOSIGNAL
-	if (send(target,(char*)header,data_length,MSG_NOSIGNAL)!=-1)return 0;
-#else
 	if (send(target,(char*)header,data_length,0)!=-1)return 0;
-#endif
 	perror("send: ");
 	return -1;
 }
@@ -107,7 +103,7 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 	/* bei r==0 wurde der Socket ordnungsgemaess geschlossen. Die Verbindung zum Server
 	   wurde verloren. */
 	if (r==0)
-	{	
+	{
 // 		printf("Connection lost.\n");
 		return "Connection reset by peer";
 	}
@@ -123,7 +119,7 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 	}
 	/* Nachricht scheint ok zu sein. Ermittele restliche Datenmenge */
 	int restdaten=ntohs(data->data_length)-sizeof(NET_HEADER);
-	
+
 	/* Wenn keine Restdaten vorliegen, besteht die Nachricht nur aus einem NET_HEADER. Erfolg! */
 	if (restdaten==0)return NULL;
 
