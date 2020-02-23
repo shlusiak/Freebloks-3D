@@ -17,10 +17,11 @@ RUN strip src/freebloks_client src/freebloks_dedicated src/freebloks_benchmark
 ################## IMAGE
 FROM alpine:latest
 
-ENV LOGFILE=/install/freebloks_dedicated.log
+ENV LOGFILE=/logs/freebloks_dedicated.log
 ENV LIMIT=15
 
 RUN apk add libgcc libstdc++
+RUN mkdir /logs/
 
 WORKDIR /install
 COPY --from=builder /install/src/freebloks_* ./
