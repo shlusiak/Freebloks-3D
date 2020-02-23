@@ -65,6 +65,7 @@ class CSpiel{
 
 		void set_teams(int player_team1_1, int player_team1_2, int player_team2_1, int player_team2_2);
 		virtual void set_stone_numbers(int8 stone_numbers[]);
+		void set_stone_numbers(int8 einer, int8 zweier, int8 dreier, int8 vierer, int8 fuenfer);
 
 		CPlayer* get_player(const int playernumber);
 		TSingleField is_valid_turn(CStone* stone, int player, int y, int x)const;

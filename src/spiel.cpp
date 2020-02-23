@@ -65,6 +65,17 @@ void CSpiel::set_stone_numbers(int8 stone_numbers[]){
 	CSpiel::refresh_player_data();
 }
 
+void CSpiel::set_stone_numbers(int8 einer, int8 zweier, int8 dreier, int8 vierer, int8 fuenfer) {
+	int8 a[STONE_COUNT_ALL_SHAPES] = {
+			einer,
+			zweier,
+			dreier, dreier,
+			vierer, vierer, vierer, vierer, vierer,
+			fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer,
+	};
+	set_stone_numbers(a);
+}
+
 void CSpiel::set_teams(int player_team1_1, int player_team1_2, int player_team2_1, int player_team2_2){
 	
 	#ifdef _DEBUG 
