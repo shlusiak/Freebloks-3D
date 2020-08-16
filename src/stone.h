@@ -277,7 +277,7 @@ const TStoneField STONE_FIELD[STONE_COUNT_ALL_SHAPES]=
 
 
 
-class CSpiel;
+class CBoard;
 
 class CStone{
 	private:
@@ -295,7 +295,7 @@ class CStone{
 
 		const TSingleStone get_stone_field(const int y, const int x)const;
 
-		const int calculate_possible_turns_in_position(const CSpiel* const spiel, const int playernumber, const int fieldY, const int fieldX);
+		const int calculate_possible_turns_in_position(const CBoard* const spiel, const int playernumber, const int fieldY, const int fieldX);
 
 		const int get_stone_size()const;
 		const int get_stone_points()const;

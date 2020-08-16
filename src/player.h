@@ -8,7 +8,7 @@
 
 
 
-class CSpiel;
+class CBoard;
 
 class CPlayer{
 
@@ -28,8 +28,8 @@ class CPlayer{
 
 		CPlayer();
 
-		void init(const CSpiel* spiel, const int playernumber); //unbedingt ausf�hren!
-		void refresh_data(const CSpiel* spiel);	//wird von init automatsich aufgerufen!
+		void init(const CBoard* spiel, const int playernumber); //unbedingt ausf�hren!
+		void refresh_data(const CBoard* spiel);	//wird von init automatsich aufgerufen!
 												//berechnet jetzt auch die m�glichen z�ge!
 
 		const int get_number()const; //liefert jetzt einen wert von 0 bis 3!

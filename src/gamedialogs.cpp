@@ -201,11 +201,11 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CSpielClient *client)
 	addChild(frame);
 	/* Alle Plaetze durchgehen, und sofern der Platz ueberhaupt existiert... */
 	for (i=0;i<PLAYER_MAX;i++)if (
-		   (client->get_gamemode()==GAMEMODE_2_COLORS_2_PLAYERS && (place[i]==0 || place[i]==2))
-		|| (client->get_gamemode()==GAMEMODE_DUO && (place[i]==0 || place[i]==2))
-		|| (client->get_gamemode()==GAMEMODE_JUNIOR && (place[i]==0 || place[i]==2))
-		|| (client->get_gamemode()==GAMEMODE_4_COLORS_4_PLAYERS)
-		|| (client->get_gamemode()==GAMEMODE_4_COLORS_2_PLAYERS && (place[i]==0 || place[i]==1))
+		   (client->get_game_mode() == GAMEMODE_2_COLORS_2_PLAYERS && (place[i] == 0 || place[i] == 2))
+		|| (client->get_game_mode() == GAMEMODE_DUO && (place[i] == 0 || place[i] == 2))
+		|| (client->get_game_mode() == GAMEMODE_JUNIOR && (place[i] == 0 || place[i] == 2))
+		|| (client->get_game_mode() == GAMEMODE_4_COLORS_4_PLAYERS)
+		|| (client->get_game_mode() == GAMEMODE_4_COLORS_2_PLAYERS && (place[i] == 0 || place[i] == 1))
 		)
 	{
 		/* Wenn lokaler Spieler, waehle Farben intensiver und mal einen * */
@@ -214,7 +214,7 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CSpielClient *client)
 		CFrame *frame;
 
 		/* In diesem Spielmodi addieren wir die Punkte und malen zwei Frames in beiden Farben. */
-		if (client->get_gamemode()==GAMEMODE_4_COLORS_2_PLAYERS)
+		if (client->get_game_mode() == GAMEMODE_4_COLORS_2_PLAYERS)
 		{
 			/* Linken Frame erstellen und Farbe setzen */
 			frame=new CFrame(x+20+(this->w-w)/2.0,this->y+y,(w-20)/2.0,20);

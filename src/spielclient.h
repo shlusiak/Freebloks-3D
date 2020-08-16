@@ -6,7 +6,7 @@
 #ifndef __SPIELCLIENT_H_INCLUDED_
 #define __SPIELCLIENT_H_INCLUDED_
 
-#include "spielleiter.h"
+#include "game.h"
 #include "network.h"
 
 /**
@@ -14,7 +14,7 @@
  * Die GUI kommuniziert direkt mit dem Spielclient
  **/
 
-class CSpielClient:public CSpielleiter
+class CSpielClient:public CGame
 {
 private:
 	/* Socket Verbindung des Clients zum Spielserver */

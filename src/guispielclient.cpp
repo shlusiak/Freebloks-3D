@@ -70,7 +70,7 @@ void CGUISpielClient::gameStarted()
 {
 	// Den ersten lokalen Spieler ermitteln, und Ansicht der GUI genau
 	// dorthin rotieren
-	for (int i=0;i<PLAYER_MAX;i++)if (spieler[i]==PLAYER_LOCAL)
+	for (int i=0;i<PLAYER_MAX;i++)if (player[i] == PLAYER_LOCAL)
 	{
 		gui->setAngy(i*90.0);
 		break;

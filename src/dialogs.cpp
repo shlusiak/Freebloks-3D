@@ -3,7 +3,7 @@
 **autor: Alex Besstschastnich
 **
 **Beschreibung:
-**Design des Menüs und der Untermenüs.
+**Design des Menï¿½s und der Untermenï¿½s.
 **Alle Steuerelemente haben eine ID, damit man auf die Ereignisse dem entsprechend 
 **reagieren kann.
 */
@@ -21,7 +21,7 @@
 #include "string.h"
 #include "gui.h"
 #include "options.h"
-#include "spielleiter.h"
+#include "game.h"
 #include "about.h"
 #include "helpbox.h"
 
@@ -49,7 +49,7 @@ static int size_x=20,size_y=20;
 
 
 /**
- *Hauptmenü leitet sich von CDialog ab
+ *Hauptmenï¿½ leitet sich von CDialog ab
  *es werden einige Buttons erstellt
  **/
 CMainMenu::CMainMenu(CGUI* gui,bool time)
@@ -74,8 +74,8 @@ CMainMenu::CMainMenu(CGUI* gui,bool time)
 }
 
 /**
- *Funktion zur Bearbeitung der ID's der Buttons nur im Hauptfenster des Menüs.
- *Es werden hauptsächlich weitere Fenster aufgamacht.
+ *Funktion zur Bearbeitung der ID's der Buttons nur im Hauptfenster des Menï¿½s.
+ *Es werden hauptsï¿½chlich weitere Fenster aufgamacht.
  **/
 int CMainMenu::processMouseEvent(TMouseEvent *event)
 {
@@ -83,11 +83,11 @@ int CMainMenu::processMouseEvent(TMouseEvent *event)
 	switch (r)
 	{
 	case 1002:
-		/* Dialog wird für den SinglePlayer Modus erstellt */
+		/* Dialog wird fï¿½r den SinglePlayer Modus erstellt */
 		addSubChild(new CNewGameDialog(GUI,false));
 		break;
 	case 1003:
-		/* ...die Namen sprechen ja für sich.. */
+		/* ...die Namen sprechen ja fï¿½r sich.. */
 		addSubChild(new CNewGameDialog(GUI,true));
 		break;
 	case 1004:
@@ -115,8 +115,8 @@ int CMainMenu::processMouseEvent(TMouseEvent *event)
 
 
 /**
- *Dialog für den Single Player Modus
- *man kann den Spielmodus, Spielstärke, Anzahl lokaler Spieler, und Feldgrösse ändern
+ *Dialog fï¿½r den Single Player Modus
+ *man kann den Spielmodus, Spielstï¿½rke, Anzahl lokaler Spieler, und Feldgrï¿½sse ï¿½ndern
  **/
 CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 :CDialog(370,330,"Singleplayer Settings")
@@ -417,10 +417,10 @@ int CNewGameAdvancedDialog::processMouseEvent(TMouseEvent *event)
 	switch (r)
 	{
 	case 1013:
-		/* OK wurde gedrückt.. */
+		/* OK wurde gedrï¿½ckt.. */
 		/* Wenn die Anzahl aller Steine auf Null steht, kommt eine Warnung */
 		/* Wenn die Anzahl der Steine ungleich null ist,
-		 * übernehme die Werte, der Spinbxes */
+		 * ï¿½bernehme die Werte, der Spinbxes */
 		if (checkConsistency())
 		{
 			close();
@@ -429,7 +429,7 @@ int CNewGameAdvancedDialog::processMouseEvent(TMouseEvent *event)
 		}
 		break;
 	case 1014:
-		/* Cancel wurde gedrückt, also einfach schliessen */
+		/* Cancel wurde gedrï¿½ckt, also einfach schliessen */
 		close();
 		break;
 

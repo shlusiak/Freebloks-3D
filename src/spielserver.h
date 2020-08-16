@@ -13,7 +13,7 @@
 #include <sys/socket.h>
 #endif
 #include "constants.h"
-#include "spielleiter.h"
+#include "game.h"
 #include "network.h"
 #include "timer.h"
 #include "logger.h"
@@ -25,7 +25,7 @@
  * Zentraler SpielServer, zu dem sich die SpielClients verbinden.
  * Wird vom SpielListener errichtet
  **/
-class CSpielServer:public CSpielleiter
+class CSpielServer:public CGame
 {
 private:
 	friend class CServerListener;

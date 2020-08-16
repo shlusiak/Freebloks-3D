@@ -2,26 +2,26 @@
  * spielleiter.cpp
  * Autor: Sascha Hlusiak
  *
- * Erweiterung von CSpiel um Grundlegende Funktionen eines Spielleiters
+ * Erweiterung von CBoard um Grundlegende Funktionen eines Spielleiters
  **/
 
 #ifdef HAVE_CONFIG_H
   #include "config.h"
 #endif
 
-#include "spielleiter.h"
+#include "game.h"
 
 
 
-CSpielleiter::CSpielleiter()
+CGame::CGame()
 {
 	m_current_player=-1;
-	m_gamemode=GAMEMODE_4_COLORS_4_PLAYERS;
-	for (int i=0;i<PLAYER_MAX;i++)spieler[i]=PLAYER_COMPUTER;
+	m_game_mode=GAMEMODE_4_COLORS_4_PLAYERS;
+	for (int i=0;i<PLAYER_MAX;i++)player[i]=PLAYER_COMPUTER;
 	history=new CTurnpool();
 }
 
-CSpielleiter::~CSpielleiter()
+CGame::~CGame()
 {
 	if (history)delete history;
 }
@@ -30,12 +30,12 @@ CSpielleiter::~CSpielleiter()
  * Fuegt einen CTurn an die History hinten an. Dies ist der letzte Zug, der zurueckgenommen
  * werden kann.
  **/
-void CSpielleiter::addHistory(CTurn *turn)
+void CGame::addHistory(CTurn *turn)
 {
 	history->add_turn(turn);
 }
 
-void CSpielleiter::addHistory(int player,CStone *stone,int y,int x)
+void CGame::addHistory(int player, CStone *stone, int y, int x)
 {
 	history->add_turn(player,stone,y,x);
 }
@@ -43,11 +43,11 @@ void CSpielleiter::addHistory(int player,CStone *stone,int y,int x)
 /**
  * Gibt die Anzahl nicht-COMPUTER Spieler zurueck
  **/
-const int CSpielleiter::num_players()const
+const int CGame::num_players()const
 {
 	int n;
 	n=0;
-	for (int i=0;i<PLAYER_MAX;i++)if (spieler[i]!=PLAYER_COMPUTER)n++;
+	for (int i=0;i<PLAYER_MAX;i++)if (player[i] != PLAYER_COMPUTER)n++;
 	return n;
 }
 

@@ -4,7 +4,7 @@
 
 #include "turn.h"
 
-#include "spiel.h"
+#include "board.h"
 
 
 CTurn::CTurn(const CTurn* turn) {

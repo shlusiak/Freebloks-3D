@@ -5,7 +5,7 @@
 
 //#include "spiel.h"
 
-class CSpiel;
+class CBoard;
 class CPlayer;
 
 class CTurn{

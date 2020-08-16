@@ -3,7 +3,7 @@
 #endif
 
 #include "stone.h"
-#include "spiel.h"
+#include "board.h"
 
 
 
@@ -84,7 +84,7 @@ void CStone::mirror_over_x(){
 
 
 
-const int CStone::calculate_possible_turns_in_position(const CSpiel* spiel, const int playernumber, const int fieldY, const int fieldX){
+const int CStone::calculate_possible_turns_in_position(const CBoard* spiel, const int playernumber, const int fieldY, const int fieldX){
 	int mirror;
 	int count = 0;
 

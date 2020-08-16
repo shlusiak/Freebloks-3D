@@ -46,8 +46,8 @@ CSpielServer::CSpielServer(const int v_max_humans,const int v_ki_mode,const GAME
 		clients[i]=0;
 		names[i] = NULL;
 	}
-	m_gamemode=v_gamemode;
-	if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
+	m_game_mode=v_gamemode;
+	if (m_game_mode == GAMEMODE_4_COLORS_2_PLAYERS)
 		set_teams(0,2,1,3);
 	for (i = 0; i < STONE_COUNT_ALL_SHAPES; i++)
 		stone_numbers[i] = 1;
@@ -116,8 +116,8 @@ void CSpielServer::add_client(int s)
 void CSpielServer::delete_client(int index,bool notify)
 {
 	/* Alle Spieler, die der Client belegt hat, werden durch einen PLAYER_COMPUTER ersetzt */
-	for (int i=0;i<PLAYER_MAX;i++)if (spieler[i]==clients[index]) {
-		spieler[i]=PLAYER_COMPUTER;
+	for (int i=0;i<PLAYER_MAX;i++)if (player[i] == clients[index]) {
+			player[i]=PLAYER_COMPUTER;
 	}
 	if (names[index]) {
 		free(names[index]);
@@ -165,7 +165,7 @@ void CSpielServer::run()
     {
 	/* Wenn das Spiel laeuft, und der aktuelle Spieler ein Computerspieler ist,
 	   berechne Zug der KI */
-	if (m_current_player!=-1 && spieler[m_current_player]==PLAYER_COMPUTER)
+	if (m_current_player!=-1 && player[m_current_player] == PLAYER_COMPUTER)
 	{
 		/* Ermittle CTurn, den die KI jetzt setzen wuerde */
 		timer.reset();
@@ -185,8 +185,8 @@ void CSpielServer::run()
 			data.x=turn->get_x();
 			data.y=turn->get_y();
 			/* Zug lokal wirklich setzen, wenn Fehlschlag, ist das Spiel wohl nicht mehr synchron */
-			if ((CSpiel::is_valid_turn(turn) == FIELD_DENIED) ||
-			   (CSpiel::set_stone(turn)!=FIELD_ALLOWED))
+			if ((CBoard::is_valid_turn(turn) == FIELD_DENIED) ||
+                (CBoard::set_stone(turn) != FIELD_ALLOWED))
 			{
 				printf("Game not in sync (2)\n");
 				exit(2);
@@ -215,7 +215,7 @@ void CSpielServer::run()
 	}
 
 
-	if (m_current_player!=-1 && spieler[current_player()]==PLAYER_COMPUTER)
+	if (m_current_player!=-1 && player[current_player()] == PLAYER_COMPUTER)
 	{
 		/* Ist nun ein Computer an der Reihe, kein Timeout von 100 ms */
 		tv.tv_sec=0;
@@ -294,7 +294,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			/* Ebenso, wenn das Spiel bereits laeuft */
 			if (m_current_player!=-1) return;
 
-			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO || m_gamemode==GAMEMODE_JUNIOR)
+			if (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR)
 			{
 				/* Wenn bereits zwei Spieler drin sind, raus */
 				if (num_players()>=2)return;
@@ -306,9 +306,9 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 						n = req->player;
 				}
 				/* Suche den naechsten, der frei ist (!=PLAYER_COMPUTER) */
-				if (spieler[n] != PLAYER_COMPUTER)
+				if (player[n] != PLAYER_COMPUTER)
 					n = 2 - n;
-				if (spieler[n] != PLAYER_COMPUTER)
+				if (player[n] != PLAYER_COMPUTER)
 					return;
 			}else{
 				/* Wenn alle Spieler vergeben, raus */
@@ -321,21 +321,21 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 						n = req->player;
 				}
 				/* Suche den naechsten, der frei ist (!=PLAYER_COMPUTER) */
-				while (spieler[n]!=PLAYER_COMPUTER)n=(n+1)%PLAYER_MAX;
+				while (player[n] != PLAYER_COMPUTER)n= (n + 1) % PLAYER_MAX;
 			}
 
 			/* Schick eine Nachricht zurueck, der ihm den Spieler zugesteht */
 			msg.player=n;
 			network_send(clients[client],(NET_HEADER*)&msg,sizeof(msg),MSG_GRANT_PLAYER);
-			/* Speichere socket des Spielers in dem spieler[] Array
+			/* Speichere socket des Spielers in dem player[] Array
 			   So werden den Spielern wieder die Clients zugeordnet */
-			spieler[n]=clients[client];
+			player[n]=clients[client];
 
-			if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
+			if (m_game_mode == GAMEMODE_4_COLORS_2_PLAYERS)
 			{
 				/* Jeder Spieler kriegt 2 Farben, also gib ihm seine zweite Farbe dazu */
 				n=(n+2)%PLAYER_MAX;
-				if (spieler[n]!=PLAYER_COMPUTER)
+				if (player[n] != PLAYER_COMPUTER)
 				{
 					printf("ERROR: Spieler bereits vergeben!?!?!? (2 Farben pro Spieler)\n");
 					delete_client(client,false);
@@ -343,9 +343,9 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				}
 				msg.player=n;
 				network_send(clients[client],(NET_HEADER*)&msg,sizeof(msg),MSG_GRANT_PLAYER);
-				/* Speichere socket des Spielers in dem spieler[] Array
+				/* Speichere socket des Spielers in dem player[] Array
 			   	So werden den Spielern wieder die Clients zugeordnet */
-				spieler[n]=clients[client];
+				player[n]=clients[client];
 			}
 
 
@@ -378,16 +378,16 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			if (rev->player > PLAYER_MAX)
 				break;
 
-			if (spieler[rev->player] == clients[client]) {
-				spieler[rev->player]=PLAYER_COMPUTER;
+			if (player[rev->player] == clients[client]) {
+				player[rev->player]=PLAYER_COMPUTER;
 
 				network_send(clients[client],(NET_HEADER*)rev,sizeof(NET_REVOKE_PLAYER),MSG_REVOKE_PLAYER);
 
-				if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
+				if (m_game_mode == GAMEMODE_4_COLORS_2_PLAYERS)
 				{
 					int n = rev->player;
 					n=(n+2)%PLAYER_MAX;
-					spieler[n]=PLAYER_COMPUTER;
+					player[n]=PLAYER_COMPUTER;
 					rev->player = n;
 					network_send(clients[client],(NET_HEADER*)rev,sizeof(NET_REVOKE_PLAYER),MSG_REVOKE_PLAYER);
 				}
@@ -408,7 +408,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				send_current_player();
 				return;
 			}
-			if (clients[client] != spieler[s->player]) {
+			if (clients[client] != player[s->player]) {
 				if (logger)
 					logger->logLine("WARNING: Client does not own player! Ignoring move.\n");
 				send_current_player();
@@ -419,8 +419,8 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			stone->mirror_rotate_to(s->mirror_count,s->rotate_count);
 
 			/* Den Stein lokal setzen */
- 			if ((CSpiel::is_valid_turn(stone, s->player, s->y, s->x) == FIELD_ALLOWED) &&
-			   (CSpiel::set_stone(stone, s->player,s->y,s->x)==FIELD_ALLOWED))
+ 			if ((CBoard::is_valid_turn(stone, s->player, s->y, s->x) == FIELD_ALLOWED) &&
+                (CBoard::set_stone(stone, s->player, s->y, s->x) == FIELD_ALLOWED))
 			{
 				/* Bei Erfolg wird die Nachricht direkt an alle Clients zurueck-
 				   geschickt */
@@ -488,11 +488,11 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				// Spieler von zurueckgenommenen Stein ist wieder dran
 				m_current_player=turn->get_playernumber();
 				// Und lokal den Zug zuruecknehmen
-				undo_turn(history, m_gamemode);
+				undo_turn(history, m_game_mode);
 				// Solange Zuege des Computers zurueckgenommen werden
 
 				timer.sleep(100);
-			}while (spieler[m_current_player]==PLAYER_COMPUTER);
+			}while (player[m_current_player] == PLAYER_COMPUTER);
 
 			// Aktuellen Spieler uebermitteln
 			send_current_player();
@@ -531,46 +531,46 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 					break;
 
 				set_field_size(r->width, r->height);
-				m_gamemode = (GAMEMODE)r->gamemode;
+				m_game_mode = (GAMEMODE)r->gamemode;
 
-				if (m_gamemode == GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode == GAMEMODE_DUO || m_gamemode == GAMEMODE_JUNIOR) {
+				if (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR) {
 					NET_REVOKE_PLAYER rev;
 
-					for (int i = 1; i <= 3; i += 2) if (spieler[i] != PLAYER_COMPUTER) {
+					for (int i = 1; i <= 3; i += 2) if (player[i] != PLAYER_COMPUTER) {
 						rev.player = i;
-						network_send(spieler[i],(NET_HEADER*)&rev,sizeof(NET_REVOKE_PLAYER),MSG_REVOKE_PLAYER);
+						network_send(player[i], (NET_HEADER*)&rev, sizeof(NET_REVOKE_PLAYER), MSG_REVOKE_PLAYER);
 
 						// searching for free slot and grant player
-						for (int j = 0; j <= 2; j += 2) if (spieler[j] == PLAYER_COMPUTER) {
-							spieler[j] = spieler[i];
+						for (int j = 0; j <= 2; j += 2) if (player[j] == PLAYER_COMPUTER) {
+								player[j] = player[i];
 							NET_GRANT_PLAYER g;
 							g.player = j;
-							network_send(spieler[j],(NET_HEADER*)&g,sizeof(NET_GRANT_PLAYER),MSG_GRANT_PLAYER);
+							network_send(player[j], (NET_HEADER*)&g, sizeof(NET_GRANT_PLAYER), MSG_GRANT_PLAYER);
 							break;
 						}
 
-						spieler[i]=PLAYER_COMPUTER;
+							player[i]=PLAYER_COMPUTER;
 					}
 				}
 
-				if (m_gamemode == GAMEMODE_4_COLORS_2_PLAYERS) {
-					for (int i = 0; i <= 3; i ++) if (spieler[i] != PLAYER_COMPUTER) {
+				if (m_game_mode == GAMEMODE_4_COLORS_2_PLAYERS) {
+					for (int i = 0; i <= 3; i ++) if (player[i] != PLAYER_COMPUTER) {
 						int j = (i+2)%PLAYER_MAX;
-						if (spieler[i] == spieler[j])
+						if (player[i] == player[j])
 							continue;
 
-						if (spieler[j] == PLAYER_COMPUTER) {
+						if (player[j] == PLAYER_COMPUTER) {
 							// if next one is free, grant
-							spieler[j] = spieler[i];
+							player[j] = player[i];
 							NET_GRANT_PLAYER g;
 							g.player = j;
-							network_send(spieler[i],(NET_HEADER*)&g,sizeof(NET_GRANT_PLAYER),MSG_GRANT_PLAYER);
+							network_send(player[i], (NET_HEADER*)&g, sizeof(NET_GRANT_PLAYER), MSG_GRANT_PLAYER);
 						} else {
 							// otherwise revoke
 							NET_REVOKE_PLAYER rev;
 							rev.player = i;
-							network_send(spieler[i],(NET_HEADER*)&rev,sizeof(NET_REVOKE_PLAYER),MSG_REVOKE_PLAYER);
-							spieler[i] = PLAYER_COMPUTER;
+							network_send(player[i], (NET_HEADER*)&rev, sizeof(NET_REVOKE_PLAYER), MSG_REVOKE_PLAYER);
+							player[i] = PLAYER_COMPUTER;
 						}
 					}
 				}
@@ -618,7 +618,7 @@ void CSpielServer::send_server_status()
 {
 	NET_SERVER_STATUS status;
 	int i;
-	int max=(m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO || m_gamemode==GAMEMODE_JUNIOR)?2:PLAYER_MAX;
+	int max= (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR) ? 2 : PLAYER_MAX;
 	status.player=num_players();
 	status.computer=max-num_players();
 	status.clients=num_clients();
@@ -626,14 +626,14 @@ void CSpielServer::send_server_status()
 	status.height=get_field_size_y();
 	for (i=0;i<STONE_SIZE_MAX;i++)
 		status.stone_numbers_obsolete[i]=1; // OBSOLETE, NOT SUPPORTED ANYMORE
-	status.gamemode=m_gamemode;
+	status.gamemode=m_game_mode;
 	for (i = 0; i < PLAYER_MAX; i++) {
-		if (spieler[i] == PLAYER_COMPUTER || spieler[i] == PLAYER_LOCAL)
-			status.spieler[i] = spieler[i];
+		if (player[i] == PLAYER_COMPUTER || player[i] == PLAYER_LOCAL)
+			status.spieler[i] = player[i];
 		else {
 			int j;
 			for (j = 0; j < CLIENTS_MAX; j++)
-				if (clients[j] == spieler[i])
+				if (clients[j] == player[i])
 					status.spieler[i] = j;
 		}
 	}
@@ -680,11 +680,11 @@ void CSpielServer::start_game()
 
 	/* Spiel zuruecksetzen */
 	if (history)history->delete_all_turns();
-	CSpiel::start_new_game(m_gamemode);
-	CSpiel::set_stone_numbers(stone_numbers);
+	CBoard::start_new_game(m_game_mode);
+	CBoard::set_stone_numbers(stone_numbers);
 
 	/* Wenn nur mit zwei Farben gespielt wird, nehme Spieler 1 und 3 alle Steine weg */
-	if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO || m_gamemode==GAMEMODE_JUNIOR)
+	if (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR)
 	{
 		for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
 			get_player(1)->get_stone(n)->set_available(0);
@@ -756,8 +756,8 @@ void CSpielServer::set_stone_numbers(int8 stone_numbers[])
 		for (int i = 0; i < STONE_COUNT_ALL_SHAPES; i++)
 			this->stone_numbers[i] = stone_numbers[i];
 	}
-	/* Das CSpiel setzt hier die Player richtig */
-	CSpiel::set_stone_numbers(this->stone_numbers);
+	/* Das CBoard setzt hier die Player richtig */
+	CBoard::set_stone_numbers(this->stone_numbers);
 }
 
 
@@ -854,7 +854,7 @@ void CSpielServer::assign_local_players()
 		return;
 
 	for (i = 0; i < PLAYER_MAX; i++) {
-		if (spieler[i] == PLAYER_LOCAL) {
+		if (player[i] == PLAYER_LOCAL) {
 			setSpieler(i, s);
 		}
 	}

@@ -4,12 +4,12 @@
 
 #include "player.h"
 
-#include "spiel.h"
+#include "board.h"
 
 
 
 
-void CPlayer::init(const CSpiel* spiel, const int playernumber){
+void CPlayer::init(const CBoard* spiel, const int playernumber){
 	m_number = playernumber;
 	for (int i = 0; i < STONE_COUNT_ALL_SHAPES; i++){
 		m_stone[i].init(i);
@@ -17,7 +17,7 @@ void CPlayer::init(const CSpiel* spiel, const int playernumber){
 	refresh_data(spiel);
 }
 
-void CPlayer::refresh_data(const CSpiel* spiel){
+void CPlayer::refresh_data(const CBoard* spiel){
 
 	m_stone_points_left = 0;
 	m_number_of_possible_turns = 0;

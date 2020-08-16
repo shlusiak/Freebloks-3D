@@ -275,7 +275,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 		/* Der Server gewaehrt dem Client einen lokalen Spieler */
 		case MSG_GRANT_PLAYER:i=((NET_GRANT_PLAYER*)data)->player;
 			/* Merken, dass es sich bei i um einen lokalen Spieler handelt */
-			spieler[i]=PLAYER_LOCAL;
+			player[i]=PLAYER_LOCAL;
 			break;
 
 		/* Der Server hat einen aktuellen Spieler festgelegt */
@@ -291,8 +291,8 @@ void CSpielClient::process_message(NET_HEADER* data)
 			/* Stein in richtige Position drehen */
 			stone->mirror_rotate_to(s->mirror_count,s->rotate_count);
 			/* Stein aufs echte Spielfeld setzen */
-			if ((CSpiel::is_valid_turn(stone, s->player, s->y, s->x) == FIELD_DENIED) ||
-			   (CSpiel::set_stone(stone, s->player,s->y,s->x)!=FIELD_ALLOWED))
+			if ((CBoard::is_valid_turn(stone, s->player, s->y, s->x) == FIELD_DENIED) ||
+                (CBoard::set_stone(stone, s->player, s->y, s->x) != FIELD_ALLOWED))
 			{	// Spiel scheint nicht mehr synchron zu sein
 				// GAANZ schlecht!!
 				printf("Game not in sync!\n");
@@ -360,10 +360,10 @@ void CSpielClient::process_message(NET_HEADER* data)
 				}
 				if (changed) set_stone_numbers(status.stone_numbers);
 			}
-			m_gamemode=(GAMEMODE)s->gamemode;
-			if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
+			m_game_mode=(GAMEMODE)s->gamemode;
+			if (m_game_mode == GAMEMODE_4_COLORS_2_PLAYERS)
 				set_teams(0,2,1,3);
-			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode == GAMEMODE_DUO || m_gamemode==GAMEMODE_JUNIOR)
+			if (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR)
 			{
 				for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
 					get_player(1)->get_stone(n)->set_available(0);
@@ -389,7 +389,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 		}
 		/* Der Server hat eine neue Runde gestartet. Spiel zuruecksetzen */
 		case MSG_START_GAME: {
-			CSpiel::start_new_game(m_gamemode);
+			CBoard::start_new_game(m_game_mode);
 			/* Unbedingt history leeren. */
 			if (history)history->delete_all_turns();
 
@@ -397,9 +397,9 @@ void CSpielClient::process_message(NET_HEADER* data)
 				set_stone_numbers(status.stone_numbers_obsolete[0],status.stone_numbers_obsolete[1],status.stone_numbers_obsolete[2],status.stone_numbers_obsolete[3],status.stone_numbers_obsolete[4]);
 			else
 				set_stone_numbers(status.stone_numbers);
-			if (m_gamemode==GAMEMODE_4_COLORS_2_PLAYERS)
+			if (m_game_mode == GAMEMODE_4_COLORS_2_PLAYERS)
 				set_teams(0,2,1,3);
-			if (m_gamemode==GAMEMODE_2_COLORS_2_PLAYERS || m_gamemode==GAMEMODE_DUO || m_gamemode==GAMEMODE_JUNIOR)
+			if (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR)
 			{
 				for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
 					get_player(1)->get_stone(n)->set_available(0);
@@ -416,7 +416,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 			CTurn *t=history->get_last_turn();
 			CStone *stone=get_player(t->get_playernumber())->get_stone(t->get_stone_number());
 			stoneUndone(stone, t);
-			undo_turn(history, m_gamemode);
+			undo_turn(history, m_game_mode);
 			break;
 		}
 		default: printf("FEHLER: unbekannte Nachricht empfangen: #%d\n",data->msg_type);
@@ -446,7 +446,7 @@ TSingleField CSpielClient::set_stone(CStone* stone, int stone_number, int y, int
 
 	/* Lokal keinen Spieler als aktiv setzen.
 	   Der Server schickt uns nachher den neuen aktiven Spieler zu */
-	set_noplayer();
+	set_no_player();
 	return FIELD_ALLOWED;
 }
 
@@ -497,5 +497,5 @@ const bool CSpielClient::is_local_player(const int player)const
 {
 	/* Bei keinem aktuellem Spieler, ist der aktuelle natuerlich nicht lokal. */
 	if (player==-1)return false;
-	return (spieler[player]!=PLAYER_COMPUTER);
+	return (player[player] != PLAYER_COMPUTER);
 }
