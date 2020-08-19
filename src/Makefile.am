@@ -15,10 +15,10 @@ endif
 
 freebloks_dedicated_SOURCES = \
 	dedicated.cpp \
-	spielleiter.cpp spielleiter.h \
+	game.cpp game.h \
 	spielserver.cpp spielserver.h \
 	stone.cpp stone.h \
-	spiel.cpp spiel.h \
+	board.cpp board.h \
 	player.cpp player.h \
 	network.cpp network.h \
 	turn.cpp turn.h \
@@ -30,11 +30,11 @@ freebloks_dedicated_SOURCES = \
 
 freebloks_benchmark_SOURCES = \
 	benchmark.cpp \
-	spielleiter.cpp spielleiter.h \
+	game.cpp game.h \
 	spielserver.cpp spielserver.h \
 	spielclient.cpp spielclient.h \
 	stone.cpp stone.h \
-	spiel.cpp spiel.h \
+	board.cpp board.h \
 	player.cpp player.h \
 	network.cpp network.h \
 	turn.cpp turn.h \
@@ -50,9 +50,9 @@ freebloks_SOURCES = \
 	timer.cpp timer.h \
 	window.cpp window.h \
 	player.cpp player.h \
-	spiel.cpp spiel.h \
+	board.cpp board.h \
 	stone.cpp stone.h \
-	spielleiter.cpp spielleiter.h \
+	game.cpp game.h \
 	spielserver.cpp spielserver.h \
 	spielclient.cpp spielclient.h \
 	guispielclient.cpp guispielclient.h \
@@ -78,9 +78,9 @@ freebloks_SOURCES = \
 freebloks_client_SOURCES = \
 	client.cpp \
 	spielclient.cpp spielclient.h \
-	spielleiter.cpp spielleiter.h \
+	game.cpp game.h \
 	stone.cpp stone.h \
-	spiel.cpp spiel.h \
+	board.cpp board.h \
 	player.cpp player.h \
 	network.cpp network.h \
 	turn.cpp turn.h \
