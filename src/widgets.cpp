@@ -1022,8 +1022,8 @@ bool CTextEdit::processKey(unsigned short key)
 	/* Wenn wir nicht den Fokus haben, brauchen wir nix zu behandeln. */
 	if (!focused)return false;
 	
-	/* Pruefen, ob Taste ein Eingabezeichen ist. Umlaute sind auch erlaubt. */
-	if ((   (isascii(key) && isprint(key))   || (strchr("äöüÄÖÜß",key)))
+	/* Pruefen, ob Taste ein Eingabezeichen ist. */
+	if (isascii(key) && isprint(key)
 	   && ((!numbers) || (numbers && isdigit(key))))
 	{
 		/* Fruehzeitig keine neuen Zeichen mehr erlauben. Unser Eingabepuffer ist fest. */

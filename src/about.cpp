@@ -42,7 +42,7 @@ static const char *AboutText[]={
 	0,
 	"This game was created",
 	"during a practical training",
-	"at the FH-Münster, Germany.",
+	"at the FH-Muenster, Germany.",
 	0,0,0,0,0,0,
 	"Sascha Hlusiak:          ",
 	"- OpenGL graphics        ",
