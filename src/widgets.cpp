@@ -207,7 +207,10 @@ bool CWidget::processKey(unsigned short key)
 {
 	/* Wenn ein subchild existiert, Taste verarbeiten, und sofort raus.
 	   next und child garnicht erst die Gelegenheit geben, die Taste zu sehen. */
-	if (subchild)if (subchild->processKey(key))return true;else return false;
+	if (subchild) {
+	    if (subchild->processKey(key))return true;
+	    else return false;
+	}
 	/* Sonst child und next die Taste verarbeiten lassen. */
 	if (child) if (child->processKey(key))return true;
 	if (next)if (next->processKey(key))return true;

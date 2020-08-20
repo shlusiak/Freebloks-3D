@@ -74,15 +74,15 @@ void CGLFont::init()
 			int index=i;
 			/* Deutsche Umlaute brauchen man wieder unbedingt ne 
 			   Extrawurst. o_O */
-			switch ((char)i)
+			switch ((unsigned char)i)
 			{
-				case 'ä':index=128; break;
-				case 'ö':index=129; break;
-				case 'ü':index=130; break;
-				case 'Ä':index=131; break;
-				case 'Ö':index=132; break;
-				case 'Ü':index=133; break;
-				case 'ß':index=134; break;
+				case 228: index=128; break; // 0xE4
+				case 246: index=129; break;
+				case 252: index=130; break;
+				case 196: index=131; break;
+				case 214: index=132; break;
+				case 220: index=133; break;
+				case 223: index=134; break;
 			}
 
 			double tx1=tw*((index-18)%14);

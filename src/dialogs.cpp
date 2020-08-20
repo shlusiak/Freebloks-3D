@@ -41,7 +41,7 @@ static int ki_multithreading=2;
 
 /* Ausgewaehlter Server */
 static char* mp_oldserver=NULL;
-static char* oldname="";
+static const char* oldname="";
 
 /* Groesse des Feldes */
 static int size_x=20,size_y=20;
