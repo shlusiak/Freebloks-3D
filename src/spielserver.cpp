@@ -188,8 +188,8 @@ void CSpielServer::run()
 			data.y=turn->y;
 
 			/* Zug lokal wirklich setzen, wenn Fehlschlag, ist das Spiel wohl nicht mehr synchron */
-			if ((CBoard::is_valid_turn(turn) == FIELD_DENIED) ||
-                (CBoard::set_stone(turn) != FIELD_ALLOWED))
+			if ((!CBoard::is_valid_turn(turn)) ||
+                (!CBoard::set_stone(turn)))
 			{
 				printf("Game not in sync (2)\n");
 				exit(2);
@@ -422,8 +422,8 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
 
 			/* Den Stein lokal setzen */
- 			if ((is_valid_turn(stone, s->player, s->y, s->x) == FIELD_ALLOWED) &&
-                (set_stone(stone, s->player, s->y, s->x) == FIELD_ALLOWED))
+ 			if ((is_valid_turn(stone, s->player, s->y, s->x)) &&
+                (set_stone(stone, s->player, s->y, s->x)))
 			{
 				/* Bei Erfolg wird die Nachricht direkt an alle Clients zurueck-
 				   geschickt */

@@ -291,8 +291,8 @@ void CSpielClient::process_message(NET_HEADER* data)
 			/* Stein in richtige Position drehen */
 			stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
 			/* Stein aufs echte Spielfeld setzen */
-			if ((is_valid_turn(stone, s->player, s->y, s->x) == FIELD_DENIED) ||
-                (set_stone(stone, s->player, s->y, s->x) != FIELD_ALLOWED))
+			if ((!is_valid_turn(stone, s->player, s->y, s->x)) ||
+                (!set_stone(stone, s->player, s->y, s->x)))
 			{	// Spiel scheint nicht mehr synchron zu sein
 				// GAANZ schlecht!!
 				printf("Game not in sync!\n");

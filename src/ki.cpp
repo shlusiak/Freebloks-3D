@@ -18,7 +18,7 @@
 /**
  * For the given stone, calculate all possible turns on the entire board.
  */
-void CKi::calculate_possible_turns(const CBoard& board, CStone& stone, const int playernumber) {
+void CKi::calculate_possible_turns(const CBoard& board, const CStone& stone, const int playernumber) {
 	for (int x = 0; x < board.get_field_size_x(); x++) {
 		for (int y = 0; y < board.get_field_size_y(); y++) {
 			if (board.get_game_field(playernumber, y, x) == FIELD_ALLOWED){
@@ -31,12 +31,8 @@ void CKi::calculate_possible_turns(const CBoard& board, CStone& stone, const int
 /**
  * For the given stone and position, try all positions and calculate possible turns.
  */
-void CKi::calculate_possible_turns_in_position(const CBoard& board, CStone& stone, const int player, const int fieldY, const int fieldX) {
+void CKi::calculate_possible_turns_in_position(const CBoard& board, const CStone& stone, const int player, const int fieldY, const int fieldX) {
 	int mirror;
-
-	// remember the original rotation and mirror values, as we are going to modify 'stone'
-	const int rotate_count = stone.get_rotate_counter();
-	const int mirror_count = stone.get_mirror_counter();
 
 	if (stone.get_mirrorable() == MIRRORABLE_IMPORTANT)
 	    mirror = 1;
@@ -45,12 +41,10 @@ void CKi::calculate_possible_turns_in_position(const CBoard& board, CStone& ston
 
 	for (int m = 0; m <= mirror; m++) {
 		for (int r = 0; r < stone.get_rotateable(); r++){
-			stone.mirror_rotate_to(m, r);
-
 			for (int x = 0; x < stone.get_stone_size(); x++){
 				for (int y = 0; y < stone.get_stone_size(); y++){
-					if (stone.get_stone_field(y, x) == STONE_FIELD_ALLOWED) {
-						if (board.is_valid_turn(stone, player, fieldY - y, fieldX - x) == FIELD_ALLOWED){
+					if (stone.get_stone_field(y, x, m, r) == STONE_FIELD_ALLOWED) {
+						if (board.is_valid_turn(stone, player, fieldY - y, fieldX - x)){
 							m_turnpool.add_turn(player, &stone, fieldY - y, fieldX - x);
 						}
 					}
@@ -58,9 +52,6 @@ void CKi::calculate_possible_turns_in_position(const CBoard& board, CStone& ston
 			}
 		}
 	}
-
-	// restore original stone configuration
-	stone.mirror_rotate_to(mirror_count, rotate_count);
 }
 
 struct THREADDATA {
@@ -173,14 +164,13 @@ const CTurn* CKi::get_ultimate_turn(CBoard& spiel, const int current_player, con
 	return best;
 }
 
-
 void CKi::build_up_turnpool_biggest_x_stones(CBoard& spiel, const int playernumber, const int max_stored_stones){
 	m_turnpool.delete_all_turns();
 	int stored_stones = 0;
 	int stored_turns = 0;
 
 	for (int n = STONE_COUNT_ALL_SHAPES -1; n >= 0; n--){
-		CStone& stone = spiel.get_player(playernumber)->get_stone(n);
+		const CStone& stone = spiel.get_player(playernumber)->get_stone(n);
 
 		if (stone.get_available()){
 			calculate_possible_turns(spiel, stone, playernumber);

@@ -3,7 +3,6 @@
 
 #include "constants.h"
 
-
 /* Stone-Constants */
 
 const int STONE_SIZE[STONE_COUNT_ALL_SHAPES] =
@@ -32,7 +31,7 @@ const int STONE_SIZE[STONE_COUNT_ALL_SHAPES] =
 					};
 
 
-const int STONE_POSITION_POINTS[STONE_COUNT_ALL_SHAPES] = //testweise!!!!!!!!!!!!!!
+const int STONE_POSITION_POINTS[STONE_COUNT_ALL_SHAPES] =
 					{
 						8, //0
 						4, //1
@@ -267,16 +266,6 @@ const TStoneField STONE_FIELD[STONE_COUNT_ALL_SHAPES]=
 /* ende Stone-Constants */
 
 
-
-
-
-
-
-
-
-
-
-
 class CBoard;
 
 class CStone {
@@ -294,9 +283,13 @@ class CStone {
 		CStone(): m_available(0), m_shape(0), m_mirror_counter(0), m_rotate_counter(0) {}
 		void init (const int shape);
 
-		TSingleStone get_stone_field(const int y, const int x)const;
+		TSingleStone get_stone_field(const int y, const int x, const int mirror, const int rotate) const;
 
-		const int calculate_possible_turns_in_position(const CBoard* const spiel, const int playernumber, const int fieldY, const int fieldX);
+		TSingleStone get_stone_field(const int y, const int x) const {
+			return get_stone_field(y, x, m_mirror_counter, m_rotate_counter);
+		}
+
+		int calculate_possible_turns_in_position(const CBoard& spiel, const int playernumber, const int fieldY, const int fieldX) const;
 
 		const int get_stone_size() const;
 		const int get_stone_points() const;

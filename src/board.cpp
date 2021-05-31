@@ -98,30 +98,21 @@ void CBoard::set_teams(int player_team1_1, int player_team1_2, int player_team2_
 	CBoard::m_player[player_team2_2].set_nemesis(player_team1_1);
 }
 
-
-
-
-
 CBoard::~CBoard(){
 	delete [] CBoard::m_game_field;
 }
-
-
-
 
 void CBoard::start_new_game(GAMEMODE game_mode){
 	init_field();
 	set_seeds(game_mode);
 	for (int n = 0; n < PLAYER_MAX; n++){
-		CBoard::m_player[n].init(this, n);
+		m_player[n].init(*this, n);
 	}
 }
 
-
-
 void CBoard::refresh_player_data(){
 	for (int n = 0; n < PLAYER_MAX; n++){
-		CBoard::m_player[n].refresh_data(this);
+		m_player[n].refresh_data(*this);
 	}
 }
 
@@ -147,27 +138,30 @@ void CBoard::set_seeds(GAMEMODE game_mode) {
 	#undef set_seed
 }
 
-/** r�ckgabe �ndern in bool?! **/
-TSingleField CBoard::is_valid_turn(const CStone& stone, int playernumber, int startY, int startX) const {
-	TSingleField valid = FIELD_DENIED;
+bool CBoard::is_valid_turn(const CStone& stone, int playernumber, int startY, int startX) const {
+	bool valid = false;
 	TSingleField field_value;
 
 	for (int y = 0; y < stone.get_stone_size(); y++){
 		for (int x = 0; x < stone.get_stone_size(); x++){
 			if (stone.get_stone_field(y,x) != STONE_FIELD_FREE) {
-				if (!is_position_inside_field(y + startY, x + startX)) return FIELD_DENIED;
+				if (!is_position_inside_field(y + startY, x + startX))
+					return false;
 
-				/*TODO::: eventuell ein array �bergeben*/
-				field_value = CBoard::get_game_field (playernumber, y + startY , x + startX);
-				if (field_value == FIELD_DENIED) return FIELD_DENIED;
-				if (field_value == FIELD_ALLOWED) valid = FIELD_ALLOWED;
+				field_value = get_game_field(playernumber, y + startY , x + startX);
+				if (field_value == FIELD_DENIED)
+					return false;
+
+				if (field_value == FIELD_ALLOWED)
+					valid = true;
 			}
 		}
 	}
+
 	return valid;
 }
 
-TSingleField CBoard::is_valid_turn(const CTurn& turn) {
+bool CBoard::is_valid_turn(const CTurn& turn) {
 	int playernumber = turn.player;
 	CStone& stone = m_player[playernumber].get_stone(turn.stone_number);
 	stone.mirror_rotate_to(turn.mirror_count, turn.rotate_count);
@@ -194,18 +188,14 @@ void CBoard::set_single_stone_for_player(const int player_number, const int star
 	}
 }
 
-/** r�ckgabe zu bool?! **/
-TSingleField CBoard::set_stone(const CTurn& turn){
+bool CBoard::set_stone(const CTurn& turn){
 	int playernumber = turn.player;
 	CStone& stone = m_player[playernumber].get_stone(turn.stone_number);
 	stone.mirror_rotate_to(turn.mirror_count, turn.rotate_count);
 	return set_stone(stone, playernumber, turn.y, turn.x);
 }
 
-
-
-/** r�ckgabe zu bool?! **/
-TSingleField CBoard::set_stone(CStone& stone, int playernumber, int startY, int startX) {
+bool CBoard::set_stone(CStone& stone, int playernumber, int startY, int startX) {
 #ifdef _DEBUG
 	if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
 #endif
@@ -218,13 +208,12 @@ TSingleField CBoard::set_stone(CStone& stone, int playernumber, int startY, int 
 			}
 		}
 	}
+
 	stone.available_decrement();
 	refresh_player_data();
-	return FIELD_ALLOWED;
+
+	return true;
 }
-
-
-
 
 void CBoard::undo_turn(CTurnPool& turn_pool, GAMEMODE game_mode){
 	const CTurn* turn = turn_pool.get_last_turn();

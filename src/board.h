@@ -83,8 +83,6 @@ public:
 
     const int get_player_max() const;
 
-    const int get_max_stone_size() const;
-
     void set_teams(int player_team1_1, int player_team1_2, int player_team2_1, int player_team2_2);
 
     virtual void set_stone_numbers(int8 stone_numbers[]);
@@ -93,9 +91,9 @@ public:
 
     CPlayer *get_player(const int player_number);
 
-    TSingleField is_valid_turn(const CStone &stone, int player, int y, int x) const;
+    bool is_valid_turn(const CStone &stone, int player, int y, int x) const;
 
-    TSingleField is_valid_turn(const CTurn &turn);
+    bool is_valid_turn(const CTurn &turn);
 
     const TSingleField get_game_field(const int playernumber, const int y, const int x) const;
 
@@ -105,9 +103,9 @@ public:
 
     TSingleField *get_field_pointer() const;
 
-    TSingleField set_stone(CStone &stone, int playernumber, int y, int x);
+    bool set_stone(CStone &stone, int playernumber, int y, int x);
 
-    TSingleField set_stone(const CTurn &turn);
+    bool set_stone(const CTurn &turn);
 
     void undo_turn(CTurnPool &turn_pool, GAMEMODE game_mode);
 };
@@ -183,11 +181,6 @@ CPlayer *CBoard::get_player(const int player_number) {
 inline
 const bool CBoard::is_position_inside_field(const int y, const int x) const {
     return (y >= 0 && y < CBoard::m_field_size_y && x >= 0 && x < CBoard::m_field_size_x);
-}
-
-inline
-const int CBoard::get_max_stone_size() const {
-    return STONE_SIZE_MAX;
 }
 
 inline

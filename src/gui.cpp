@@ -1097,7 +1097,7 @@ void CGUI::testSelection(int x,int y)
 			const CStone &stone=spiel->get_current_player()->get_stone(current_stone);
 			int vx=selectedx-stone.get_stone_size()/2,vy=selectedy-stone.get_stone_size()/2;
 			/* Und merken, ob der Stein passen taete. */
-			selected_allowed=(spiel->is_valid_turn(stone, spiel->current_player(),vy,vx)==FIELD_ALLOWED);
+			selected_allowed = spiel->is_valid_turn(stone, spiel->current_player(),vy,vx);
 		}
 	}else if (type==2 && numberOfNames==2)
 	{

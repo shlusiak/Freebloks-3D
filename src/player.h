@@ -23,13 +23,12 @@ class CPlayer{
 		int m_nemesis;
 		int m_number;
 
-		CStone m_stone[STONE_COUNT_ALL_SHAPES]; // eventuell auf bool verkleinerbar?!
+		CStone m_stone[STONE_COUNT_ALL_SHAPES];
 	public:
 		CPlayer():m_nemesis(-1), m_teammate(-1) {}
 
-		void init(const CBoard* spiel, const int playernumber); //unbedingt ausf�hren!
-		void refresh_data(const CBoard* spiel);	//wird von init automatsich aufgerufen!
-												//berechnet jetzt auch die m�glichen z�ge!
+		void init(const CBoard& spiel, const int playernumber);
+		void refresh_data(const CBoard& spiel);
 
 		const int get_number() const; //liefert jetzt einen wert von 0 bis 3!
 		const int get_stone_points_left() const;
