@@ -2,7 +2,7 @@
  * benchmark.cpp
  * Autor: Sascha Hlusiak
  *
- * Benchmark fuer die Blokus KI
+ * Benchmark to test the AI
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -23,13 +23,12 @@
 #include "spielclient.h"
 
 
-/* Globale Variablen. Koennen durch Kommandozeilenparameter geaendert werden. */
-static int width=20,height=20;
+static int width=20;
+static int height=20;
 static int ki_threads=1;
 static int ki_strength=KI_PERFECT;
 
 
-/* Hilfetext ausgeben */
 static void help()
 {
 	printf("Usuage: benchmark [OPTIONS]\n\n");
@@ -38,12 +37,11 @@ static void help()
 	printf("      --width       Width of the field. Default: 20\n"
 	       "      --height      Height of the field. Default: 20\n"
 	       "  -t, --threads     Define number of threads to use for calculating moves\n"
-	       "                    Default: %d\n",ki_threads);
+	       "                    Default: %d\n", ki_threads);
 	printf("      --help        Display this help and exit\n");
 	exit(0);
 }
 
-/* Kommandozeilenparameter verarbeiten */
 static void parseParams(int argc,char **argv)
 {
 	int i=1;
@@ -125,6 +123,9 @@ static void parseParams(int argc,char **argv)
 	};
 }
 
+/**
+ * An observer of a game, does not play but records game start and end events and prints time elapsed.
+ */
 class CBenchmarkClient:public CSpielClient
 {
 private:
@@ -145,7 +146,6 @@ CBenchmarkClient::CBenchmarkClient()
 
 void CBenchmarkClient::gameStarted()
 {
-	int i;
 	timer.reset();
 }
 
@@ -157,41 +157,33 @@ void CBenchmarkClient::gameFinished()
 }
 
 
-void* clientThread(void* param) {
+static void* clientThread(void* param) {
 	int sock = *(int*)param;
 	const char* s;
 
-	CBenchmarkClient *client;
-	client = new CBenchmarkClient();
-	client->Connect(sock, 1);
+	CBenchmarkClient client;
+	client.Connect(sock, 1);
 
-	client->request_start();
+	client.request_start();
 	do {
-		s = client->poll();
+		s = client.poll();
 		if (s)
 		{
 			printf("Disconnected: %s\n", s);
-			delete client;
-			return NULL;
+			break;
 		}
-	} while (client->isConnected());
-	delete client;	
+	} while (client.isConnected());
+
 	return NULL;
 }
-
 
 int main(int argc,char ** argv)
 {
 	int ret;
 
-	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
-	   und Clients connecten laesst */
-	CSpielServer *spiel;
-	CBenchmarkClient *client;
 	int s[2];
 	pthread_t pt;
 
-	/* Kommandozeilenparameter verarbeiten */
 	parseParams(argc,argv);
 
 	printf("This is the almighty Freebloks Benchmark program. Have fun!\n");
@@ -202,20 +194,21 @@ int main(int argc,char ** argv)
 		return 1;
 	}
 
-	spiel = new CSpielServer(0, ki_strength, GAMEMODE_4_COLORS_4_PLAYERS, 0);
-	spiel->set_ki_threads(ki_threads);
-	spiel->set_field_size(width, height);
-	spiel->start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
-	spiel->add_client(s[1]);
+    CSpielServer spiel(0, ki_strength, GAMEMODE_4_COLORS_4_PLAYERS, 0);
+	spiel.set_ki_threads(ki_threads);
+	spiel.set_field_size(width, height);
+	spiel.start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
+	spiel.add_client(s[1]);
 
-	if (pthread_create(&pt,NULL,clientThread,(void*)&s[0]))
-			perror("pthread_create");
-	if (pthread_detach(pt))perror("pthread_detach");
+	if (pthread_create(&pt, NULL, clientThread, (void*)&s[0])) {
+        perror("pthread_create");
+    }
 
-	spiel->run();
+	if (pthread_detach(pt)) {
+        perror("pthread_detach");
+    }
 
-	/* Aufraeumen */
-	delete spiel;
+	spiel.run();
 
 	return 0;
 }
