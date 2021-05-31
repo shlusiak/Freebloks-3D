@@ -299,7 +299,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 				exit(1);
 			}
 			/* Zug der History anhaengen */
-			addHistory(s->player, &stone, s->y, s->x);
+			addHistory(s->player, stone, s->y, s->x);
 			stoneWasSet(s);
 			break;
 		}

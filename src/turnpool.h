@@ -17,7 +17,7 @@ class CTurnPool {
 		    delete_all_turns();
 		}
 
-		void add_turn(const int playernumber, const CStone* stone, const int y, const int x);
+		void add_turn(const int player, const CStone& stone, const int y, const int x);
 		void add_turn(const CTurn* turn);
 
 		void delete_all_turns() {

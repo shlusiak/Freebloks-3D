@@ -429,7 +429,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				   geschickt */
 				send_all(data,ntohs(data->data_length),MSG_SET_STONE);
 				/* Zug an History anhaengen */
-				addHistory(s->player, &stone, s->y, s->x);
+				addHistory(s->player, stone, s->y, s->x);
 				/* Dann wird der naechste Spieler ermittelt*/
 				next_player();
 			}else{ // Spiel scheint nicht synchron zu sein

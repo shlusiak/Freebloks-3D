@@ -18,7 +18,7 @@ class CKi {
 		void calculate_possible_turns(const CBoard& board, const CStone& stone, const int playerplayernumber);
 		void calculate_possible_turns_in_position(const CBoard& board, const CStone& stone, const int player, const int field_y, const int field_x);
 
-		const CTurn* get_ultimate_turn(CBoard& spiel, const int playernumber, const int ki_fehler);
+		const CTurn* get_ultimate_turn(CBoard& board, const int playernumber, const int ai_error);
 		void build_up_turnpool_biggest_x_stones(CBoard& spiel, const int playernumber, const int max_stored_stones);
 
 	public:
@@ -31,8 +31,6 @@ class CKi {
 		    num_threads = threads;
 		}
 
-		static int get_ultimate_points(CBoard& spiel, const int playernumber, const int ai_error, const CTurn& turn);
-		static int get_distance_points(CBoard& follow_situation, const int playernumber, const CTurn& turn);
 		const CTurn* get_ki_turn(CBoard& spiel, int player, int ai_error);
 };
 

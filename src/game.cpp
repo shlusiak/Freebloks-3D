@@ -30,7 +30,7 @@ void CGame::addHistory(const CTurn *turn)
 /**
  * Appends a turn to the history.
  **/
-void CGame::addHistory(int player, const CStone *stone, int y, int x)
+void CGame::addHistory(int player, const CStone &stone, int y, int x)
 {
 	history.add_turn(player, stone, y, x);
 }

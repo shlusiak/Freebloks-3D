@@ -15,6 +15,32 @@
 
 #define BIGGEST_X_STONES 9
 
+
+static int get_distance_points(CBoard& follow_situation, const int playernumber, const CTurn& turn) {
+    const CStone& stone = follow_situation.get_player(playernumber)->get_stone(turn.stone_number);
+
+    return
+            abs(follow_situation.get_player_start_x(playernumber) - turn.x + stone.get_stone_size() / 2)
+            +
+            abs(follow_situation.get_player_start_y(playernumber) - turn.y + stone.get_stone_size() / 2);
+}
+
+static int get_ultimate_points(CBoard& follow_situation, const int playernumber, const int ai_error, const CTurn& turn) {
+    int sum = 0;
+    for (int p = 0; p < PLAYER_MAX; p++){
+        if (p != playernumber){
+            if (p != follow_situation.get_teammate(playernumber)){
+                sum -= follow_situation.get_position_points(p);
+            }
+        } else {
+            sum += follow_situation.get_position_points(p);
+            sum -= follow_situation.get_stone_points_left(p) * 175;
+        }
+    }
+    sum += get_distance_points(follow_situation, playernumber, turn) * 20;
+    return ((100+(rand() % ((ai_error) + 1))) * sum) / 100;
+}
+
 /**
  * For the given stone, calculate all possible turns on the entire board.
  */
@@ -45,7 +71,7 @@ void CKi::calculate_possible_turns_in_position(const CBoard& board, const CStone
 				for (int y = 0; y < stone.get_stone_size(); y++){
 					if (stone.get_stone_field(y, x, m, r) == STONE_FIELD_ALLOWED) {
 						if (board.is_valid_turn(stone, player, fieldY - y, fieldX - x)){
-							m_turnpool.add_turn(player, &stone, fieldY - y, fieldX - x);
+							m_turnpool.add_turn(player, stone, fieldY - y, fieldX - x);
 						}
 					}
 				}
@@ -59,7 +85,7 @@ struct THREADDATA {
 	int from, to;
 	int best_points;
 	int current_player;
-	int ki_fehler;
+	int ai_error;
 	const CTurn* best;
 	const CBoard* board;
 };
@@ -70,8 +96,10 @@ DWORD WINAPI kiThread(LPVOID p)
 void* kiThread(void* p)
 #endif
 {
-	THREADDATA *data = (THREADDATA*)p;
-	CBoard spiel(data->board->get_field_size_x(), data->board->get_field_size_y());
+    auto data = (THREADDATA*)p;
+    auto ki = data->ki;
+    const CBoard* original = data->board;
+	CBoard board(original->get_field_size_x(), original->get_field_size_y());
 
 	int new_points;
 #ifdef HAVE_PTHREAD_CREATE
@@ -82,27 +110,30 @@ void* kiThread(void* p)
 	    return nullptr;
 #endif
 
-	spiel.follow_situation(*data->board, data->ki->m_turnpool.get_turn(data->from));
-	data->best_points = CKi::get_ultimate_points(spiel, data->current_player, data->ki_fehler, data->ki->m_turnpool.get_turn(data->from));
-	data->best = data->ki->m_turnpool.get_turn(data->from);
+	board.follow_situation(*original, ki->m_turnpool.get_turn(data->from));
+	data->best_points = get_ultimate_points(board, data->current_player, data->ai_error, data->ki->m_turnpool.get_turn(data->from));
+	data->best = ki->m_turnpool.get_turn(data->from);
 
 	for (int n = data->from + 1; n <= data->to; n++){
-		spiel.follow_situation(*data->board, data->ki->m_turnpool.get_turn(n));
-		new_points = CKi::get_ultimate_points(spiel, data->current_player, data->ki_fehler, data->ki->m_turnpool.get_turn(n));
+	    const CTurn* turn = data->ki->m_turnpool.get_turn(n);
+
+		board.follow_situation(*original, turn);
+		new_points = get_ultimate_points(board, data->current_player, data->ai_error, turn);
 
 		if (new_points >= data->best_points) {
-			data->best = data->ki->m_turnpool.get_turn(n);
+			data->best = turn;
 			data->best_points = new_points;
 		}
 	}
+
 #ifdef HAVE_PTHREAD_CREATE
 	pthread_exit((void*)0);
 #endif
 	return nullptr;
 }
 
-const CTurn* CKi::get_ultimate_turn(CBoard& spiel, const int current_player, const int ki_fehler) {
-	CKi::build_up_turnpool_biggest_x_stones(spiel, current_player, BIGGEST_X_STONES);
+const CTurn* CKi::get_ultimate_turn(CBoard& board, const int current_player, const int ai_error) {
+	build_up_turnpool_biggest_x_stones(board, current_player, BIGGEST_X_STONES);
 
 	const CTurn* best;
 	int best_points;
@@ -123,12 +154,13 @@ const CTurn* CKi::get_ultimate_turn(CBoard& spiel, const int current_player, con
 		data[i].best = nullptr;
 		data[i].best_points = 0;
 		data[i].current_player = current_player;
-		data[i].ki_fehler = ki_fehler;
-		data[i].board = &spiel;
+		data[i].ai_error = ai_error;
+		data[i].board = &board;
 
-		data[i].from=2+ i * (CKi::m_turnpool.size() - 1) / num_threads;
-		data[i].to= 2 + (i+1) * (CKi::m_turnpool.size() - 1) / num_threads - 1;
-		if (i == num_threads - 1) data[i].to= CKi::m_turnpool.size();
+		// skip the first, because we are doing that ourselves in this thread.
+		data[i].from = 2 + i * (m_turnpool.size() - 1) / num_threads;
+		data[i].to = 2 + (i+1) * (m_turnpool.size() - 1) / num_threads - 1;
+		if (i == num_threads - 1) data[i].to = m_turnpool.size();
 
 #ifdef WIN32
 		DWORD tid;
@@ -140,74 +172,53 @@ const CTurn* CKi::get_ultimate_turn(CBoard& spiel, const int current_player, con
 #endif
 	}
 
-	CBoard follow_situation(data->board->get_field_size_x(), data->board->get_field_size_y());
-	best = CKi::m_turnpool.get_turn(1);
-	follow_situation.follow_situation(spiel, best);
+	CBoard follow_situation(board.get_field_size_x(), board.get_field_size_y());
+	best = m_turnpool.get_turn(1);
+	follow_situation.follow_situation(board, best);
 
-	best_points = get_ultimate_points(follow_situation, current_player, ki_fehler, best); //Bewertung hier!!!
+	best_points = get_ultimate_points(follow_situation, current_player, ai_error, best);
 
 	for (i = 0; i < num_threads; i++)
 	{
 #ifdef HAVE_PTHREAD_CREATE
 		int *pi;
-		pthread_join(threads[i],(void**)&pi);
+		pthread_join(threads[i], (void**)&pi);
 #elif defined WIN32
 		WaitForSingleObject(threads[i],INFINITE);
 #endif
-		if (data[i].best_points>best_points && data[i].best!=nullptr)
+		if (data[i].best_points > best_points && data[i].best != nullptr)
 		{
-			best_points=data[i].best_points;
-			best=data[i].best;
+			best_points = data[i].best_points;
+			best = data[i].best;
 		}
 	}
 
 	return best;
 }
 
-void CKi::build_up_turnpool_biggest_x_stones(CBoard& spiel, const int playernumber, const int max_stored_stones){
+void CKi::build_up_turnpool_biggest_x_stones(CBoard& spiel, const int playernumber, const int max_stored_stones) {
 	m_turnpool.delete_all_turns();
+
 	int stored_stones = 0;
 	int stored_turns = 0;
 
-	for (int n = STONE_COUNT_ALL_SHAPES -1; n >= 0; n--){
+	for (int n = STONE_COUNT_ALL_SHAPES - 1; n >= 0; n--) {
 		const CStone& stone = spiel.get_player(playernumber)->get_stone(n);
 
-		if (stone.get_available()){
+		if (stone.get_available()) {
 			calculate_possible_turns(spiel, stone, playernumber);
-			if (m_turnpool.size() > stored_turns){
+
+			// If this stone has any possible turns, we increment the stored_stones counter
+			if (m_turnpool.size() > stored_turns) {
 				stored_stones++;
 				stored_turns = m_turnpool.size();
+				// This way we only use turns from the biggest n stones and can skip processing smaller stones
 				if (stored_stones >= max_stored_stones) {
 					return;
 				}
 			}
 		}
 	}
-}
-
-int CKi::get_distance_points(CBoard& follow_situation, const int playernumber, const CTurn& turn) {
-	const CStone& stone = follow_situation.get_player(playernumber)->get_stone(turn.stone_number);
-
-	return
-		abs(follow_situation.get_player_start_x(playernumber) - turn.x + stone.get_stone_size() / 2)
-		+
-		abs(follow_situation.get_player_start_y(playernumber) - turn.y + stone.get_stone_size() / 2);
-}
-
-int CKi::get_ultimate_points(CBoard& follow_situation, const int playernumber, const int ai_error, const CTurn& turn){
-	int sum = 0;
-	for (int p = 0; p < PLAYER_MAX; p++){
-		if (p != playernumber){
-			if (p != follow_situation.get_teammate(playernumber)){
-                sum -= follow_situation.get_position_points(p);
-			}
-		} else {
-            sum += follow_situation.get_position_points(p);
-            sum -= follow_situation.get_stone_points_left(p) * 175;
-		}
-	}
-    sum += get_distance_points(follow_situation, playernumber, turn) * 20;
-	return ((100+(rand() % ((ai_error) + 1))) * sum) / 100;
 }
 
 const CTurn* CKi::get_ki_turn(CBoard& spiel, const int player, int ai_error) {

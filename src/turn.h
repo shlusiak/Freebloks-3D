@@ -28,14 +28,6 @@ public:
 			rotate_count(turn->rotate_count),
 			y(turn->y),
 			x(turn->x) { }
-
-	CTurn(const int player, const CStone* stone, const int y, const int x):
-			player(player),
-			stone_number(stone->get_number()),
-			mirror_count(stone->get_mirror_counter()),
-			rotate_count(stone->get_rotate_counter()),
-			y(y),
-			x(x) { }
 };
 
 #endif

@@ -30,7 +30,7 @@ protected:
 
     void addHistory(const CTurn *turn);
 
-    void addHistory(int player, const CStone *stone, int y, int x);
+    void addHistory(int player, const CStone &stone, int y, int x);
 
 public:
     CGame();
