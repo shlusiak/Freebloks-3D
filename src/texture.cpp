@@ -81,7 +81,7 @@ bool CTexture::load(const char *filename)
 	/* Textur entladen */
 	unload();
 
-	FILE * file=NULL;
+	FILE * file=nullptr;
 	char temp;
 	long i;
 
@@ -97,8 +97,8 @@ bool CTexture::load(const char *filename)
 	    file=fopen(mypath,"rb");
 	}
 #endif
-	if (file==NULL)
-	    if( (file = fopen(filename, "rb"))==NULL) return false;
+	if (file==nullptr)
+	    if( (file = fopen(filename, "rb"))==nullptr) return false;
 
 	fseek(file, 18, SEEK_CUR);  /* start reading width & height */
 
@@ -125,7 +125,7 @@ bool CTexture::load(const char *filename)
 
 	// Platz fuer Daten zu reservieren. Bei 24bpp (=3byte per Pixel) sind das 3*w*h Byte */
 	infoheader.data = (char *) malloc(infoheader.biWidth * infoheader.biHeight * 3);
-	if (infoheader.data == NULL) {
+	if (infoheader.data == nullptr) {
 		printf("Error allocating memory for color-corrected image data\n");
 		return false;
 	}

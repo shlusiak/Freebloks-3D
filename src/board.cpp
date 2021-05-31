@@ -12,7 +12,7 @@ const int DEFAULT_FIELD_SIZE_Y = 20;
 
 
 CBoard::CBoard(){
-	CBoard::m_game_field = NULL;
+	CBoard::m_game_field = nullptr;
 	CBoard::m_field_size_y = DEFAULT_FIELD_SIZE_Y;
 	CBoard::m_field_size_x = DEFAULT_FIELD_SIZE_X;
 }
@@ -25,20 +25,20 @@ CBoard::CBoard(int width, int height) {
 
 
 CBoard::CBoard(const int player_team1_1, const int player_team1_2, const int player_team2_1, const int player_team2_2){
-	CBoard::m_game_field = NULL;
+	CBoard::m_game_field = nullptr;
 	CBoard::m_field_size_y = DEFAULT_FIELD_SIZE_Y;
 	CBoard::m_field_size_x = DEFAULT_FIELD_SIZE_X;
 	start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
 	CBoard::set_teams(player_team1_1, player_team1_2, player_team2_1, player_team2_2);
 }
 
-void CBoard::follow_situation(const CBoard* from_board, const CTurn* turn) {
-	memcpy(m_game_field, from_board->get_field_pointer(), CBoard::m_field_size_x * CBoard::m_field_size_y);
-	memcpy(m_player, from_board->m_player, sizeof(m_player));
+void CBoard::follow_situation(const CBoard& from_board, const CTurn& turn) {
+	memcpy(m_game_field, from_board.get_field_pointer(), m_field_size_x * m_field_size_y);
+	memcpy(m_player, from_board.m_player, sizeof(m_player));
 	set_stone(turn);
 }
 
-const int CBoard::get_player_start_x(const int player_number)const{
+int CBoard::get_player_start_x(const int player_number)const{
 	switch (player_number) {
 	case 0 :
 	case 1 : return 0;
@@ -46,7 +46,7 @@ const int CBoard::get_player_start_x(const int player_number)const{
 	}
 }
 
-const int CBoard::get_player_start_y(const int player_number)const{
+int CBoard::get_player_start_y(const int player_number)const{
 	switch (player_number){
 	case 1 :
 	case 2 : return 0;
@@ -128,7 +128,7 @@ void CBoard::refresh_player_data(){
 
 
 void CBoard::init_field(){
-	if (m_game_field != NULL) delete[] CBoard::m_game_field;
+	delete[] CBoard::m_game_field;
 	CBoard::m_game_field = new TSingleField[CBoard::m_field_size_y * CBoard::m_field_size_x];
 	memset(m_game_field, 0, sizeof(TSingleField) * m_field_size_y * m_field_size_x);
 }
@@ -136,7 +136,7 @@ void CBoard::init_field(){
 void CBoard::set_seeds(GAMEMODE game_mode) {
 	#define set_seed(x, y, player) \
 		if (get_game_field(player, y, x) == FIELD_FREE) \
-			set_game_field(y, x, PLAYER_BIT_ALLOWED[player]);
+			set_game_field(y, x, PLAYER_BIT_ALLOWED[player])
 	if (game_mode == GAMEMODE_DUO || game_mode == GAMEMODE_JUNIOR) {
 		set_seed(4, m_field_size_y - 5, 0);
 		set_seed(m_field_size_x - 5, 4, 2);
@@ -149,13 +149,13 @@ void CBoard::set_seeds(GAMEMODE game_mode) {
 }
 
 /** r�ckgabe �ndern in bool?! **/
-TSingleField CBoard::is_valid_turn(CStone* stone, int playernumber, int startY, int startX)const{
+TSingleField CBoard::is_valid_turn(const CStone& stone, int playernumber, int startY, int startX) const {
 	TSingleField valid = FIELD_DENIED;
 	TSingleField field_value;
 
-	for (int y = 0; y < stone->get_stone_size(); y++){
-		for (int x = 0; x < stone->get_stone_size(); x++){
-			if (stone->get_stone_field(y,x) != STONE_FIELD_FREE) {
+	for (int y = 0; y < stone.get_stone_size(); y++){
+		for (int x = 0; x < stone.get_stone_size(); x++){
+			if (stone.get_stone_field(y,x) != STONE_FIELD_FREE) {
 				if (!is_position_inside_field(y + startY, x + startX)) return FIELD_DENIED;
 
 				/*TODO::: eventuell ein array �bergeben*/
@@ -168,11 +168,11 @@ TSingleField CBoard::is_valid_turn(CStone* stone, int playernumber, int startY, 
 	return valid;
 }
 
-TSingleField CBoard::is_valid_turn(const CTurn* turn){
-	int playernumber = turn->player;
-	CStone* stone = CBoard::m_player[playernumber].get_stone(turn->stone_number);
-	stone->mirror_rotate_to(turn->mirror_count, turn->rotate_count);
-	return is_valid_turn(stone, playernumber, turn->y, turn->x);
+TSingleField CBoard::is_valid_turn(const CTurn& turn) {
+	int playernumber = turn.player;
+	CStone* stone = m_player[playernumber].get_stone(turn.stone_number);
+	stone->mirror_rotate_to(turn.mirror_count, turn.rotate_count);
+	return is_valid_turn(*stone, playernumber, turn.y, turn.x);
 }
 
 void CBoard::free_game_field(int y, int x){
@@ -197,30 +197,30 @@ void CBoard::set_single_stone_for_player(const int player_number, const int star
 }
 
 /** r�ckgabe zu bool?! **/
-TSingleField CBoard::set_stone(const CTurn* turn){
-	int playernumber = turn->player;
-	CStone* stone = CBoard::m_player[playernumber].get_stone(turn->stone_number);
-	stone->mirror_rotate_to(turn->mirror_count, turn->rotate_count);
-	return set_stone(stone, playernumber, turn->y, turn->x);
+TSingleField CBoard::set_stone(const CTurn& turn){
+	int playernumber = turn.player;
+	CStone* stone = m_player[playernumber].get_stone(turn.stone_number);
+	stone->mirror_rotate_to(turn.mirror_count, turn.rotate_count);
+	return set_stone(*stone, playernumber, turn.y, turn.x);
 }
 
 
 
 /** r�ckgabe zu bool?! **/
-TSingleField CBoard::set_stone(CStone* stone, int playernumber, int startY, int startX){
+TSingleField CBoard::set_stone(CStone& stone, int playernumber, int startY, int startX) {
 #ifdef _DEBUG
 	if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
 #endif
 //	if (is_valid_turn(stone, playernumber, startY, startX) == FIELD_DENIED) return FIELD_DENIED;
 
-	for (int y = 0; y < stone->get_stone_size(); y++){
-		for (int x = 0; x < stone->get_stone_size(); x++){
-			if (stone->get_stone_field(y,x) != STONE_FIELD_FREE) {
+	for (int y = 0; y < stone.get_stone_size(); y++){
+		for (int x = 0; x < stone.get_stone_size(); x++){
+			if (stone.get_stone_field(y,x) != STONE_FIELD_FREE) {
 				CBoard::set_single_stone_for_player(playernumber, startY + y, startX + x);
 			}
 		}
 	}
-	stone->available_decrement();
+	stone.available_decrement();
 	refresh_player_data();
 	return FIELD_ALLOWED;
 }
@@ -236,7 +236,7 @@ void CBoard::undo_turn(CTurnPool& turn_pool, GAMEMODE game_mode){
 
 	#ifdef _DEBUG
 		//check valid
-		if (turn == NULL) error_exit("Kein turn", 42);
+		if (turn == nullptr) error_exit("Kein turn", 42);
 		for (x = 0; x < stone->get_stone_size(); x++){
 			for (y = 0; y < stone->get_stone_size(); y++){
 				if (stone->get_stone_field(y, x) != STONE_FIELD_FREE){

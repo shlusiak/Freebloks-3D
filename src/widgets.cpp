@@ -335,7 +335,7 @@ CButton::CButton(double vx,double vy,double vw,double vh,int id,CWidget* parent,
 	h=vh;
 	/* Der Button ist erstmal enabled */
 	enabled=true;
-	/* Ist parent!=NULL, relative Position zu parent in absolute umrechnen. */
+	/* Ist parent!=nullptr, relative Position zu parent in absolute umrechnen. */
 	if (parent) {
 		x+=parent->getX();
 		y+=parent->getY();
@@ -1380,7 +1380,7 @@ CMessageBox::CMessageBox(double w,double h,const char *caption,const char *text,
  * Ein FPS Zaehler als CStaticText. Zaehler in Konstruktor auf 0 setzen
  **/
 CFPS::CFPS(double x,double y,CGUI *gui)
-:CStaticText(x,y,"",NULL)
+:CStaticText(x,y,"",nullptr)
 {
 	counter=0;
 	time=0.0;

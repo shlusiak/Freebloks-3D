@@ -39,7 +39,7 @@ CChatBox::CChatBox(double x,double y,CGUI* vgui)
 	f->setColor(0.0,0.12,0.0);
 	f->setAlpha(0.65);
 	addChild(f);
-	/* Zeilen leeren (NULL-Pointer) */
+	/* Zeilen leeren (nullptr-Pointer) */
 	for (int i=0;i<CHAT_LINES;i++)lines[i]=0;
 }
 

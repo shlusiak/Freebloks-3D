@@ -43,7 +43,7 @@ COptionsDialog::COptionsDialog(CGUI *vgui)
 	setColor(0.35,0.50,0.85);
 	/* Aus der GUI die TOptions holen, als Zeiger. Wir koennen diese direkt veraendern. */
 	options=vgui->getOptions();
-	fps=NULL;
+	fps=nullptr;
 
 	/* CheckBoxes hinzufuegen. */
 	addChild(shadow=new CCheckBox(20,50,160,20,10000,"Render Shadows",options->get(OPTION_SHADOW)!=0,this));
@@ -94,7 +94,7 @@ int COptionsDialog::processMouseEvent(TMouseEvent *event)
 		{
 // 			options->set(OPTION_FPS,fps->getValue());
 			fps->remove();
-			fps=NULL;
+			fps=nullptr;
 		}
 		break;
 	case 10008: if (fps)options->set(OPTION_FPS,fps->getValue());

@@ -181,7 +181,7 @@ protected:
 	// Maus ist ausserhalb Widget, hovered ist immer false
 	virtual void mouseLeave() { hovered=false; }
 public:
-	// Fuer CheckBox-Gruppen, Zeiger auf naechste und vorherige Checkbox, oder NULL, wenn es das Ende ist
+	// Fuer CheckBox-Gruppen, Zeiger auf naechste und vorherige Checkbox, oder nullptr, wenn es das Ende ist
 	CCheckBox *nextCheckBox,*prevCheckBox;
 
 	// Constructor

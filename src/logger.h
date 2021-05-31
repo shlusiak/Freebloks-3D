@@ -15,7 +15,7 @@ class CLogWriter
 private:
 	CLogWriter* next;
 public:
-	CLogWriter() { next = NULL; }
+	CLogWriter() { next = nullptr; }
 	virtual ~CLogWriter();
 
 	void addLogWriter(CLogWriter* _next);

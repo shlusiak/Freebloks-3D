@@ -46,7 +46,7 @@ static float light0_specular[] = {1.0,1.0,1.0, 1.0f};
 
 
 /**
- * Konstruktor, alles sinnvoll initialisieren, meistens mit NULL
+ * Konstruktor, alles sinnvoll initialisieren, meistens mit nullptr
  * Wird in der run() Methode richtig initialisiert.
  **/
 CGUI::CGUI()
@@ -60,20 +60,20 @@ CGUI::CGUI()
 	window=new CWindow(this);
 
 	/* Variablen auf Default initialisieren */
-	spiel=NULL;
+	spiel=nullptr;
 	selectedx=selectedy=-1;
 	selected_allowed=false;
 	current_stone=-1;
 	hovered_stone=-1;
 	selected_arrow=0;
 	anim=0.0;
-	effects=NULL;
-	menu=NULL;
-	chatbox=NULL;
-	font=NULL;
-	intro=NULL;
+	effects=nullptr;
+	menu=nullptr;
+	chatbox=nullptr;
+	font=nullptr;
+	intro=nullptr;
 
-	startupParams.remotehost=NULL;
+	startupParams.remotehost=nullptr;
 	startupParams.remoteport=TCP_PORT;
 	startupParams.firststart=true;
 	startupParams.intro=true;
@@ -251,7 +251,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	/* Timer auf 0 setzen, damit das Connect keinen Sprung in der Animation
 	   bewirkt. */
 	timer.reset();
-	if (err!=NULL)
+	if (err!=nullptr)
 	{
 		/* wenn Connect fehlgeschlagen ist, Fehlermeldung ausgeben. */
 		char t[300];
@@ -262,7 +262,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	/* Jetzt [players] lokale Spieler anfordern. */
 	for (int i=0;i<4;i++)
 		if ((players & (1 << i)) != 0)
-			spiel->request_player(i, NULL);
+			spiel->request_player(i, nullptr);
 	/* Da das Spiel lokal ist, kann direkt losgelegt werden. Spielstart anfordern */
 	spiel->request_start();
 	/* Erfolg */
@@ -278,7 +278,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ki_threads, const char* name)
 {
 	/* Einen Server auf dem Rechner starten. */
-	int r=CSpielServer::run_server(NULL,TCP_PORT,4,diff,width,height,gamemode,stone_numbers,ki_threads);
+	int r=CSpielServer::run_server(nullptr,TCP_PORT,4,diff,width,height,gamemode,stone_numbers,ki_threads);
 	if (r!=0)
 	{
 		/* Wenn Fehler, dann Dialogbox ausgeben */
@@ -318,7 +318,7 @@ bool CGUI::joinMultiplayerGame(const char *host, int port, int players, const ch
 	/* Timer auf 0 setzen, damit das Connect keinen Sprung in der Animation
 	   verursacht */
 	timer.reset();
-	if (err!=NULL)
+	if (err!=nullptr)
 	{
 		/* Bei Fehler, Fehlerdialog anzeigen */
 		char t[300];
@@ -411,7 +411,7 @@ void CGUI::run()
 		window->processEvents();
 		/* Spielclient Netzwerknachrichten verarbeiten lassen. */
 		const char *err=spiel->poll();
-		if (err!=NULL)
+		if (err!=nullptr)
 		{
 			/* Und bei Fehler entsprechende Fehlermeldung ausgeben,
 			   wahrscheinlich "Connection Lost" oder sowas. */
@@ -463,7 +463,7 @@ void CGUI::stopIntro()
 	if (!intro)return;
 	/* Intro entfernen. */
 	delete intro;
-	intro=NULL;
+	intro=nullptr;
 	startFirstGame();
 }
 
@@ -476,8 +476,8 @@ void CGUI::startFirstGame()
 	startupParams.firststart=false;
 
 	if (startupParams.remotehost)
-		joinMultiplayerGame(startupParams.remotehost,startupParams.remoteport,startupParams.humans, NULL);
-	else startSingleplayerGame(GAMEMODE_4_COLORS_4_PLAYERS,startupParams.humans,KI_MEDIUM,20,20, NULL,startupParams.threads);
+		joinMultiplayerGame(startupParams.remotehost,startupParams.remoteport,startupParams.humans, nullptr);
+	else startSingleplayerGame(GAMEMODE_4_COLORS_4_PLAYERS,startupParams.humans,KI_MEDIUM,20,20, nullptr,startupParams.threads);
 }
 
 
@@ -532,7 +532,7 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 		/* Wenn das Menu offen ist, hier schliessen. */
 		if (menu){
 			menu->close(true);
-			menu=NULL;
+			menu=nullptr;
 		}else{
 			/* Ansonsten das MainMenu oeffnen. */
 			subchilds->addSubChild(menu=new CMainMenu(this,false));
@@ -587,7 +587,7 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 					if (options.get(OPTION_ANIMATE_STONES))
 						addEffect(new CStoneRollEffect(this,stone,current_stone,spiel->current_player(),x,y,false));
 					/* Den SpielClient den Stein setzen lassen. Schickt ne Anfrage an den SpielServer. */
-					if (spiel->set_stone(stone, current_stone,y,x)==FIELD_ALLOWED)
+					if (spiel->request_set_stone(*stone, y, x)==FIELD_ALLOWED)
 						newCurrentPlayer(spiel->current_player());
 					/* Keinen Stein auswaehlen. */
 					current_stone=-1;
@@ -1097,7 +1097,7 @@ void CGUI::testSelection(int x,int y)
 			CStone *stone=spiel->get_current_player()->get_stone(current_stone);
 			int vx=selectedx-stone->get_stone_size()/2,vy=selectedy-stone->get_stone_size()/2;
 			/* Und merken, ob der Stein passen taete. */
-			selected_allowed=(spiel->is_valid_turn(stone,spiel->current_player(),vy,vx)==FIELD_ALLOWED);
+			selected_allowed=(spiel->is_valid_turn(*stone, spiel->current_player(),vy,vx)==FIELD_ALLOWED);
 		}
 	}else if (type==2 && numberOfNames==2)
 	{

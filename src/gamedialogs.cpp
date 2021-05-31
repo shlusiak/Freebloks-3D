@@ -26,7 +26,7 @@ CStartGameDialog::CStartGameDialog(CSpielClient *vclient,CGUI* vgui,const char* 
 	gui->setChatBoxSticky(true);
 	client=vclient;
 	setColor(0.9,0.3,0);
-	statustext=NULL;
+	statustext=nullptr;
 	/* Zeit auf 0 setzen. Jeweils nach 0.5 sek wird der StatusText aktualisiert. */
 	time=0.0;
 
@@ -297,7 +297,7 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CSpielClient *client)
 		addChild(chat=new CTextEdit(30,155,270,20,97,"",false,this));
 		chat->setFocus();
 		addChild(new CButton(310,153,50,24,96,this,"Chat"));
-	}else chat=NULL;
+	}else chat=nullptr;
 
 // 	setColor(0.0,0.10,0.30);
 	setColor(0.9,0.3,0);

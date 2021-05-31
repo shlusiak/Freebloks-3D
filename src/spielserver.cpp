@@ -44,7 +44,7 @@ CSpielServer::CSpielServer(const int v_max_humans, const int v_ki_mode, const GA
 	start_new_game(v_gamemode);
 	for (i=0;i<CLIENTS_MAX;i++) {
 		clients[i]=0;
-		names[i] = NULL;
+		names[i] = nullptr;
 	}
 	m_game_mode=v_gamemode;
 	if (m_game_mode == GAMEMODE_4_COLORS_2_PLAYERS)
@@ -52,7 +52,7 @@ CSpielServer::CSpielServer(const int v_max_humans, const int v_ki_mode, const GA
 	for (i = 0; i < STONE_COUNT_ALL_SHAPES; i++)
 		stone_numbers[i] = 1;
 	set_stone_numbers(stone_numbers);
-	logger=NULL;
+	logger=nullptr;
 }
 
 /**
@@ -66,7 +66,7 @@ CSpielServer::~CSpielServer()
 			closesocket(clients[i]);
 		if (names[i])
 			free(names[i]);
-		names[i] = NULL;
+		names[i] = nullptr;
 	}
 }
 
@@ -121,7 +121,7 @@ void CSpielServer::delete_client(int index,bool notify)
 	}
 	if (names[index]) {
 		free(names[index]);
-		names[index] = NULL;
+		names[index] = nullptr;
 	}
 	/* Socket zu dem Client schliessen */
 	if (closesocket(clients[index])==-1)perror("close: ");
@@ -169,13 +169,13 @@ void CSpielServer::run()
 	{
 		/* Ermittle CTurn, den die KI jetzt setzen wuerde */
 		timer.reset();
-		const CTurn *turn=m_ki.get_ki_turn(this, current_player(),ki_mode);
+		const CTurn *turn = m_ki.get_ki_turn(*this, current_player(),ki_mode);
 
 		if (forceDelay && timer.elapsed() < 800) {
 			timer.sleep(800 - timer.elapsed());
 		}
 
-		if (turn != NULL)
+		if (turn != nullptr)
 		{
 			/* Datenstruktur fuellen, die an die Clients geschickt werden soll. */
 			NET_SET_STONE data;
@@ -241,7 +241,7 @@ void CSpielServer::run()
 		}
 		/* Select blockiert, bis der timeout abgelaufen ist, oder Daten von einem der Sockets anliegen */
 
-		retval = select(max+1, &filedescriptors, NULL, NULL, &tv);
+		retval = select(max+1, &filedescriptors, nullptr, nullptr, &tv);
 		if (retval>0)
 		{
 			/* Es liegen Daten eines Sockets vor, verarbeite alle Nachrichten aller betroffenen Clients */
@@ -269,7 +269,7 @@ void CSpielServer::handle_client(int index)
 	/* Lese genau eine Netzwerknachricht des Clients in buffer ein. */
 	err=read_network_message(clients[index],(NET_HEADER*)buffer,sizeof(buffer));
 	/* 0 heisst Erfolg, ansonsten ist ein Fehler aufgetreten. */
-	if (err==NULL)process_message(index,(NET_HEADER*)buffer);
+	if (err==nullptr)process_message(index,(NET_HEADER*)buffer);
 	/* -1 hiesse, es liegen keine Daten vor, was hier nicht auftreten darf
 	   (da lt. select() Daten anliegen) */
 	else {
@@ -358,7 +358,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 					// TODO: Allow setting name per player, not per client
 
 					/* store client name */
-					if (names[client] != NULL)
+					if (names[client] != nullptr)
 						free(names[client]);
 
 					names[client] = strdup((char*)req->name);
@@ -418,12 +418,12 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				return;
 			}
 
-			CStone *stone=get_player(s->player)->get_stone(s->stone);
+			CStone *stone = get_player(s->player)->get_stone(s->stone);
 			stone->mirror_rotate_to(s->mirror_count,s->rotate_count);
 
 			/* Den Stein lokal setzen */
- 			if ((CBoard::is_valid_turn(stone, s->player, s->y, s->x) == FIELD_ALLOWED) &&
-                (CBoard::set_stone(stone, s->player, s->y, s->x) == FIELD_ALLOWED))
+ 			if ((is_valid_turn(*stone, s->player, s->y, s->x) == FIELD_ALLOWED) &&
+                (set_stone(*stone, s->player, s->y, s->x) == FIELD_ALLOWED))
 			{
 				/* Bei Erfolg wird die Nachricht direkt an alle Clients zurueck-
 				   geschickt */
@@ -485,7 +485,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			do
 			{
 				const CTurn *turn = history.get_last_turn();
-				if (turn==NULL) break; // Kein Zug mehr in der History
+				if (turn==nullptr) break; // Kein Zug mehr in der History
 				i++;
 				// "Zug zuruecknehmen" an Clients senden
 				send_all((NET_HEADER*)(&undo),sizeof(undo),MSG_UNDO_STONE);
@@ -506,7 +506,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 		}
 
 		case MSG_REQUEST_HINT: {
-			const CTurn *turn=m_ki.get_ki_turn(this,((NET_REQUEST_HINT*)data)->player,KI_HARD);
+			const CTurn *turn=m_ki.get_ki_turn(*this, ((NET_REQUEST_HINT*)data)->player,KI_HARD);
 			NET_SET_STONE d;
 
 			d.player=((NET_REQUEST_HINT*)data)->player;
@@ -754,7 +754,7 @@ void CSpielServer::next_player()
  **/
 void CSpielServer::set_stone_numbers(int8 stone_numbers[])
 {
-	if (stone_numbers == NULL) {
+	if (stone_numbers == nullptr) {
 		for (int i = 0; i < STONE_COUNT_ALL_SHAPES; i++)
 			this->stone_numbers[i] = 1;
 	} else {
@@ -782,7 +782,7 @@ void* LocalServerThread(void* param)
 	   ohne dass das Spiel gestartet wurde */
 	bool hadClient=false;
 #ifdef WIN32
-	srand((unsigned int)time(NULL));
+	srand((unsigned int)time(nullptr));
 #endif
 	do
 	{
@@ -831,10 +831,10 @@ int CSpielServer::run_server(const char* interface_,int port,int maxhumans,int k
 	// Einen Thread starten, der sich um das Spiel kuemmert
 #ifdef WIN32
 	DWORD id;
-	CloseHandle(CreateThread(NULL,0,LocalServerThread,(void*)listener,0,&id));
+	CloseHandle(CreateThread(nullptr,0,LocalServerThread,(void*)listener,0,&id));
 #else
 	pthread_t thread;
-	pthread_create(&thread,NULL,LocalServerThread,(void*)listener);
+	pthread_create(&thread,nullptr,LocalServerThread,(void*)listener);
 #endif
 	// Erfolg
 	return 0;
@@ -877,8 +877,8 @@ CServerListener::CServerListener()
 	for (i=0;i<LISTEN_SOCKETS_MAX; i++)
 		listen_sockets[i]=0;
 	num_listen_sockets = 0;
-	logger = NULL;
-	server = NULL;
+	logger = nullptr;
+	server = nullptr;
 }
 
 CServerListener::~CServerListener()
@@ -904,7 +904,7 @@ void CServerListener::close()
 /**
  * Erstellt ein socket, bindet es an das Interface interface_ und Port port,
  * und wird fuer ankommende Verbindungen eingerichtet
- * ist interface_==NULL, wird an allen Interfaces gelauscht.
+ * ist interface_==nullptr, wird an allen Interfaces gelauscht.
  * Gibt 0 zurueck bei Erfolg, sonst einen Fehlercode (errno)
  **/
 int CServerListener::init(const char* interface_,int port)
@@ -918,7 +918,7 @@ int CServerListener::init(const char* interface_,int port)
 		int i;
 		struct sockaddr_un my_addr;
 		errno=0;
-		if (interface_ == NULL) {
+		if (interface_ == nullptr) {
 			errno = EINVAL;
 			return -1;
 		}
@@ -1087,7 +1087,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 	}
 
 	/* Blockiere unendlich lang, bis Daten an einem Socket vorliegen */
-	retval = select(max+1, &filedescriptors, NULL, NULL, NULL);
+	retval = select(max+1, &filedescriptors, nullptr, nullptr, nullptr);
 
 	if (retval>0)
 	{
@@ -1124,7 +1124,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 				/* Erst FQDN aufloesen */
 				retval = getnameinfo((sockaddr*)client,l,
 					clienthost,sizeof(clienthost),
-					NULL,0,
+					nullptr,0,
 					NI_NAMEREQD);
 
 				if (retval == 0 && logger)
@@ -1133,7 +1133,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 				/* Dann IP aufloesen */
 				getnameinfo((sockaddr*)client,l,
 					clienthost,sizeof(clienthost),
-					NULL,0,
+					nullptr,0,
 					NI_NUMERICHOST);
 
 				if (logger)

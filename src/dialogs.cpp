@@ -40,7 +40,7 @@ static int numberOfStones[5]={1,1,1,1,1};
 static int ki_multithreading=2;
 
 /* Ausgewaehlter Server */
-static char* mp_oldserver=NULL;
+static char* mp_oldserver=nullptr;
 static const char* oldname="";
 
 /* Groesse des Feldes */
@@ -138,7 +138,7 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 		addChild(nameField);
 		nameField->setFocus();
 	} else
-		nameField = NULL;
+		nameField = nullptr;
 
 
 	addChild(new CStaticText(30,h-250,"Mode",this));
@@ -307,11 +307,11 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 			if (min<=4)this->numberOfStones[3]=0;
 			if (min<=3)this->numberOfStones[2]=0;
 
-			const char *name = NULL;
+			const char *name = nullptr;
 			if (multiplayer) {
 				name = nameField->getText();
 				if (strcmp(name, "") == 0)
-					name = NULL;
+					name = nullptr;
 			}
 			int players = 0;
 			if (blue->getCheck()) players |= 0x01;
@@ -398,17 +398,17 @@ CNewGameAdvancedDialog::CNewGameAdvancedDialog(int sizex,int sizey,int numberOfS
 	addChild(new CStaticText(30,130,"Stones with three squares",this));
 	if (min>3)
 		addDreier(numberOfStones[2]);
-	else dreier=NULL;
+	else dreier=nullptr;
 
 	addChild(new CStaticText(30,160,"Stones with four squares",this));
 	if (min>4)
 		addVierer(numberOfStones[3]);
-	else vierer=NULL;
+	else vierer=nullptr;
 
 	addChild(new CStaticText(30,190,"Stones with five squares",this));
 	if (min>5)
 		addFuenfer(numberOfStones[4]);
-	else fuenfer=NULL;
+	else fuenfer=nullptr;
 }
 
 int CNewGameAdvancedDialog::processMouseEvent(TMouseEvent *event)
@@ -454,7 +454,7 @@ void CNewGameAdvancedDialog::checkCheckBoxes()
 		{
 			i_dreier=dreier->getValue();
 			dreier->remove();
-			dreier=NULL;
+			dreier=nullptr;
 		}
 	}else if (!dreier)addDreier(i_dreier);
 	if (min<=4)
@@ -463,7 +463,7 @@ void CNewGameAdvancedDialog::checkCheckBoxes()
 		{
 			i_vierer=vierer->getValue();
 			vierer->remove();
-			vierer=NULL;
+			vierer=nullptr;
 		}
 	}else if (!vierer)addVierer(i_vierer);
 	if (min<=5)
@@ -472,7 +472,7 @@ void CNewGameAdvancedDialog::checkCheckBoxes()
 		{
 			i_fuenfer=fuenfer->getValue();
 			fuenfer->remove();
-			fuenfer=NULL;
+			fuenfer=nullptr;
 		}
 	}else if (!fuenfer)addFuenfer(i_fuenfer);
 }
@@ -547,7 +547,7 @@ CConnectToMPlayer::CConnectToMPlayer(CGUI* gui)
 	addChild(green = new CCheckBox(270, 62, 70, 20, 15013, "Green", i == 3, this));
 
 	text=mp_oldserver;
-	if (text==NULL)text=DEFAULT_SERVER;
+	if (text==nullptr)text=DEFAULT_SERVER;
 	serverField = new CTextEdit(10,100,260,20,15000,text,false,this);
 	addChild(serverField);
 	portField= new CSpinBox(280,100,60,20,15001,1023,65535,59995,this);
@@ -564,7 +564,7 @@ int CConnectToMPlayer::processMouseEvent(TMouseEvent *event)
 	case 1011: {
 		const char *name = nameField->getText();
 		if (strcmp(name, "") == 0)
-			name = NULL;
+			name = nullptr;
 		int players = 0;
 		if (blue->getCheck()) players |= 0x01;
 		if (yellow->getCheck()) players |= 0x02;

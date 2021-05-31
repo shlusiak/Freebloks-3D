@@ -19,7 +19,7 @@
 
 /* Globale Variablen. Koennen durch Kommandozeilenparameter geaendert werden. */
 static int port=TCP_PORT;
-static char* server = NULL;
+static char* server = nullptr;
 static int max_players=1;
 static int ki_threads=2;
 static int auto_start=0;
@@ -145,15 +145,14 @@ class CKISpielClient:public CSpielClient
 private:
 	CTimer timer;
 	CKi ki;
+
 	virtual void gameStarted();
 	virtual void newCurrentPlayer(const int player);
 	virtual void chatReceived(NET_CHAT* c);
 	virtual void gameFinished();
 
 public:
-	CKISpielClient(int ki_threads) {
-		ki.set_num_threads(ki_threads);
-	}
+	CKISpielClient(int threads): ki{threads} {}
 };
 
 
@@ -171,16 +170,16 @@ void CKISpielClient::newCurrentPlayer(const int player)
 	if (!is_local_player())return;
 
 	/* Ermittle CTurn, den die KI jetzt setzen wuerde */
-	const CTurn *turn=ki.get_ki_turn(this, current_player(),ki_strength);
+	const CTurn *turn=ki.get_ki_turn(*this, current_player(),ki_strength);
 	CStone *stone;
-	if (turn == NULL)
+	if (turn == nullptr)
 	{
 		printf("Player %d: Did not find a valid move\n", player);
 		return;
 	}
 	stone = get_current_player()->get_stone(turn->stone_number);
 	stone->mirror_rotate_to(turn->mirror_count,turn->rotate_count);
-	set_stone(stone, turn->stone_number, turn->y, turn->x);
+	request_set_stone(*stone, turn->y, turn->x);
 }
 
 void CKISpielClient::chatReceived(NET_CHAT* c)
@@ -217,7 +216,7 @@ void runGame(CSpielClient* client)
 		printf("Connected!\n\n");
 	}
 
-	for (i=0;i<max_players;i++) client->request_player(-1, NULL);
+	for (i=0;i<max_players;i++) client->request_player(-1, nullptr);
 
 	if (auto_start) client->request_start();
 	do {
@@ -237,12 +236,12 @@ int main(int argc,char ** argv)
 
 	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
 	   und Clients connecten laesst */
-	CSpielClient* client=NULL;
+	CSpielClient* client=nullptr;
 
 	/* Kommandozeilenparameter verarbeiten */
 	parseParams(argc,argv);
 
-	if (server == NULL)
+	if (server == nullptr)
 	{
 		printf("You need to specify at least 'server'.\n");
 		help();

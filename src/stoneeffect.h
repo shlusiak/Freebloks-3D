@@ -30,7 +30,7 @@ protected:
 	/* Und Spielernummer, dem der Stein gehoert. */
 	int player;
 public:
-	/* Zeiger auf naechsten Effekt (verkettete Liste), oder NULL, wenn Ende. */
+	/* Zeiger auf naechsten Effekt (verkettete Liste), oder nullptr, wenn Ende. */
 	CStoneEffect *next;
 
 	/* Konstruktor, der wirklich leeren Effekt erstellt (fuer Kopf der Liste) */

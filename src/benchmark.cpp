@@ -174,7 +174,7 @@ static void* clientThread(void* param) {
 		}
 	} while (client.isConnected());
 
-	return NULL;
+	return nullptr;
 }
 
 int main(int argc,char ** argv)
@@ -200,7 +200,7 @@ int main(int argc,char ** argv)
 	spiel.start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
 	spiel.add_client(s[1]);
 
-	if (pthread_create(&pt, NULL, clientThread, (void*)&s[0])) {
+	if (pthread_create(&pt, nullptr, clientThread, (void*)&s[0])) {
         perror("pthread_create");
     }
 

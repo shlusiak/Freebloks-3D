@@ -45,7 +45,7 @@ public:
 
     virtual ~CBoard();
 
-    void follow_situation(const CBoard *from_board, const CTurn *turn);
+    void follow_situation(const CBoard &from_board, const CTurn &turn);
 
     void init_field();
 
@@ -53,9 +53,9 @@ public:
 
     void set_game_field(const int y, const int x, const TSingleField value);
 
-    const int get_player_start_x(const int player_number) const;
+    int get_player_start_x(const int player_number) const;
 
-    const int get_player_start_y(const int player_number) const;
+    int get_player_start_y(const int player_number) const;
 
 
     const int get_number_of_possible_turns(const int player_number) const;
@@ -93,9 +93,9 @@ public:
 
     CPlayer *get_player(const int player_number);
 
-    TSingleField is_valid_turn(CStone *stone, int player, int y, int x) const;
+    TSingleField is_valid_turn(const CStone &stone, int player, int y, int x) const;
 
-    TSingleField is_valid_turn(const CTurn *turn);
+    TSingleField is_valid_turn(const CTurn &turn);
 
     const TSingleField get_game_field(const int playernumber, const int y, const int x) const;
 
@@ -105,9 +105,9 @@ public:
 
     TSingleField *get_field_pointer() const;
 
-    TSingleField set_stone(CStone *stone, int playernumber, int y, int x);
+    TSingleField set_stone(CStone &stone, int playernumber, int y, int x);
 
-    TSingleField set_stone(const CTurn *turn);
+    TSingleField set_stone(const CTurn &turn);
 
     void undo_turn(CTurnPool &turn_pool, GAMEMODE game_mode);
 };
@@ -119,7 +119,7 @@ const char CBoard::get_game_field_value(const int y, const int x) const {
 
 inline
 TSingleField *CBoard::get_field_pointer() const {
-    return CBoard::m_game_field;
+    return m_game_field;
 }
 
 inline

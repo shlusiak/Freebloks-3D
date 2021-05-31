@@ -22,7 +22,7 @@ CLogWriter::~CLogWriter()
 {
 	if (next)
 		delete next;
-	next = NULL;
+	next = nullptr;
 }
 
 void CLogWriter::log(const char* fmt, va_list va) {
@@ -54,7 +54,7 @@ void CStdoutWriter::log(const char* fmt, va_list va) {
 
 CLogFileWriter::CLogFileWriter()
 {
-	logfile = NULL;
+	logfile = nullptr;
 }
 
 CLogFileWriter::~CLogFileWriter()
@@ -81,7 +81,7 @@ void CLogFileWriter::closeFile()
 		if (fclose(logfile))
 			perror("fclose: ");
 	}
-	logfile=NULL;
+	logfile=nullptr;
 }
 
 void CLogFileWriter::flush()
@@ -133,7 +133,7 @@ void CLogger::logTime()
 	char zeitstring[256];
 	time_t zeit;
 	char *c;
-	zeit=time(NULL);
+	zeit=time(nullptr);
 	c=ctime(&zeit);
 	strcpy(zeitstring,c);
 	zeitstring[strlen(zeitstring)-1]='\0';

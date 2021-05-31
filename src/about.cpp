@@ -34,7 +34,7 @@ public:
 };
 
 /* Hier die Textzeilen der About-Box als Array of char*.
-   NULL sind Leerzeilen. Die Texte werden zentriert ausgegeben. */
+   nullptr sind Leerzeilen. Die Texte werden zentriert ausgegeben. */
 static const char *AboutText[]={
 	"Freebloks 3D",
 	"(v" VERSION ", build: " __DATE__ ")",

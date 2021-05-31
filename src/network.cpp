@@ -121,7 +121,7 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 	int restdaten=ntohs(data->data_length)-sizeof(NET_HEADER);
 
 	/* Wenn keine Restdaten vorliegen, besteht die Nachricht nur aus einem NET_HEADER. Erfolg! */
-	if (restdaten==0)return NULL;
+	if (restdaten==0)return nullptr;
 
 	/* Wenn Datenpaket insgesamt die Groesse des Puffers ueberschreitet: Maechtig grosser FEHLER */
 	if (ntohs(data->data_length)>size)
@@ -140,7 +140,7 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 		return S_INVALID_PACKAGE;
 	}
 	/* ERFOLG! */
-	return NULL;
+	return nullptr;
 }
 
 #ifndef WIN32

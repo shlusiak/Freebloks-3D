@@ -66,7 +66,7 @@ CWindow::CWindow(CGUI *vgui)
 	hDC=0;
 #else
 	window=0;
-	dpy=NULL;
+	dpy=nullptr;
 #endif
 	closed=true;
 	ctx=0;
@@ -122,13 +122,13 @@ bool CWindow::createWindow()
 	wndclass.style=CS_HREDRAW|CS_VREDRAW;	// Fenster neuzeichnen, beim Groesse-Aendern
 	wndclass.lpfnWndProc=WndProc;		// Die Fensterfunktion ist global.
 	wndclass.hInstance=::hInstance;		// Unsere HINSTANCE des Progz
-	wndclass.hCursor=LoadCursor(NULL,IDC_ARROW);	// Fenster soll Pfeil als Cursor
+	wndclass.hCursor=LoadCursor(nullptr,IDC_ARROW);	// Fenster soll Pfeil als Cursor
 	wndclass.hIcon=LoadIcon(::hInstance,MAKEINTRESOURCE(IDI_ICON));	// Fenster soll eigenes Icon haben
 	wndclass.lpszClassName="FreebloksWindowClass";	// Der Name unserer Fenster-Klasse. 
 	if (!RegisterClass(&wndclass))return false;	// Klasse bei Windows registrieren, bei Fehler raus
 
 	// Erstelle ein Win32-Fenster, standard Position, aber vorgegebene Groesse. Nix besonderes.
-	hWnd=CreateWindow("FreebloksWindowClass",WINDOW_TITLE,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,CW_USEDEFAULT,CW_USEDEFAULT,WND_SIZE_X,WND_SIZE_Y,NULL,NULL,::hInstance,NULL);
+	hWnd=CreateWindow("FreebloksWindowClass",WINDOW_TITLE,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,CW_USEDEFAULT,CW_USEDEFAULT,WND_SIZE_X,WND_SIZE_Y,nullptr,nullptr,::hInstance,nullptr);
 	if (hWnd==0)return false; // Bei Fehler raus
 
 	// Hier muss USERDATA des Fensters mit this assoziiert werden, damit die globale Fensterfunktion
@@ -190,7 +190,7 @@ void CWindow::processEvents()
 {
 	MSG msg;
 	// Schleife, solange Nachricht abgeholt werden konnte
-	while (PeekMessage(&msg, NULL,0,0,PM_REMOVE))
+	while (PeekMessage(&msg, nullptr,0,0,PM_REMOVE))
 	{
 		// WM_QUIT setzt das WM_DESTROY des Fensters ab. Damit wird das Fenster als geschlossen betrachtet
 		if (msg.message==WM_QUIT)
@@ -386,7 +386,7 @@ bool CWindow::createWindow()
 	XVisualInfo *visinfo;
 
 	// Das Standard-Display oeffnen (aus $DISPLAY Variable der Shell)
-	dpy=XOpenDisplay(NULL);
+	dpy=XOpenDisplay(nullptr);
 	if (dpy==0)
 	{
 		printf("Error: could not open display\n");
@@ -436,7 +436,7 @@ bool CWindow::createWindow()
 		sizehints.flags = USSize /*| USPosition*/;
 		XSetNormalHints(dpy, wnd, &sizehints);
 		// Setze hints und Titel des Fensters
-		XSetStandardProperties(dpy, wnd, WINDOW_TITLE, WINDOW_TITLE,None, (char **)NULL, 0, &sizehints);
+		XSetStandardProperties(dpy, wnd, WINDOW_TITLE, WINDOW_TITLE,None, (char **)nullptr, 0, &sizehints);
 	}
 
 #ifdef HAVE_X11_XPM_H
@@ -450,7 +450,7 @@ bool CWindow::createWindow()
 		XWindowAttributes root_attr;
 		XpmAttributes attributes;
 
-  		ret=XpmCreateXpmImageFromData(freebloks_xpm,&I,NULL);
+  		ret=XpmCreateXpmImageFromData(freebloks_xpm,&I,nullptr);
 
 		if (ret==0)
 		{
@@ -471,7 +471,7 @@ bool CWindow::createWindow()
 #endif
 
 	// Erstelle einen OpenGL-Kontext, mit dem vorher gewaehltem visual
-	ctx = glXCreateContext( dpy, visinfo, NULL, True );
+	ctx = glXCreateContext( dpy, visinfo, nullptr, True );
 	if (!ctx) {	// Bei Fehlschlag raus
 		printf("Error: glXCreateContext failed\n");
 		return false;
@@ -535,7 +535,7 @@ void CWindow::processEvent(XEvent event)
 		KeySym mykeysym;
 		char buffer[16];
 		// Verwandle den Keycode in ein char (nur ein Byte, koennten ja auch mehrere sein)
-		XLookupString((XKeyEvent*)&event, buffer,15, &mykeysym, NULL);
+		XLookupString((XKeyEvent*)&event, buffer,15, &mykeysym, nullptr);
 		gui->processKeyEvent(mykeysym);
 		break;
 		}

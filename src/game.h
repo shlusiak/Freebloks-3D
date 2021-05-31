@@ -45,7 +45,7 @@ public:
 
     CPlayer *get_current_player() {
         if (m_current_player == -1)
-            return NULL;
+            return nullptr;
         else
             return get_player(m_current_player);
     }

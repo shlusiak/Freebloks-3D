@@ -56,7 +56,7 @@ CSpielClient::~CSpielClient()
  * host: Hostname oder IP des Servers
  * port: Port, auf dem Verbunden werden soll
  *
- * Rueckgabe: NULL bei Erfolg, sonst Zeiger auf Zeichenkette mit der Fehlermeldung
+ * Rueckgabe: nullptr bei Erfolg, sonst Zeiger auf Zeichenkette mit der Fehlermeldung
  **/
 
 const char* CSpielClient::Connect(const char* host,int port, int blocking)
@@ -87,22 +87,22 @@ const char* CSpielClient::Connect(const char* host,int port, int blocking)
 			fcntl(client_socket,F_SETFL,O_NONBLOCK);
 		}
 
-		return NULL;
+		return nullptr;
 	}
 #endif
 
 
 #if (defined HAVE_GETADDRINFO) || (defined WIN32)
 	/* Dies beinhaltet auch IPv6 */
-	sockaddr_in *addr=NULL;
+	sockaddr_in *addr=nullptr;
 	struct addrinfo *addr_info,*p;
 	int addr_len;
 	const char* errormessage;
 
 	errno=0;
-	errormessage = NULL;
+	errormessage = nullptr;
 	/* Hostname in IP wandeln */
-	errno=getaddrinfo(host,NULL,NULL,&addr_info);
+	errno=getaddrinfo(host,nullptr,nullptr,&addr_info);
 	if (errno)return gai_strerror(errno);
 
 	p=addr_info;
@@ -120,7 +120,7 @@ const char* CSpielClient::Connect(const char* host,int port, int blocking)
 			client_socket=socket(p->ai_family,SOCK_STREAM,0);
 			if (connect(client_socket,(sockaddr*)addr,addr_len) == 0)
 			{
-				errormessage = NULL;
+				errormessage = nullptr;
 				free(addr);
 				break;
 			}
@@ -140,7 +140,7 @@ const char* CSpielClient::Connect(const char* host,int port, int blocking)
 	freeaddrinfo(addr_info);
 	
 	if (errormessage) return errormessage;
-	if (p==NULL)
+	if (p==nullptr)
 	{
 		return "No IPv4 or IPv6 adresses found";
 	}
@@ -156,7 +156,7 @@ const char* CSpielClient::Connect(const char* host,int port, int blocking)
 
 	/* Hostname in IP wandeln */
 	he=gethostbyname(host);
-	if (he==NULL)return "Host not found";
+	if (he==nullptr)return "Host not found";
 	
 	/* Host Adresse speichern */
 	memcpy(&_addr.sin_addr,he->h_addr,he->h_length);
@@ -192,7 +192,7 @@ const char* CSpielClient::Connect(const char* host,int port, int blocking)
 #endif
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 
@@ -221,7 +221,7 @@ void CSpielClient::Disconnect()
 
 /**
  * Alle anstehenden Netzwerknachrichten abholen und verarbeiten.
- * Gibt NULL bei Erfolg zurueck, sonst Zeiger auf Fehlermeldung, die anzeigt
+ * Gibt nullptr bei Erfolg zurueck, sonst Zeiger auf Fehlermeldung, die anzeigt
  * dass die Verbindung zum Server verloren wurde
  **/
 const char* CSpielClient::poll()
@@ -234,7 +234,7 @@ const char* CSpielClient::poll()
 		/* Lese eine Nachricht komplett aus dem Socket in buffer */
 		err=read_network_message(client_socket,(NET_HEADER*)buffer,sizeof(buffer));
 		/* Bei 0 ist eine Nachricht erfolgreicht gelesen worden. Verarbeiten! */
-		if (err==NULL)process_message((NET_HEADER*)buffer);
+		if (err==nullptr)process_message((NET_HEADER*)buffer);
 		/* bei -1 liegen keine Daten mehr vor */
 		else if (err!=(char*)(-1))
 		{
@@ -244,8 +244,8 @@ const char* CSpielClient::poll()
 			return err;
 		}
 		/* Solange wiederholen, wie erfolgreich Nachrichten gelesen wurden */
-	}while (err==NULL);
-	return NULL;
+	}while (err==nullptr);
+	return nullptr;
 }
 
 /**
@@ -256,7 +256,7 @@ void CSpielClient::request_player(int wish_player, const char* name)const
 {
 	NET_REQUEST_PLAYER data;
 	data.player = wish_player;
-	if (name == NULL)
+	if (name == nullptr)
 		data.name[0] = '\0';
 	else
 		strncpy((char*)&data.name[0], name, sizeof(data.name));
@@ -291,8 +291,8 @@ void CSpielClient::process_message(NET_HEADER* data)
 			/* Stein in richtige Position drehen */
 			stone->mirror_rotate_to(s->mirror_count,s->rotate_count);
 			/* Stein aufs echte Spielfeld setzen */
-			if ((CBoard::is_valid_turn(stone, s->player, s->y, s->x) == FIELD_DENIED) ||
-                (CBoard::set_stone(stone, s->player, s->y, s->x) != FIELD_ALLOWED))
+			if ((is_valid_turn(*stone, s->player, s->y, s->x) == FIELD_DENIED) ||
+                (set_stone(*stone, s->player, s->y, s->x) != FIELD_ALLOWED))
 			{	// Spiel scheint nicht mehr synchron zu sein
 				// GAANZ schlecht!!
 				printf("Game not in sync!\n");
@@ -428,16 +428,16 @@ void CSpielClient::process_message(NET_HEADER* data)
  * Wird von der GUI aufgerufen, wenn ein Spieler einen Stein setzen will
  * Die Aktion wird nur an den Server geschickt, der Stein wird NICHT lokal gesetzt
  **/
-TSingleField CSpielClient::set_stone(CStone* stone, int stone_number, int y, int x)
+TSingleField CSpielClient::request_set_stone(const CStone& stone, int y, int x)
 {
 	NET_SET_STONE data;
 	if (m_current_player==-1)return FIELD_DENIED;
 
 	/* Datenstruktur mit Daten der Aktion fuellen */
 	data.player=m_current_player;
-	data.stone=stone_number;
-	data.mirror_count=stone->get_mirror_counter();
-	data.rotate_count=stone->get_rotate_counter();
+	data.stone=stone.get_number();
+	data.mirror_count=stone.get_mirror_counter();
+	data.rotate_count=stone.get_rotate_counter();
 	data.x=x;
 	data.y=y;
 

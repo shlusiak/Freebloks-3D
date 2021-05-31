@@ -279,35 +279,36 @@ const TStoneField STONE_FIELD[STONE_COUNT_ALL_SHAPES]=
 
 class CBoard;
 
-class CStone{
+class CStone {
 	private:
-		int m_available;
 		int m_shape;
 		int m_size;
+
+		int m_available;
 		int m_mirror_counter;
 		int m_rotate_counter;
 
-		const bool is_position_inside_stone(const int y, const int x)const; //braucht get_stone_field
+		const bool is_position_inside_stone(const int y, const int x) const;
 
 	public:
-		CStone():m_available(0),m_shape(0),m_mirror_counter(0),m_rotate_counter(0) {}
+		CStone(): m_available(0), m_shape(0), m_mirror_counter(0), m_rotate_counter(0) {}
 		void init (const int shape);
 
-		const TSingleStone get_stone_field(const int y, const int x)const;
+		TSingleStone get_stone_field(const int y, const int x)const;
 
 		const int calculate_possible_turns_in_position(const CBoard* const spiel, const int playernumber, const int fieldY, const int fieldX);
 
-		const int get_stone_size()const;
-		const int get_stone_points()const;
-		const int get_stone_shape()const;
-		const int get_number()const; // = stone_shape
-		const int get_rotateable()const; //siehe constants.h fuer die Rueckgabe
-		const int get_mirrorable()const; //siehe constants.h fuer die Rueckgabe
-		const int get_rotate_counter()const;
-		const int get_mirror_counter()const;
-		const int get_stone_position_points()const;
+		const int get_stone_size() const;
+		const int get_stone_points() const;
+		const int get_stone_shape() const;
+		const int get_number() const;
+		const int get_rotateable() const;
+		const int get_mirrorable() const;
+		const int get_rotate_counter() const;
+		const int get_mirror_counter() const;
+		const int get_stone_position_points() const;
 
-		const int get_available()const;
+		const int get_available() const;
 		void set_available(const int value);
 		void available_decrement();
 		void available_increment();
@@ -317,7 +318,6 @@ class CStone{
 		void mirror_over_x();
 		void mirror_over_y();
 		void mirror_rotate_to(const int mirror_counter, const int rotate_counter);
-
 };
 
 

@@ -31,7 +31,7 @@
 
 /* Globale Variablen. Koennen durch Kommandozeilenparameter geaendert werden. */
 static int port=TCP_PORT;
-static char* _interface = NULL;
+static char* _interface = nullptr;
 static int max_humans=4;
 static GAMEMODE gamemode=GAMEMODE_4_COLORS_4_PLAYERS;
 static int width=20,height=20;
@@ -46,7 +46,7 @@ static HANDLE mutex;
 #else
 static pthread_mutex_t mutex;
 #endif
-static char* logfile = NULL;
+static char* logfile = nullptr;
 static CStdoutWriter logWriter;
 static CServerListener* listener; /* the primary listener for new games */
 static const char* stats_socket_file = "/tmp/freebloks_stats";
@@ -67,9 +67,9 @@ static struct {
 inline void init_mutex()
 {
 #ifdef WIN32
-	mutex=CreateMutex(NULL,FALSE,NULL);
+	mutex=CreateMutex(nullptr,FALSE,nullptr);
 #else
-	pthread_mutex_init(&mutex,NULL);
+	pthread_mutex_init(&mutex,nullptr);
 #endif
 }
 
@@ -136,14 +136,14 @@ static int dump_stats(const char *file) {
 
 /* dump stats to given file descriptor */
 static void print_stats(int fd) {
-	CSpielServer *game = NULL;
+	CSpielServer *game = nullptr;
 	if (listener)
 		game = listener->get_game();
 
 	dprintf(fd, "##### STATS BEGIN #####\n");
 	dprintf(fd, "server_started %d\n", (int)stats.time_started);
-	dprintf(fd, "server_now %d\n", (int)time(NULL));
-	dprintf(fd, "server_running %d\n", (int)(time(NULL) - stats.time_started));
+	dprintf(fd, "server_now %d\n", (int)time(nullptr));
+	dprintf(fd, "server_running %d\n", (int)(time(nullptr) - stats.time_started));
 	dprintf(fd, "clients %d\n", game ? game->num_clients() : 0);
 	dprintf(fd, "players %d\n", game ? game->num_players() : 0);
 	dprintf(fd, "running %d\n", games_running);
@@ -158,7 +158,7 @@ static void print_stats(int fd) {
 static void* stat_thread(void* param) {
 	char *file = (char*)param;
 
-	stats.time_started = time(NULL);
+	stats.time_started = time(nullptr);
 	stats.connections_v4 = 0;
 	stats.connections_v6 = 0;
 
@@ -169,7 +169,7 @@ static void* stat_thread(void* param) {
 	unlink(file);
 	if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		perror("error creating stats socket");
-		return NULL;
+		return nullptr;
 	}
 
 	memset(&addr, 0, sizeof(addr));
@@ -178,16 +178,16 @@ static void* stat_thread(void* param) {
 
 	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 		perror("error binding stats socket");
-		return NULL;
+		return nullptr;
 	}
 
 	if (listen(fd, 5) == -1) {
 		perror("error listening on stats socket");
-		return NULL;
+		return nullptr;
 	}
 
 	while (1) {
-		if ( (cl = accept(fd, NULL, NULL)) == -1) {
+		if ( (cl = accept(fd, nullptr, nullptr)) == -1) {
 			perror("stats socket accept error");
 			continue;
 		}
@@ -198,7 +198,7 @@ static void* stat_thread(void* param) {
 
 	unlink(file);
 
-	return NULL;
+	return nullptr;
 }
 #endif
 
@@ -583,7 +583,7 @@ int main(int argc,char ** argv)
 
 
 #ifndef WIN32
-	pthread_create(&pt, NULL, stat_thread, (void*)stats_socket_file);
+	pthread_create(&pt, nullptr, stat_thread, (void*)stats_socket_file);
 #endif
 
 	/* Dedizierter Server laeuft endlos */
@@ -610,9 +610,9 @@ int main(int argc,char ** argv)
 
 #ifdef WIN32
 		DWORD threadid;
-		CloseHandle(CreateThread(NULL,0,gameRunThread,(void*)listener->get_game(),0,&threadid));
+		CloseHandle(CreateThread(nullptr,0,gameRunThread,(void*)listener->get_game(),0,&threadid));
 #else
-		if (pthread_create(&pt,NULL,gameRunThread,(void*)listener->get_game()))
+		if (pthread_create(&pt,nullptr,gameRunThread,(void*)listener->get_game()))
 			perror("pthread_create");
 		if (pthread_detach(pt))perror("pthread_detach");
 #endif

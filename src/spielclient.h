@@ -27,7 +27,7 @@ public:
 	virtual ~CSpielClient();
 
 	/* Spielclient mit angegebenen Server an port verbinden
-	   Gibt Fehlerstring zurueck, oder NULL bei Erfolg */
+	   Gibt Fehlerstring zurueck, oder nullptr bei Erfolg */
 	const char* Connect(const char* host,int port, int blocking = 0);
 
 	void Connect(int client_socket, int blocking = 0);
@@ -39,7 +39,7 @@ public:
 	const bool isConnected()const { return client_socket!=0; }
 
 	/* Verarbeitet alle anstehenden Netzwerknachrichten.
-	 * NULL: Erfolg
+	 * nullptr: Erfolg
 	 * sonst: Zeiger auf Zeichenkette mit Fehlermeldung
 	 */
 	const char* poll();
@@ -61,7 +61,7 @@ public:
 	void process_message(NET_HEADER* data);
 
 	/* Von GUI aufgerufen: schickt eine Nachricht zum Setzen eines Steins an den Server */
-	TSingleField set_stone(CStone* stone, int stone_number, int y, int x);
+	TSingleField request_set_stone(const CStone& stone, int y, int x);
 
 	/* Gibt Pointer auf zuletzt empfangenes Status-Paket des Servers zurueck */
 	NET_SERVER_STATUS* getServerStatus() { return &status; }
