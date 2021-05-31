@@ -144,7 +144,7 @@ bool CBoard::is_valid_turn(const CStone& stone, int playernumber, int startY, in
 
 	for (int y = 0; y < stone.get_stone_size(); y++){
 		for (int x = 0; x < stone.get_stone_size(); x++){
-			if (stone.get_stone_field(y,x) != STONE_FIELD_FREE) {
+			if (stone.get_stone_field(y, x) != STONE_FIELD_FREE) {
 				if (!is_position_inside_field(y + startY, x + startX))
 					return false;
 

@@ -268,6 +268,51 @@ const TStoneField STONE_FIELD[STONE_COUNT_ALL_SHAPES]=
 
 class CBoard;
 
+struct Orientation {
+    int mirrored;
+    int rotation;
+
+    inline void rotate_left(int max_rotation) {
+		rotation--;
+		if (rotation < 0)
+			rotation += max_rotation;
+    }
+
+    inline void rotate_right(int max_rotation) {
+		rotation = (rotation + 1) % max_rotation;
+	}
+
+	inline void mirror_over_x(int mirrorable, int max_rotation) {
+		if (mirrorable == MIRRORABLE_NOT) return;
+		mirrored = (mirrored + 1) % 2;
+		if (rotation % 2 == 1)
+			rotation = (rotation + 2) % max_rotation;
+	}
+
+	inline void mirror_over_y(int mirrorable, int max_rotation) {
+		if (mirrorable == MIRRORABLE_NOT) return;
+		mirrored = (mirrored + 1) % 2;
+		if (rotation % 2 == 0)
+			rotation = (rotation + 2) % max_rotation;
+	}
+};
+
+struct Shape {
+    const int shape;
+    const int size;
+    const int mirrorable;
+    const int rotateable;
+
+    Shape(int shape, int size): shape(shape), size(size), mirrorable(STONE_MIRRORABLE[shape]), rotateable(STONE_ROTATEABLE[shape]) {}
+
+    inline bool is_position_inside_stone(const int y, const int x) const{
+        if (y < 0 || y >= size || x < 0 || x >= size) return false;
+        return true;
+    }
+
+	TSingleStone get_field(const int y, const int x, const Orientation& orientation) const;
+};
+
 class CStone {
 	private:
 		int m_shape;
@@ -291,17 +336,34 @@ class CStone {
 
 		int calculate_possible_turns_in_position(const CBoard& spiel, const int playernumber, const int fieldY, const int fieldX) const;
 
-		const int get_stone_size() const;
-		const int get_stone_points() const;
-		const int get_stone_shape() const;
-		const int get_number() const;
-		const int get_rotateable() const;
-		const int get_mirrorable() const;
-		const int get_rotate_counter() const;
-		const int get_mirror_counter() const;
-		const int get_stone_position_points() const;
+		inline const int get_stone_size() const {
+			return m_size;
+		}
+		inline const int get_stone_points() const {
+			return STONE_POINTS[m_shape];
+		}
+		inline const int get_stone_shape() const {
+			return m_shape;
+		}
+		inline const int get_rotateable() const {
+			return STONE_ROTATEABLE[m_shape];
+		}
+		inline const int get_mirrorable() const {
+			return STONE_MIRRORABLE[m_shape];
+		}
+		inline const int get_rotate_counter() const {
+			return m_rotate_counter;
+		}
+		inline const int get_mirror_counter() const {
+			return m_mirror_counter;
+		}
+		inline const int get_stone_position_points() const {
+			return STONE_POSITION_POINTS[m_shape];
+		}
+		inline const int get_available() const {
+			return m_available;
+		}
 
-		const int get_available() const;
 		void set_available(const int value);
 		void available_decrement();
 		void available_increment();
@@ -333,60 +395,6 @@ void CStone::available_increment(){
 inline
 void CStone::available_decrement(){
 	m_available--;
-}
-
-inline
-const int CStone::get_available() const{
-	return m_available;
-}
-
-
-inline
-const int CStone::get_mirrorable()const{
-	return STONE_MIRRORABLE[m_shape];
-}
-
-
-inline
-const int CStone::get_rotateable()const{
-	return STONE_ROTATEABLE[m_shape];
-}
-
-inline
-const int CStone::get_stone_position_points()const{
-	return STONE_POSITION_POINTS[m_shape];
-}
-
-
-inline
-const int CStone::get_rotate_counter()const{
-	return CStone::m_rotate_counter;
-}
-
-
-inline
-const int CStone::get_mirror_counter()const{
-	return CStone::m_mirror_counter;
-}
-
-inline
-const int CStone::get_stone_shape()const{
-	return CStone::m_shape;
-}
-
-inline
-const int CStone::get_number()const{
-	return CStone::m_shape;
-}
-
-inline
-const int CStone::get_stone_size()const{
-	return m_size;
-}
-
-inline
-const int CStone::get_stone_points()const{
-	return STONE_POINTS[m_shape];
 }
 
 inline

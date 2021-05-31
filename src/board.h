@@ -112,7 +112,7 @@ public:
 
 inline
 const char CBoard::get_game_field_value(const int y, const int x) const {
-    return CBoard::m_game_field[y * CBoard::m_field_size_x + x];
+    return m_game_field[y * m_field_size_x + x];
 }
 
 inline

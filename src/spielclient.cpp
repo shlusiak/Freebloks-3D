@@ -435,7 +435,7 @@ TSingleField CSpielClient::request_set_stone(const CStone& stone, int y, int x)
 
 	/* Datenstruktur mit Daten der Aktion fuellen */
 	data.player=m_current_player;
-	data.stone=stone.get_number();
+	data.stone=stone.get_stone_shape();
 	data.mirror_count=stone.get_mirror_counter();
 	data.rotate_count=stone.get_rotate_counter();
 	data.x=x;

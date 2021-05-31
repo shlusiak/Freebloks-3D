@@ -5,6 +5,44 @@
 #include "stone.h"
 #include "board.h"
 
+TSingleStone Shape::get_field(const int y, const int x, const Orientation& orientation) const {
+	int nx=x,ny=y;
+	if (orientation.mirrored == 0){
+		if (orientation.rotation == 0){
+			nx = y;
+			ny = x;
+		} else if (orientation.rotation == 1){
+			nx = size-1-x;
+			ny = y;
+		} else if (orientation.rotation == 2){
+			nx = size-1-y;
+			ny = size-1-x;
+		} else if (orientation.rotation == 3){
+			nx = x;
+			ny = size-1-y;
+		} else error_exit("Invalid rotation counter", 15); //debug
+	} else {
+		if (orientation.rotation == 0){
+			nx = size-1-y;
+			ny = x;
+		} else if (orientation.rotation == 1){
+			nx = x;
+			ny = y;
+		} else if (orientation.rotation == 2){
+			nx = y;
+			ny = size-1-x;
+		} else
+		if (orientation.rotation == 3) {
+			nx = size-1-x;
+			ny = size-1-y;
+		} else error_exit("Invalid rotation counter", 15); //debug
+	}
+
+	return STONE_FIELD[shape][nx][ny];
+}
+
+
+
 void CStone::init(const int shape){
 	CStone::m_available = 1;
 	CStone::m_shape = shape;
