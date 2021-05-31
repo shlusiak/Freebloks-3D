@@ -269,8 +269,11 @@ const TStoneField STONE_FIELD[STONE_COUNT_ALL_SHAPES]=
 class CBoard;
 
 struct Orientation {
-    int mirrored;
-    int rotation;
+    int mirrored = 0;
+    int rotation = 0;
+
+    Orientation() {}
+    Orientation(int mirrored, int rotation): mirrored(mirrored), rotation(rotation) {}
 
     inline void rotate_left(int max_rotation) {
 		rotation--;
@@ -298,67 +301,79 @@ struct Orientation {
 };
 
 struct Shape {
-    const int shape;
-    const int size;
-    const int mirrorable;
-    const int rotateable;
+    int shape;
+    int size;
+    int mirrorable;
+    int rotateable;
+    int points;
+    int position_points;
 
-    Shape(int shape, int size): shape(shape), size(size), mirrorable(STONE_MIRRORABLE[shape]), rotateable(STONE_ROTATEABLE[shape]) {}
+    Shape(int shape):
+    	shape(shape),
+    	size(STONE_SIZE[shape]),
+    	mirrorable(STONE_MIRRORABLE[shape]),
+    	rotateable(STONE_ROTATEABLE[shape]),
+    	points(STONE_POINTS[shape]),
+    	position_points(STONE_POSITION_POINTS[shape]) {}
 
     inline bool is_position_inside_stone(const int y, const int x) const{
         if (y < 0 || y >= size || x < 0 || x >= size) return false;
         return true;
     }
 
-	TSingleStone get_field(const int y, const int x, const Orientation& orientation) const;
+	TSingleStone get_field(const int y, const int x, const Orientation& orientation) const {
+    	return get_field(y, x, orientation.mirrored, orientation.rotation);
+    }
+
+	TSingleStone get_field(const int y, const int x, const int mirrored, const int rotation) const;
 };
 
 class CStone {
 	private:
-		int m_shape;
-		int m_size;
-
 		int m_available;
-		int m_mirror_counter;
-		int m_rotate_counter;
 
-		const bool is_position_inside_stone(const int y, const int x) const;
+		Shape shape;
+		Orientation orientation;
 
 	public:
-		CStone(): m_available(0), m_shape(0), m_mirror_counter(0), m_rotate_counter(0) {}
+		CStone(): m_available(0), shape(0) {}
 		void init (const int shape);
 
-		TSingleStone get_stone_field(const int y, const int x, const int mirror, const int rotate) const;
+		const Shape& get_shape() const { return shape; }
 
-		TSingleStone get_stone_field(const int y, const int x) const {
-			return get_stone_field(y, x, m_mirror_counter, m_rotate_counter);
+		inline TSingleStone get_stone_field(const int y, const int x, const Orientation &orientation2) const {
+			return shape.get_field(y, x, orientation2);
+		}
+
+		inline TSingleStone get_stone_field(const int y, const int x) const {
+			return shape.get_field(y, x, orientation.mirrored, orientation.rotation);
 		}
 
 		int calculate_possible_turns_in_position(const CBoard& spiel, const int playernumber, const int fieldY, const int fieldX) const;
 
 		inline const int get_stone_size() const {
-			return m_size;
+			return shape.size;
 		}
 		inline const int get_stone_points() const {
-			return STONE_POINTS[m_shape];
+			return shape.points;
 		}
 		inline const int get_stone_shape() const {
-			return m_shape;
+			return shape.shape;
 		}
 		inline const int get_rotateable() const {
-			return STONE_ROTATEABLE[m_shape];
+			return shape.rotateable;
 		}
 		inline const int get_mirrorable() const {
-			return STONE_MIRRORABLE[m_shape];
+			return shape.mirrorable;
 		}
 		inline const int get_rotate_counter() const {
-			return m_rotate_counter;
+			return orientation.rotation;
 		}
 		inline const int get_mirror_counter() const {
-			return m_mirror_counter;
+			return orientation.mirrored;
 		}
 		inline const int get_stone_position_points() const {
-			return STONE_POSITION_POINTS[m_shape];
+			return shape.position_points;
 		}
 		inline const int get_available() const {
 			return m_available;
@@ -368,19 +383,15 @@ class CStone {
 		void available_decrement();
 		void available_increment();
 
-		void rotate_left();
-		void rotate_right();
-		void mirror_over_x();
-		void mirror_over_y();
-		void mirror_rotate_to(const int mirror_counter, const int rotate_counter);
+		inline void rotate_left() { orientation.rotate_left(shape.rotateable); }
+		inline void rotate_right() { orientation.rotate_right(shape.rotateable); }
+		inline void mirror_over_x() { orientation.mirror_over_x(shape.mirrorable, shape.rotateable); }
+		inline void mirror_over_y() { orientation.mirror_over_y(shape.mirrorable, shape.rotateable); }
+		inline void mirror_rotate_to(const int mirror_counter, const int rotate_counter) {
+		    set_orientation(Orientation(mirror_counter, rotate_counter));
+		}
+		inline void set_orientation(const Orientation&& orientation2) { orientation = orientation2; }
 };
-
-
-inline
-void CStone::mirror_rotate_to(const int mirror_counter, const int rotate_counter){
-	m_mirror_counter = mirror_counter;
-	m_rotate_counter = rotate_counter;
-}
 
 inline
 void CStone::set_available(const int value){
@@ -396,14 +407,5 @@ inline
 void CStone::available_decrement(){
 	m_available--;
 }
-
-inline
-const bool CStone::is_position_inside_stone(const int y,const int x)const{
-	if (y < 0 || y >= m_size || x < 0 || x >= m_size) return false;
-	return true;
-}
-
-
-
 
 #endif

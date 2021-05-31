@@ -91,7 +91,11 @@ public:
 
     CPlayer *get_player(const int player_number);
 
-    bool is_valid_turn(const CStone &stone, int player, int y, int x) const;
+    bool is_valid_turn(const Shape &shape, int player, int y, int x, int mirrored, int rotation) const;
+
+    bool is_valid_turn(const CStone &stone, int player, int y, int x) const {
+        return is_valid_turn(stone.get_shape(), player, y, x, stone.get_mirror_counter(), stone.get_rotate_counter());
+    }
 
     bool is_valid_turn(const CTurn &turn);
 
@@ -104,7 +108,6 @@ public:
     TSingleField *get_field_pointer() const;
 
     bool set_stone(CStone &stone, int playernumber, int y, int x);
-
     bool set_stone(const CTurn &turn);
 
     void undo_turn(CTurnPool &turn_pool, GAMEMODE game_mode);

@@ -44,11 +44,11 @@ static int get_ultimate_points(CBoard& follow_situation, const int playernumber,
 /**
  * For the given stone, calculate all possible turns on the entire board.
  */
-void CKi::calculate_possible_turns(const CBoard& board, const CStone& stone, const int playernumber) {
+void CKi::calculate_possible_turns(const CBoard& board, const Shape& shape, const int playernumber) {
 	for (int x = 0; x < board.get_field_size_x(); x++) {
 		for (int y = 0; y < board.get_field_size_y(); y++) {
 			if (board.get_game_field(playernumber, y, x) == FIELD_ALLOWED){
-				calculate_possible_turns_in_position(board, stone, playernumber, y, x);
+				calculate_possible_turns_in_position(board, shape, playernumber, y, x);
 			}
 		}
 	}
@@ -57,21 +57,21 @@ void CKi::calculate_possible_turns(const CBoard& board, const CStone& stone, con
 /**
  * For the given stone and position, try all positions and calculate possible turns.
  */
-void CKi::calculate_possible_turns_in_position(const CBoard& board, const CStone& stone, const int player, const int fieldY, const int fieldX) {
+void CKi::calculate_possible_turns_in_position(const CBoard& board, const Shape& shape, const int player, const int fieldY, const int fieldX) {
 	int mirror;
 
-	if (stone.get_mirrorable() == MIRRORABLE_IMPORTANT)
+	if (shape.mirrorable == MIRRORABLE_IMPORTANT)
 	    mirror = 1;
 	else
 	    mirror = 0;
 
 	for (int m = 0; m <= mirror; m++) {
-		for (int r = 0; r < stone.get_rotateable(); r++){
-			for (int x = 0; x < stone.get_stone_size(); x++){
-				for (int y = 0; y < stone.get_stone_size(); y++){
-					if (stone.get_stone_field(y, x, m, r) == STONE_FIELD_ALLOWED) {
-						if (board.is_valid_turn(stone, player, fieldY - y, fieldX - x)){
-							m_turnpool.add_turn(player, stone, fieldY - y, fieldX - x);
+		for (int r = 0; r < shape.rotateable; r++){
+			for (int x = 0; x < shape.size; x++){
+				for (int y = 0; y < shape.size; y++){
+					if (shape.get_field(y, x, m, r) == STONE_FIELD_ALLOWED) {
+						if (board.is_valid_turn(shape, player, fieldY - y, fieldX - x, m, r)){
+							m_turnpool.add_turn(player, shape.shape, fieldY - y, fieldX - x, m, r);
 						}
 					}
 				}
@@ -206,7 +206,7 @@ void CKi::build_up_turnpool_biggest_x_stones(CBoard& spiel, const int playernumb
 		const CStone& stone = spiel.get_player(playernumber)->get_stone(n);
 
 		if (stone.get_available()) {
-			calculate_possible_turns(spiel, stone, playernumber);
+			calculate_possible_turns(spiel, stone.get_shape(), playernumber);
 
 			// If this stone has any possible turns, we increment the stored_stones counter
 			if (m_turnpool.size() > stored_turns) {

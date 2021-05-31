@@ -83,9 +83,9 @@ void CGUISpielClient::gameStarted()
 		else gui->setZoom(30.0);
 }
 
-void CGUISpielClient::stoneUndone(CStone *stone, const CTurn *t)
+void CGUISpielClient::stoneUndone(const CStone &stone, const CTurn *t)
 {
 	if (gui && gui->getOptions()->get(OPTION_ANIMATE_STONES))
 		gui->addEffect(new CStoneRollEffect(
-				gui, stone, t->stone_number, t->player, t->x, t->y, true));
+				gui, &stone, t->stone_number, t->player, t->x, t->y, true));
 }

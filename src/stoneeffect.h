@@ -36,8 +36,8 @@ public:
 	/* Konstruktor, der wirklich leeren Effekt erstellt (fuer Kopf der Liste) */
 	CStoneEffect();
 	/* Diverse Konstruktoren fuer verschiedene Parameter. */
-	CStoneEffect(CGUI *vgui,CStone *vstone,int vplayer,int vx,int vy);
-	CStoneEffect(CGUI *vgui,CTurn *turn,int vplayer);
+	CStoneEffect(CGUI *vgui,const CStone *vstone,int vplayer,int vx,int vy);
+	CStoneEffect(CGUI *vgui,const CTurn *turn,int vplayer);
 	/* ggf. aufraeumen, wenn notwendig. Liste rekursiv entfernen. */
 	virtual ~CStoneEffect();
 
@@ -71,8 +71,8 @@ private:
 	/* Animationszeit. */
 	double time;
 public:
-	CStoneFadeEffect(CGUI* vgui,CStone *vstone,int vplayer,int vx,int vy);
-	CStoneFadeEffect(CGUI* vgui,CTurn *turn,int vplayer);
+	CStoneFadeEffect(CGUI* vgui, const CStone *vstone, int vplayer,int vx,int vy);
+	CStoneFadeEffect(CGUI* vgui, const CTurn *turn, int vplayer);
 	
 	/* Animieren */
 	virtual bool execute(double elapsed);
@@ -105,7 +105,7 @@ private:
 	/* vorwaerts aufs Feld, oder vom Feld zum Spieler zurueck? */
 	bool reverse;
 public:
-	CStoneRollEffect(CGUI *vgui,CStone *vstone,int stone_number,int vplayer,int vx,int vy,bool vreverse);
+	CStoneRollEffect(CGUI *vgui,const CStone *vstone,int stone_number,int vplayer,int vx,int vy,bool vreverse);
 
 	/* Animieren. */
 	virtual bool execute(double elapsed);

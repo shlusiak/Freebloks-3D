@@ -5,13 +5,8 @@
 #include <cstddef>
 #include "turnpool.h"
 
-void CTurnPool::add_turn(const CTurn* turn) {
-	CTurn* new_element = new CTurn(turn);
-	turns.push_back(new_element);
-}
-
-void CTurnPool::add_turn(const int player, const CStone& stone, const int y, const int x) {
-	CTurn* new_element = new CTurn(player, stone.get_stone_shape(), stone.get_mirror_counter(), stone.get_rotate_counter(), y, x);
+void CTurnPool::add_turn(const int player, const int stone, const int y, const int x, const int mirrored, const int rotation) {
+	CTurn* new_element = new CTurn(player, stone, mirrored, rotation, y, x);
 	turns.push_back(new_element);
 }
 

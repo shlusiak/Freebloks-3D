@@ -31,7 +31,7 @@ CStoneEffect::CStoneEffect()
 
 /**
  * StoneEffect mit CStone, player, x und y erzeugen. */
-CStoneEffect::CStoneEffect(CGUI *vgui,CStone *vstone,int vplayer,int vx,int vy)
+CStoneEffect::CStoneEffect(CGUI *vgui,const CStone *vstone,int vplayer,int vx,int vy)
 {
 	x=vx;
 	y=vy;
@@ -40,13 +40,13 @@ CStoneEffect::CStoneEffect(CGUI *vgui,CStone *vstone,int vplayer,int vx,int vy)
 	gui=vgui;
 
 	/* Den stone kopieren und uebernehmen */
-	stone=*vstone;
+	stone = *vstone;
 }
 
 /**
  * StoneEffect aus einem CTurn und player erstellen.
  **/
-CStoneEffect::CStoneEffect(CGUI *vgui,CTurn *turn,int vplayer)
+CStoneEffect::CStoneEffect(CGUI *vgui,const CTurn *turn,int vplayer)
 {
 	x=turn->x;
 	y=turn->y;
@@ -121,13 +121,13 @@ bool CStoneEffect::is_effected(int x,int y)
 /**
  * Ein simpler Fade-Effekt. Zeit mit 0 initialisieren, mehr brauchts nicht.
  **/
-CStoneFadeEffect::CStoneFadeEffect(CGUI *vgui,CStone *vstone,int vplayer,int vx,int vy)
+CStoneFadeEffect::CStoneFadeEffect(CGUI *vgui,const CStone *vstone,int vplayer,int vx,int vy)
 :CStoneEffect(vgui,vstone,vplayer,vx,vy)
 {
 	time=0.0;
 }
 
-CStoneFadeEffect::CStoneFadeEffect(CGUI *vgui,CTurn *turn,int vplayer)
+CStoneFadeEffect::CStoneFadeEffect(CGUI *vgui,const CTurn *turn,int vplayer)
 :CStoneEffect(vgui,turn,vplayer)
 {
 	time=0.0;
@@ -169,7 +169,7 @@ void CStoneFadeEffect::render()
  * Benoetigt Spielernummer, Stein, Stein-Nummer, Position
  * bei vreverse==true fliegt der Stein vom Spielfeld zum Spieler, sonst vom Spieler aufs Feld
  **/
-CStoneRollEffect::CStoneRollEffect(CGUI *vgui, CStone *vstone,int stone_number,int vplayer,int vx,int vy,bool vreverse)
+CStoneRollEffect::CStoneRollEffect(CGUI *vgui, const CStone *vstone,int stone_number,int vplayer,int vx,int vy,bool vreverse)
 :CStoneEffect(vgui,vstone,vplayer,vx,vy)
 {
 	/* Alles brav initialisieren. */

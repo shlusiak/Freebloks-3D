@@ -24,7 +24,7 @@ CGame::CGame():
  **/
 void CGame::addHistory(const CTurn *turn)
 {
-	history.add_turn(turn);
+	history.add_turn(turn->player, turn->stone_number, turn->y, turn->x, turn->mirror_count, turn->rotate_count);
 }
 
 /**
@@ -32,7 +32,7 @@ void CGame::addHistory(const CTurn *turn)
  **/
 void CGame::addHistory(int player, const CStone &stone, int y, int x)
 {
-	history.add_turn(player, stone, y, x);
+	history.add_turn(player, stone.get_stone_shape(), y, x, stone.get_mirror_counter(), stone.get_rotate_counter());
 }
 
 /**
