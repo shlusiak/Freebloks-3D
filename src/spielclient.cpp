@@ -299,7 +299,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 				exit(1);
 			}
 			/* Zug der History anhaengen */
-			addHistory(s->player,stone,s->y,s->x);
+			addHistory(s->player, stone, s->y, s->x);
 			stoneWasSet(s);
 			break;
 		}
@@ -391,7 +391,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 		case MSG_START_GAME: {
 			CBoard::start_new_game(m_game_mode);
 			/* Unbedingt history leeren. */
-			if (history)history->delete_all_turns();
+			history.delete_all_turns();
 
 			if (status.version <= 2)
 				set_stone_numbers(status.stone_numbers_obsolete[0],status.stone_numbers_obsolete[1],status.stone_numbers_obsolete[2],status.stone_numbers_obsolete[3],status.stone_numbers_obsolete[4]);
@@ -413,8 +413,8 @@ void CSpielClient::process_message(NET_HEADER* data)
 
 		/* Server laesst den letzten Zug rueckgaengig machen */
 		case MSG_UNDO_STONE: {
-			CTurn *t=history->get_last_turn();
-			CStone *stone=get_player(t->get_playernumber())->get_stone(t->get_stone_number());
+			const CTurn *t=history.get_last_turn();
+			CStone *stone=get_player(t->player)->get_stone(t->stone_number);
 			stoneUndone(stone, t);
 			undo_turn(history, m_game_mode);
 			break;

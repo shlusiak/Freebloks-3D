@@ -1,3 +1,6 @@
+AM_CXXFLAGS=-std=gnu++17
+freebloks_CXXFLAGS=$(AM_CXXFLAGS) -DDATA_PREFIX=\"$(datadir)/freebloks/\"
+
 bin_PROGRAMS =
 if WITH_DEDICATED
     bin_PROGRAMS += freebloks_dedicated
@@ -21,7 +24,7 @@ freebloks_dedicated_SOURCES = \
 	board.cpp board.h \
 	player.cpp player.h \
 	network.cpp network.h \
-	turn.cpp turn.h \
+	turn.h \
 	turnpool.cpp turnpool.h \
 	ki.cpp ki.h \
 	timer.cpp timer.h \
@@ -37,7 +40,7 @@ freebloks_benchmark_SOURCES = \
 	board.cpp board.h \
 	player.cpp player.h \
 	network.cpp network.h \
-	turn.cpp turn.h \
+	turn.h \
 	turnpool.cpp turnpool.h \
 	ki.cpp ki.h \
 	timer.cpp timer.h \
@@ -58,7 +61,7 @@ freebloks_SOURCES = \
 	guispielclient.cpp guispielclient.h \
 	network.cpp network.h \
 	turnpool.cpp turnpool.h \
-	turn.cpp turn.h \
+	turn.h \
 	ki.cpp ki.h \
 	stoneeffect.cpp stoneeffect.h \
 	widgets.cpp widgets.h \
@@ -83,13 +86,11 @@ freebloks_client_SOURCES = \
 	board.cpp board.h \
 	player.cpp player.h \
 	network.cpp network.h \
-	turn.cpp turn.h \
+	turn.h \
 	turnpool.cpp turnpool.h \
 	ki.cpp ki.h \
 	timer.cpp timer.h \
 	constants.cpp constants.h
-
-freebloks_CXXFLAGS='-DDATA_PREFIX="$(datadir)/freebloks/"'
 
 textures = font.bmp wall.bmp ground.bmp field.bmp
 EXTRA_DIST = Freebloks.dsp Freebloks.dsw Freebloks.sln Freebloks.vcproj dedicated.vcproj dedicated.dsp \

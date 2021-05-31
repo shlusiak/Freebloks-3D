@@ -169,10 +169,10 @@ TSingleField CBoard::is_valid_turn(CStone* stone, int playernumber, int startY, 
 }
 
 TSingleField CBoard::is_valid_turn(const CTurn* turn){
-	int playernumber = turn->get_playernumber();
-	CStone* stone = CBoard::m_player[playernumber].get_stone(turn->get_stone_number());
-	stone->mirror_rotate_to(turn->get_mirror_count(), turn->get_rotate_count());
-	return is_valid_turn(stone, playernumber, turn->get_y(), turn->get_x());
+	int playernumber = turn->player;
+	CStone* stone = CBoard::m_player[playernumber].get_stone(turn->stone_number);
+	stone->mirror_rotate_to(turn->mirror_count, turn->rotate_count);
+	return is_valid_turn(stone, playernumber, turn->y, turn->x);
 }
 
 void CBoard::free_game_field(int y, int x){
@@ -198,10 +198,10 @@ void CBoard::set_single_stone_for_player(const int player_number, const int star
 
 /** r�ckgabe zu bool?! **/
 TSingleField CBoard::set_stone(const CTurn* turn){
-	int playernumber = turn->get_playernumber();
-	CStone* stone = CBoard::m_player[playernumber].get_stone(turn->get_stone_number());
-	stone->mirror_rotate_to(turn->get_mirror_count(), turn->get_rotate_count());
-	return set_stone(stone, playernumber, turn->get_y(), turn->get_x());
+	int playernumber = turn->player;
+	CStone* stone = CBoard::m_player[playernumber].get_stone(turn->stone_number);
+	stone->mirror_rotate_to(turn->mirror_count, turn->rotate_count);
+	return set_stone(stone, playernumber, turn->y, turn->x);
 }
 
 
@@ -228,11 +228,11 @@ TSingleField CBoard::set_stone(CStone* stone, int playernumber, int startY, int 
 
 
 
-void CBoard::undo_turn(CTurnpool* turn_pool, GAMEMODE game_mode){
-	CTurn* turn = turn_pool->get_last_turn();
-	CStone* stone = CBoard::m_player[turn->get_playernumber()].get_stone(turn->get_stone_number());
+void CBoard::undo_turn(CTurnPool& turn_pool, GAMEMODE game_mode){
+	const CTurn* turn = turn_pool.get_last_turn();
+	CStone* stone = CBoard::m_player[turn->player].get_stone(turn->stone_number);
 	int x, y;
-	stone->mirror_rotate_to(turn->get_mirror_count(), turn->get_rotate_count());
+	stone->mirror_rotate_to(turn->mirror_count, turn->rotate_count);
 
 	#ifdef _DEBUG
 		//check valid
@@ -253,7 +253,7 @@ void CBoard::undo_turn(CTurnpool* turn_pool, GAMEMODE game_mode){
 	for (x = 0; x < stone->get_stone_size(); x++){
 		for (y = 0; y < stone->get_stone_size(); y++){
 			if (stone->get_stone_field(y, x) != STONE_FIELD_FREE){
-				CBoard::free_game_field(turn->get_y() + y, turn->get_x() + x);
+				CBoard::free_game_field(turn->y + y, turn->x + x);
 			}
 		}
 	}
@@ -278,5 +278,5 @@ void CBoard::undo_turn(CTurnpool* turn_pool, GAMEMODE game_mode){
 	stone->available_increment();
 	refresh_player_data();
 	//end redraw
-	turn_pool->delete_last();
+	turn_pool.delete_last();
 }

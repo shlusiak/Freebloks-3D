@@ -40,7 +40,7 @@ static int ki_strength=KI_HARD;
 static int games_ran=0;
 static int games_running=0;
 static int max_running_games=5;
-static int force_delay=1;
+static bool force_delay=true;
 #ifdef WIN32
 static HANDLE mutex;
 #else
@@ -207,7 +207,7 @@ static void* stat_thread(void* param) {
 static void help()
 {
 	printf("Usuage: dedicated [OPTIONS]\n");
-	printf("v"VERSION", build: "__DATE__"\n\n");
+	printf("v" VERSION ", build: " __DATE__ "\n\n");
 	printf("  -p, --port        Specify the TCP port to accept connections. Default: %d\n",TCP_PORT);
 	printf("  -L                Listen on specified IP address. Default: OS default\n");
 	printf("  -h, --maxhumans   Define the maximum of human players per game (0-4)\n"

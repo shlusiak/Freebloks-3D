@@ -11,39 +11,34 @@
 
 #include "game.h"
 
-
-
-CGame::CGame()
+CGame::CGame():
+	m_current_player(-1),
+	m_game_mode(GAMEMODE_4_COLORS_4_PLAYERS)
 {
-	m_current_player=-1;
-	m_game_mode=GAMEMODE_4_COLORS_4_PLAYERS;
-	for (int i=0;i<PLAYER_MAX;i++)player[i]=PLAYER_COMPUTER;
-	history=new CTurnpool();
-}
-
-CGame::~CGame()
-{
-	if (history)delete history;
+	for (int i=0;i<PLAYER_MAX;i++)
+		player[i] = PLAYER_COMPUTER;
 }
 
 /**
- * Fuegt einen CTurn an die History hinten an. Dies ist der letzte Zug, der zurueckgenommen
- * werden kann.
+ * Appends a turn to the history.
  **/
-void CGame::addHistory(CTurn *turn)
+void CGame::addHistory(const CTurn *turn)
 {
-	history->add_turn(turn);
-}
-
-void CGame::addHistory(int player, CStone *stone, int y, int x)
-{
-	history->add_turn(player,stone,y,x);
+	history.add_turn(turn);
 }
 
 /**
- * Gibt die Anzahl nicht-COMPUTER Spieler zurueck
+ * Appends a turn to the history.
  **/
-const int CGame::num_players()const
+void CGame::addHistory(int player, const CStone *stone, int y, int x)
+{
+	history.add_turn(player, stone, y, x);
+}
+
+/**
+ * @return number of non-computer players
+ **/
+int CGame::num_players()const
 {
 	int n;
 	n=0;

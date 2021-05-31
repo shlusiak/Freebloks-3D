@@ -109,7 +109,7 @@ public:
 
     TSingleField set_stone(const CTurn *turn);
 
-    void undo_turn(CTurnpool *turn_pool, GAMEMODE game_mode);
+    void undo_turn(CTurnPool &turn_pool, GAMEMODE game_mode);
 };
 
 inline

@@ -194,7 +194,7 @@ int main(int argc,char ** argv)
 		return 1;
 	}
 
-    CSpielServer spiel(0, ki_strength, GAMEMODE_4_COLORS_4_PLAYERS, 0);
+    CSpielServer spiel(0, ki_strength, GAMEMODE_4_COLORS_4_PLAYERS, false);
 	spiel.set_ki_threads(ki_threads);
 	spiel.set_field_size(width, height);
 	spiel.start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);

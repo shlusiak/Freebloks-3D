@@ -26,16 +26,14 @@ protected:
 
     GAMEMODE m_game_mode;
 
-    CTurnpool *history;
+    CTurnPool history;
 
-    void addHistory(CTurn *turn);
+    void addHistory(const CTurn *turn);
 
-    void addHistory(int player, CStone *stone, int y, int x);
+    void addHistory(int player, const CStone *stone, int y, int x);
 
 public:
     CGame();
-
-    virtual ~CGame();
 
     void setSpieler(int i, int s) { player[i] = s; }
 
@@ -53,7 +51,7 @@ public:
     }
 
     // Return number of non-computer players
-    const int num_players() const;
+    int num_players() const;
 
     const GAMEMODE get_game_mode() const { return m_game_mode; }
 };

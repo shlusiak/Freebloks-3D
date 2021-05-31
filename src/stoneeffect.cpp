@@ -48,14 +48,14 @@ CStoneEffect::CStoneEffect(CGUI *vgui,CStone *vstone,int vplayer,int vx,int vy)
  **/
 CStoneEffect::CStoneEffect(CGUI *vgui,CTurn *turn,int vplayer)
 {
-	x=turn->get_x();
-	y=turn->get_y();
+	x=turn->x;
+	y=turn->y;
 	next=0;
 	player=vplayer;
 	gui=vgui;
 	/* Stone kopieren und Daten aus CTurn uebernehmen */
-	stone.init(turn->get_stone_number());
-	stone.mirror_rotate_to(turn->get_mirror_count(),turn->get_rotate_count());
+	stone.init(turn->stone_number);
+	stone.mirror_rotate_to(turn->mirror_count,turn->rotate_count);
 }
 
 /**

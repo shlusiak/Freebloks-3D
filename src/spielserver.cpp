@@ -37,8 +37,8 @@
 /**
  * Construktor: Leeren SpielServer erstellen, alles auf Standardeinstellung
  **/
-CSpielServer::CSpielServer(const int v_max_humans,const int v_ki_mode,const GAMEMODE v_gamemode,int v_forceDelay)
-:ki_mode(v_ki_mode),max_humans(v_max_humans),forceDelay(v_forceDelay)
+CSpielServer::CSpielServer(const int v_max_humans, const int v_ki_mode, const GAMEMODE v_gamemode, bool v_forceDelay)
+:ki_mode(v_ki_mode), max_humans(v_max_humans), forceDelay(v_forceDelay)
 {
 	int i;
 	start_new_game(v_gamemode);
@@ -169,9 +169,11 @@ void CSpielServer::run()
 	{
 		/* Ermittle CTurn, den die KI jetzt setzen wuerde */
 		timer.reset();
-		CTurn *turn=m_ki.get_ki_turn(this, current_player(),ki_mode);
-		if (forceDelay && timer.elapsed() < 800)
+		const CTurn *turn=m_ki.get_ki_turn(this, current_player(),ki_mode);
+
+		if (forceDelay && timer.elapsed() < 800) {
 			timer.sleep(800 - timer.elapsed());
+		}
 
 		if (turn != NULL)
 		{
@@ -179,11 +181,12 @@ void CSpielServer::run()
 			NET_SET_STONE data;
 
 			data.player=current_player();
-			data.stone=turn->get_stone_number();
-			data.mirror_count=turn->get_mirror_count();
-			data.rotate_count=turn->get_rotate_count();
-			data.x=turn->get_x();
-			data.y=turn->get_y();
+			data.stone=turn->stone_number;
+			data.mirror_count=turn->mirror_count;
+			data.rotate_count=turn->rotate_count;
+			data.x=turn->x;
+			data.y=turn->y;
+
 			/* Zug lokal wirklich setzen, wenn Fehlschlag, ist das Spiel wohl nicht mehr synchron */
 			if ((CBoard::is_valid_turn(turn) == FIELD_DENIED) ||
                 (CBoard::set_stone(turn) != FIELD_ALLOWED))
@@ -476,17 +479,18 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 // 			printf("Client %d requesting undo. ",client);
 			NET_UNDO_STONE undo;
 			int i=0;
+
 			/* Solange Steine zurueck nehmen, bis keine mehr in der History vorliegen,
 			   oder ein menschlicher Spieler wieder dran ist. */
 			do
 			{
-				CTurn *turn=history->get_last_turn();
-				if (turn==NULL)break; // Kein Zug mehr in der History
+				const CTurn *turn = history.get_last_turn();
+				if (turn==NULL) break; // Kein Zug mehr in der History
 				i++;
 				// "Zug zuruecknehmen" an Clients senden
 				send_all((NET_HEADER*)(&undo),sizeof(undo),MSG_UNDO_STONE);
 				// Spieler von zurueckgenommenen Stein ist wieder dran
-				m_current_player=turn->get_playernumber();
+				m_current_player=turn->player;
 				// Und lokal den Zug zuruecknehmen
 				undo_turn(history, m_game_mode);
 				// Solange Zuege des Computers zurueckgenommen werden
@@ -502,15 +506,16 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 		}
 
 		case MSG_REQUEST_HINT: {
-			CTurn *turn=m_ki.get_ki_turn(this,((NET_REQUEST_HINT*)data)->player,KI_HARD);
+			const CTurn *turn=m_ki.get_ki_turn(this,((NET_REQUEST_HINT*)data)->player,KI_HARD);
 			NET_SET_STONE d;
 
 			d.player=((NET_REQUEST_HINT*)data)->player;
-			d.stone=turn->get_stone_number();
-			d.mirror_count=turn->get_mirror_count();
-			d.rotate_count=turn->get_rotate_count();
-			d.x=turn->get_x();
-			d.y=turn->get_y();
+			d.stone=turn->stone_number;
+			d.mirror_count=turn->mirror_count;
+			d.rotate_count=turn->rotate_count;
+			d.x=turn->x;
+			d.y=turn->y;
+
 			network_send(clients[client],(NET_HEADER*)&d,sizeof(d),MSG_STONE_HINT);
 
 			break;
@@ -678,8 +683,8 @@ void CSpielServer::start_game()
 	if (m_current_player!=-1)return;
 // 	printf("Starting game\n");
 
-	/* Spiel zuruecksetzen */
-	if (history)history->delete_all_turns();
+	history.delete_all_turns();
+
 	CBoard::start_new_game(m_game_mode);
 	CBoard::set_stone_numbers(stone_numbers);
 
@@ -818,7 +823,7 @@ int CSpielServer::run_server(const char* interface_,int port,int maxhumans,int k
 	}
 
 	// Listener fuer neues Spiel vorbereiten
-	listener->new_game(maxhumans,ki_mode,gamemode,ki_threads,1);
+	listener->new_game(maxhumans, ki_mode, gamemode, ki_threads, true);
 	listener->get_game()->set_field_size(width, height);
 	listener->get_game()->start_new_game(gamemode);
 	listener->get_game()->set_stone_numbers(stone_numbers);
@@ -872,15 +877,15 @@ CServerListener::CServerListener()
 	for (i=0;i<LISTEN_SOCKETS_MAX; i++)
 		listen_sockets[i]=0;
 	num_listen_sockets = 0;
-	logger=NULL;
-	server=NULL;
+	logger = NULL;
+	server = NULL;
 }
 
 CServerListener::~CServerListener()
 {
 	/* Socket schliessen, und CSpielServer loeschen */
 	close();
-	if (server)delete server;
+	delete server;
 }
 
 /**
@@ -927,7 +932,9 @@ int CServerListener::init(const char* interface_,int port)
 		strcpy(my_addr.sun_path, interface_);
 		i = 1;
 		if (setsockopt(listen_socket,SOL_SOCKET,SO_REUSEADDR,&i,sizeof(i))==-1)
-		{}
+		{
+			// nop
+		}
 		if (bind(listen_socket,(struct sockaddr*)&my_addr,sizeof(my_addr))!=0)
 		{
 			closesocket(listen_socket);
@@ -1166,10 +1173,10 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
  * Erstellt ein neues Spiel mit max_humans menschlichen Spielern, der Rest ist fuer Computer
  * reserviert
  **/
-void CServerListener::new_game(int max_humans,int ki_mode,GAMEMODE gamemode,int ki_threads,int forceDelay)
+void CServerListener::new_game(int max_humans, int ki_mode, GAMEMODE gamemode, int ki_threads, bool forceDelay)
 {
-//    if (server)delete server;
-	server=new CSpielServer(max_humans,ki_mode,gamemode,forceDelay);
+	delete server;
+	server = new CSpielServer(max_humans, ki_mode, gamemode, forceDelay);
 	server->set_ki_threads(ki_threads);
 }
 

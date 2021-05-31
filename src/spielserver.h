@@ -47,8 +47,8 @@ private:
 	/* Ein Zeitzaehler, um die Dauer eines Spiels rauszukriegen */
 	CTimer timer;
 
-	/* Wenn auf 1, dauert ein Computer-Zug immer mindestens 800 ms */
-	const int forceDelay;
+	/* If true, a computer turn will always take at least 800 ms */
+	const bool forceDelay;
 
 	/* Anzahl der Spielsteine bestimmter Groesse */
 	int8 stone_numbers[STONE_COUNT_ALL_SHAPES];
@@ -79,7 +79,7 @@ private:
 	/* Ermittle naechsten Spieler */
 	void next_player();
 public:
-	CSpielServer(int v_max_humans,int v_ki_mode,GAMEMODE v_gamemode, int v_forceDelay);
+	CSpielServer(int v_max_humans, int v_ki_mode, GAMEMODE v_gamemode, bool v_forceDelay);
 	virtual ~CSpielServer();
 
 	/* Verarbeite alle Netzwerknachrichten des angegebenen Clients */
@@ -134,7 +134,7 @@ public:
 
 	/* Bereitet den Listener vor, an der angegebenen Schnittstellt und
 	   dem Port Verbindungen zu akzeptieren. */
-	int init(const char* interface_,int port);
+	int init(const char* interface_, int port);
 
 	/* Lauscht an allen Netzwerksockets und verarbeitet eine Nachricht */
 	int wait_for_player(bool verbose, sockaddr_storage *client);
@@ -143,7 +143,7 @@ public:
 	void close();
 
 	/* Richtet einen neuen CSpielServer ein, mit max. max_humans menschlichen Spielern */
-	void new_game(int max_humans,int ki_mode,GAMEMODE gamemode,int ki_threads, int forceDelay);
+	void new_game(int max_humans,int ki_mode,GAMEMODE gamemode,int ki_threads, bool forceDelay);
 
 	/* Gibt aktuell erbautes Spiel zurueck */
 	CSpielServer* get_game() { return server; }

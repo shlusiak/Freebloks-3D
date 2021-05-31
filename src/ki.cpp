@@ -75,7 +75,7 @@ struct THREADDATA
 	int best_points;
 	char current_player;
 	int ki_fehler;
-	CTurn* best;
+	const CTurn* best;
 	CBoard *spiel;
 };
 
@@ -114,10 +114,10 @@ void* kiThread(void* p)
 	return NULL;
 }
 
-CTurn* CKi::get_ultimate_turn(CBoard* spiel, const char current_player, const int ki_fehler){
+const CTurn* CKi::get_ultimate_turn(CBoard* spiel, const char current_player, const int ki_fehler) {
 	CKi::build_up_turnpool_biggest_x_stones(spiel, current_player, BIGGEST_X_STONES);
 
-	CTurn* best;
+	const CTurn* best;
 	int best_points;
 	int i;
 #ifdef HAVE_PTHREAD_CREATE
@@ -138,9 +138,9 @@ CTurn* CKi::get_ultimate_turn(CBoard* spiel, const char current_player, const in
 		data[i].ki_fehler=ki_fehler;
 		data[i].spiel=spiel;
 
-		data[i].from=2+i*(CKi::m_turnpool.get_number_of_stored_turns()-1)/num_threads;
-		data[i].to=2+(i+1)*(CKi::m_turnpool.get_number_of_stored_turns()-1)/num_threads-1;
-		if (i==num_threads-1)data[i].to=CKi::m_turnpool.get_number_of_stored_turns();
+		data[i].from=2+ i * (CKi::m_turnpool.size() - 1) / num_threads;
+		data[i].to= 2 + (i+1) * (CKi::m_turnpool.size() - 1) / num_threads - 1;
+		if (i==num_threads-1)data[i].to= CKi::m_turnpool.size();
 
 #ifdef WIN32
 		DWORD tid;
@@ -178,32 +178,31 @@ CTurn* CKi::get_ultimate_turn(CBoard* spiel, const char current_player, const in
 
 
 void CKi::build_up_turnpool_biggest_x_stones(CBoard* spiel, const char playernumber, const int max_stored_stones){
-	m_turnpool.begin_add();
+	m_turnpool.delete_all_turns();
 	int stored_stones = 0;
 	int stored_turns = 0;
+
 	for (int n = STONE_COUNT_ALL_SHAPES -1; n >= 0; n--){
 		CStone* stone = spiel->get_player(playernumber)->get_stone(n);
 		if (stone->get_available()){
 			calculate_possible_turns(spiel, stone, playernumber);
-			if (m_turnpool.get_number_of_stored_turns() > stored_turns){
+			if (m_turnpool.size() > stored_turns){
 				stored_stones++;
-				stored_turns = m_turnpool.get_number_of_stored_turns();
+				stored_turns = m_turnpool.size();
 				if (stored_stones >= max_stored_stones) {
-					m_turnpool.end_add();
 					return;
 				}
 			}
 		}
 	}
-	m_turnpool.end_add();
 }
 
 
 
 int CKi::get_distance_points(CBoard* follow_situation, const char playernumber, const CTurn* turn){
-	CStone* stone = follow_situation->get_player(playernumber)->get_stone(turn->get_stone_number());
-	int summe = abs(follow_situation->get_player_start_x(playernumber) - turn->get_x() + stone->get_stone_size()/2);
-	summe += abs(follow_situation->get_player_start_y(playernumber) - turn->get_y()+ stone->get_stone_size()/2);
+	CStone* stone = follow_situation->get_player(playernumber)->get_stone(turn->stone_number);
+	int summe = abs(follow_situation->get_player_start_x(playernumber) - turn->x + stone->get_stone_size()/2);
+	summe += abs(follow_situation->get_player_start_y(playernumber) - turn->y+ stone->get_stone_size()/2);
 	return summe;
 }
 
@@ -224,9 +223,7 @@ int CKi::get_ultimate_points(CBoard* follow_situation, const char playernumber, 
 	return ((100+(rand() % ((ki_fehler)+1))) * summe) /100;
 }
 
-
-
-CTurn* CKi::get_ki_turn(CBoard* spiel, char playernumber, int ki_fehler){
+const CTurn* CKi::get_ki_turn(CBoard* spiel, char playernumber, int ki_fehler) {
 	if (spiel->get_number_of_possible_turns(playernumber) == 0) return NULL;
 	return CKi::get_ultimate_turn(spiel, playernumber, ki_fehler);
 }

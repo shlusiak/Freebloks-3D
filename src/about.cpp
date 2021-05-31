@@ -37,7 +37,7 @@ public:
    NULL sind Leerzeilen. Die Texte werden zentriert ausgegeben. */
 static const char *AboutText[]={
 	"Freebloks 3D",
-	"(v"VERSION", build: "__DATE__")",
+	"(v" VERSION ", build: " __DATE__ ")",
 	0,
 	0,
 	"This game was created",

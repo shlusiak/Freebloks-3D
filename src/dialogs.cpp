@@ -319,11 +319,11 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 			if (red->getCheck()) players |= 0x04;
 			if (green->getCheck()) players |= 0x08;
 
-			int einer = numberOfStones[0];
-			int zweier = numberOfStones[1];
-			int dreier = numberOfStones[2];
-			int vierer = numberOfStones[3];
-			int fuenfer = numberOfStones[4];
+			int8 einer = numberOfStones[0];
+			int8 zweier = numberOfStones[1];
+			int8 dreier = numberOfStones[2];
+			int8 vierer = numberOfStones[3];
+			int8 fuenfer = numberOfStones[4];
 			int8 a_default[STONE_COUNT_ALL_SHAPES] = {
 					einer,
 					zweier,
