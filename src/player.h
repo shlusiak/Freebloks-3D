@@ -25,50 +25,36 @@ class CPlayer{
 
 		CStone m_stone[STONE_COUNT_ALL_SHAPES]; // eventuell auf bool verkleinerbar?!
 	public:
-
-		CPlayer();
+		CPlayer():m_nemesis(-1), m_teammate(-1) {}
 
 		void init(const CBoard* spiel, const int playernumber); //unbedingt ausf�hren!
 		void refresh_data(const CBoard* spiel);	//wird von init automatsich aufgerufen!
 												//berechnet jetzt auch die m�glichen z�ge!
 
-		const int get_number()const; //liefert jetzt einen wert von 0 bis 3!
-		const int get_stone_points_left()const;
-		const int get_position_points()const; //gibt eine situationsbewertung zur�ck
-		const int get_number_of_possible_turns()const;
-		const int get_stone_count()const;
+		const int get_number() const; //liefert jetzt einen wert von 0 bis 3!
+		const int get_stone_points_left() const;
+		const int get_position_points() const; //gibt eine situationsbewertung zur�ck
+		const int get_number_of_possible_turns() const;
+		const int get_stone_count() const;
 
-		const int get_teammate()const;
-		const int get_nemesis()const;
+		const int get_teammate() const;
+		const int get_nemesis() const;
 		void set_teammate(int playernumber);
 		void set_nemesis(int playernumber);
 
-		CStone* get_stone(int stonenumber); //stonenumber von 0 bis (STONE_COUNT_MAX-1)!
+		CStone& get_stone(int number){
+			return m_stone[number];
+		}
 };
-
-
-inline
-CPlayer::CPlayer()
-:m_nemesis(-1), m_teammate(-1)
-{
-}
-
-
-inline
-CStone* CPlayer::get_stone(const int stonenumber){
-	return &CPlayer::m_stone[stonenumber];
-}
-
 
 inline
 const int CPlayer::get_number_of_possible_turns()const{
-	return CPlayer::m_number_of_possible_turns;
+	return m_number_of_possible_turns;
 }
-
 
 inline
 const int CPlayer::get_stone_points_left()const{
-	return CPlayer::m_stone_points_left;
+	return m_stone_points_left;
 }
 
 

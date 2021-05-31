@@ -418,18 +418,18 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 				return;
 			}
 
-			CStone *stone = get_player(s->player)->get_stone(s->stone);
-			stone->mirror_rotate_to(s->mirror_count,s->rotate_count);
+			CStone &stone = get_player(s->player)->get_stone(s->stone);
+			stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
 
 			/* Den Stein lokal setzen */
- 			if ((is_valid_turn(*stone, s->player, s->y, s->x) == FIELD_ALLOWED) &&
-                (set_stone(*stone, s->player, s->y, s->x) == FIELD_ALLOWED))
+ 			if ((is_valid_turn(stone, s->player, s->y, s->x) == FIELD_ALLOWED) &&
+                (set_stone(stone, s->player, s->y, s->x) == FIELD_ALLOWED))
 			{
 				/* Bei Erfolg wird die Nachricht direkt an alle Clients zurueck-
 				   geschickt */
 				send_all(data,ntohs(data->data_length),MSG_SET_STONE);
 				/* Zug an History anhaengen */
-				addHistory(s->player,stone,s->y,s->x);
+				addHistory(s->player, &stone, s->y, s->x);
 				/* Dann wird der naechste Spieler ermittelt*/
 				next_player();
 			}else{ // Spiel scheint nicht synchron zu sein
@@ -692,8 +692,8 @@ void CSpielServer::start_game()
 	if (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR)
 	{
 		for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
-			get_player(1)->get_stone(n)->set_available(0);
-			get_player(3)->get_stone(n)->set_available(0);
+			get_player(1)->get_stone(n).set_available(0);
+			get_player(3)->get_stone(n).set_available(0);
 		}
 	}
 

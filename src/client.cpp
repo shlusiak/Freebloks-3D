@@ -171,15 +171,14 @@ void CKISpielClient::newCurrentPlayer(const int player)
 
 	/* Ermittle CTurn, den die KI jetzt setzen wuerde */
 	const CTurn *turn=ki.get_ki_turn(*this, current_player(),ki_strength);
-	CStone *stone;
 	if (turn == nullptr)
 	{
 		printf("Player %d: Did not find a valid move\n", player);
 		return;
 	}
-	stone = get_current_player()->get_stone(turn->stone_number);
-	stone->mirror_rotate_to(turn->mirror_count,turn->rotate_count);
-	request_set_stone(*stone, turn->y, turn->x);
+	CStone &stone = get_current_player()->get_stone(turn->stone_number);
+	stone.mirror_rotate_to(turn->mirror_count, turn->rotate_count);
+	request_set_stone(stone, turn->y, turn->x);
 }
 
 void CKISpielClient::chatReceived(NET_CHAT* c)

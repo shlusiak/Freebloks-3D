@@ -323,8 +323,8 @@ class CStone {
 
 inline
 void CStone::mirror_rotate_to(const int mirror_counter, const int rotate_counter){
-	CStone::m_mirror_counter = mirror_counter;
-	CStone::m_rotate_counter = rotate_counter;
+	m_mirror_counter = mirror_counter;
+	m_rotate_counter = rotate_counter;
 }
 
 inline
@@ -343,8 +343,8 @@ void CStone::available_decrement(){
 }
 
 inline
-const int CStone::get_available()const{
-	return CStone::m_available;
+const int CStone::get_available() const{
+	return m_available;
 }
 
 

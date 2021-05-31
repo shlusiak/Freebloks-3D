@@ -15,37 +15,28 @@
 
 #define BIGGEST_X_STONES 9
 
-
-
-// fast identisch mit der CPlayer::calculate_possible_turns
-void CKi::calculate_possible_turns(const CBoard& spiel, CStone& stone, const char playernumber){
-	for (int x = 0; x < spiel.get_field_size_x(); x++){
-		for (int y = 0; y < spiel.get_field_size_y(); y++){
-
-#ifdef _DEBUG
-			unsigned char wert = spiel->get_game_field_value(y, x);
-			if (wert < PLAYER_BIT_HAVE_MIN){
-				for (int p = 0; p < 4; p++){
-					if ((wert & PLAYER_BIT_ADDR[p]) == PLAYER_BIT_ADDR[p])
-						error_exit("Hier stinkt etwas nicht!", 01);
-				}
-			}
-#endif
-
-			if (spiel.get_game_field(playernumber, y, x) == FIELD_ALLOWED){
-				calculate_possible_turns_in_position(spiel, stone, playernumber, y, x);
+/**
+ * For the given stone, calculate all possible turns on the entire board.
+ */
+void CKi::calculate_possible_turns(const CBoard& board, CStone& stone, const int playernumber) {
+	for (int x = 0; x < board.get_field_size_x(); x++) {
+		for (int y = 0; y < board.get_field_size_y(); y++) {
+			if (board.get_game_field(playernumber, y, x) == FIELD_ALLOWED){
+				calculate_possible_turns_in_position(board, stone, playernumber, y, x);
 			}
 		}
 	}
 }
 
-
-void CKi::calculate_possible_turns_in_position(const CBoard& spiel, CStone& stone, const char playernumber, const int fieldY, const int fieldX){
+/**
+ * For the given stone and position, try all positions and calculate possible turns.
+ */
+void CKi::calculate_possible_turns_in_position(const CBoard& board, CStone& stone, const int player, const int fieldY, const int fieldX) {
 	int mirror;
 
-	int rotate_count = stone.get_rotate_counter();
-	int mirror_count = stone.get_mirror_counter();
-	//int shape = stone.get_stone_shape();
+	// remember the original rotation and mirror values, as we are going to modify 'stone'
+	const int rotate_count = stone.get_rotate_counter();
+	const int mirror_count = stone.get_mirror_counter();
 
 	if (stone.get_mirrorable() == MIRRORABLE_IMPORTANT)
 	    mirror = 1;
@@ -55,12 +46,12 @@ void CKi::calculate_possible_turns_in_position(const CBoard& spiel, CStone& ston
 	for (int m = 0; m <= mirror; m++) {
 		for (int r = 0; r < stone.get_rotateable(); r++){
 			stone.mirror_rotate_to(m, r);
+
 			for (int x = 0; x < stone.get_stone_size(); x++){
 				for (int y = 0; y < stone.get_stone_size(); y++){
-
-					if (stone.get_stone_field(y, x) == STONE_FIELD_ALLOWED) {  //es wird get_stone_field benutzt, da gedreht wurde
-						if (spiel.is_valid_turn(stone, playernumber, fieldY-y, fieldX-x) == FIELD_ALLOWED){
-							m_turnpool.add_turn(playernumber, &stone, fieldY-y, fieldX-x);
+					if (stone.get_stone_field(y, x) == STONE_FIELD_ALLOWED) {
+						if (board.is_valid_turn(stone, player, fieldY - y, fieldX - x) == FIELD_ALLOWED){
+							m_turnpool.add_turn(player, &stone, fieldY - y, fieldX - x);
 						}
 					}
 				}
@@ -68,18 +59,18 @@ void CKi::calculate_possible_turns_in_position(const CBoard& spiel, CStone& ston
 		}
 	}
 
+	// restore original stone configuration
 	stone.mirror_rotate_to(mirror_count, rotate_count);
 }
 
-struct THREADDATA
-{
+struct THREADDATA {
 	CKi *ki;
-	int from,to;
+	int from, to;
 	int best_points;
-	char current_player;
+	int current_player;
 	int ki_fehler;
 	const CTurn* best;
-	const CBoard* spiel;
+	const CBoard* board;
 };
 
 #ifdef WIN32
@@ -89,21 +80,23 @@ void* kiThread(void* p)
 #endif
 {
 	THREADDATA *data = (THREADDATA*)p;
-	CBoard spiel(data->spiel->get_field_size_x(), data->spiel->get_field_size_y());
+	CBoard spiel(data->board->get_field_size_x(), data->board->get_field_size_y());
 
 	int new_points;
 #ifdef HAVE_PTHREAD_CREATE
-	if (data->from>data->to)pthread_exit((void*)0);
+	if (data->from > data->to)
+	    pthread_exit((void*)0);
 #else
-	if (data->from>data->to)return nullptr;
+	if (data->from > data->to)
+	    return nullptr;
 #endif
 
-	spiel.follow_situation(*data->spiel, data->ki->m_turnpool.get_turn(data->from));
+	spiel.follow_situation(*data->board, data->ki->m_turnpool.get_turn(data->from));
 	data->best_points = CKi::get_ultimate_points(spiel, data->current_player, data->ki_fehler, data->ki->m_turnpool.get_turn(data->from));
 	data->best = data->ki->m_turnpool.get_turn(data->from);
 
-	for (int n = data->from+1; n <= data->to; n++){
-		spiel.follow_situation(*data->spiel, data->ki->m_turnpool.get_turn(n));
+	for (int n = data->from + 1; n <= data->to; n++){
+		spiel.follow_situation(*data->board, data->ki->m_turnpool.get_turn(n));
 		new_points = CKi::get_ultimate_points(spiel, data->current_player, data->ki_fehler, data->ki->m_turnpool.get_turn(n));
 
 		if (new_points >= data->best_points) {
@@ -117,7 +110,7 @@ void* kiThread(void* p)
 	return nullptr;
 }
 
-const CTurn* CKi::get_ultimate_turn(CBoard& spiel, const char current_player, const int ki_fehler) {
+const CTurn* CKi::get_ultimate_turn(CBoard& spiel, const int current_player, const int ki_fehler) {
 	CKi::build_up_turnpool_biggest_x_stones(spiel, current_player, BIGGEST_X_STONES);
 
 	const CTurn* best;
@@ -140,7 +133,7 @@ const CTurn* CKi::get_ultimate_turn(CBoard& spiel, const char current_player, co
 		data[i].best_points = 0;
 		data[i].current_player = current_player;
 		data[i].ki_fehler = ki_fehler;
-		data[i].spiel = &spiel;
+		data[i].board = &spiel;
 
 		data[i].from=2+ i * (CKi::m_turnpool.size() - 1) / num_threads;
 		data[i].to= 2 + (i+1) * (CKi::m_turnpool.size() - 1) / num_threads - 1;
@@ -156,7 +149,7 @@ const CTurn* CKi::get_ultimate_turn(CBoard& spiel, const char current_player, co
 #endif
 	}
 
-	CBoard follow_situation(data->spiel->get_field_size_x(), data->spiel->get_field_size_y());
+	CBoard follow_situation(data->board->get_field_size_x(), data->board->get_field_size_y());
 	best = CKi::m_turnpool.get_turn(1);
 	follow_situation.follow_situation(spiel, best);
 
@@ -181,15 +174,16 @@ const CTurn* CKi::get_ultimate_turn(CBoard& spiel, const char current_player, co
 }
 
 
-void CKi::build_up_turnpool_biggest_x_stones(CBoard& spiel, const char playernumber, const int max_stored_stones){
+void CKi::build_up_turnpool_biggest_x_stones(CBoard& spiel, const int playernumber, const int max_stored_stones){
 	m_turnpool.delete_all_turns();
 	int stored_stones = 0;
 	int stored_turns = 0;
 
 	for (int n = STONE_COUNT_ALL_SHAPES -1; n >= 0; n--){
-		CStone* stone = spiel.get_player(playernumber)->get_stone(n);
-		if (stone->get_available()){
-			calculate_possible_turns(spiel, *stone, playernumber);
+		CStone& stone = spiel.get_player(playernumber)->get_stone(n);
+
+		if (stone.get_available()){
+			calculate_possible_turns(spiel, stone, playernumber);
 			if (m_turnpool.size() > stored_turns){
 				stored_stones++;
 				stored_turns = m_turnpool.size();
@@ -201,14 +195,16 @@ void CKi::build_up_turnpool_biggest_x_stones(CBoard& spiel, const char playernum
 	}
 }
 
-int CKi::get_distance_points(CBoard& follow_situation, const char playernumber, const CTurn& turn) {
-	const CStone* stone = follow_situation.get_player(playernumber)->get_stone(turn.stone_number);
-	int summe = abs(follow_situation.get_player_start_x(playernumber) - turn.x + stone->get_stone_size()/2);
-	summe += abs(follow_situation.get_player_start_y(playernumber) - turn.y + stone->get_stone_size()/2);
-	return summe;
+int CKi::get_distance_points(CBoard& follow_situation, const int playernumber, const CTurn& turn) {
+	const CStone& stone = follow_situation.get_player(playernumber)->get_stone(turn.stone_number);
+
+	return
+		abs(follow_situation.get_player_start_x(playernumber) - turn.x + stone.get_stone_size() / 2)
+		+
+		abs(follow_situation.get_player_start_y(playernumber) - turn.y + stone.get_stone_size() / 2);
 }
 
-int CKi::get_ultimate_points(CBoard& follow_situation, const char playernumber, const int ai_error, const CTurn& turn){
+int CKi::get_ultimate_points(CBoard& follow_situation, const int playernumber, const int ai_error, const CTurn& turn){
 	int sum = 0;
 	for (int p = 0; p < PLAYER_MAX; p++){
 		if (p != playernumber){
@@ -224,7 +220,7 @@ int CKi::get_ultimate_points(CBoard& follow_situation, const char playernumber, 
 	return ((100+(rand() % ((ai_error) + 1))) * sum) / 100;
 }
 
-const CTurn* CKi::get_ki_turn(CBoard& spiel, char playernumber, int ki_fehler) {
-	if (spiel.get_number_of_possible_turns(playernumber) == 0) return nullptr;
-	return CKi::get_ultimate_turn(spiel, playernumber, ki_fehler);
+const CTurn* CKi::get_ki_turn(CBoard& spiel, const int player, int ai_error) {
+	if (spiel.get_number_of_possible_turns(player) == 0) return nullptr;
+	return CKi::get_ultimate_turn(spiel, player, ai_error);
 }

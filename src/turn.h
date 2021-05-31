@@ -4,10 +4,8 @@
 #include <cstddef>
 #include "stone.h"
 
-class CBoard;
-class CPlayer;
-
-struct CTurn {
+class CTurn {
+public:
 	const int player;
 	const int stone_number;
 	const int mirror_count;

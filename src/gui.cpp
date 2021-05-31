@@ -579,15 +579,15 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 					/* Wenn auch noch dieses Feld als "erlaubt" gekennzeichnet wurde,
 					   diesen Zug ausfuehren. */
 					/* Zuerst ausgewaehlten CStone erhalten */
-					CStone* stone=spiel->get_current_player()->get_stone(current_stone);
+					CStone& stone=spiel->get_current_player()->get_stone(current_stone);
 					/* Stein an selectedx/selectedy zentrieren. */
-					int x=selectedx-stone->get_stone_size()/2;
-					int y=selectedy-stone->get_stone_size()/2;
+					int x=selectedx-stone.get_stone_size()/2;
+					int y=selectedy-stone.get_stone_size()/2;
 					/* Schonmal ne Animation starten, wenn aktiviert. */
 					if (options.get(OPTION_ANIMATE_STONES))
-						addEffect(new CStoneRollEffect(this,stone,current_stone,spiel->current_player(),x,y,false));
+						addEffect(new CStoneRollEffect(this,&stone,current_stone,spiel->current_player(),x,y,false));
 					/* Den SpielClient den Stein setzen lassen. Schickt ne Anfrage an den SpielServer. */
-					if (spiel->request_set_stone(*stone, y, x)==FIELD_ALLOWED)
+					if (spiel->request_set_stone(stone, y, x)==FIELD_ALLOWED)
 						newCurrentPlayer(spiel->current_player());
 					/* Keinen Stein auswaehlen. */
 					current_stone=-1;
@@ -596,13 +596,13 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 			{
 				/* Wenn ein Stein ausgewaehlt ist, UND ein Pfeil */
 				/* Ausgewaehlten CStone* holen. */
-				CStone* stone=spiel->get_current_player()->get_stone(current_stone);
+				CStone& stone=spiel->get_current_player()->get_stone(current_stone);
 
 				/* Und je nach Pfeil, den Stein drehen, rotieren, etc. */
-				if (selected_arrow==1)stone->rotate_right();
-				if (selected_arrow==2)stone->rotate_left();
-				if (selected_arrow==3)stone->mirror_over_y();
-				if (selected_arrow==4)stone->mirror_over_x();
+				if (selected_arrow==1)stone.rotate_right();
+				if (selected_arrow==2)stone.rotate_left();
+				if (selected_arrow==3)stone.mirror_over_y();
+				if (selected_arrow==4)stone.mirror_over_x();
 			}
 			/* Es wurde anscheinend ins Leere geklickt, keinen Stein auswaehlen. */
 			else current_stone=-1;
@@ -615,9 +615,9 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 		}
 		/* Mausrad wurde gedreht. Wenn keine Maustaste dabei gedruckt ist, aktuellen Stein drehen. */
 		if (e->button4 && !e->button1 && !e->button2 && !e->button3 && !e->button5)
-			if (current_stone!=-1)spiel->get_current_player()->get_stone(current_stone)->rotate_left();
+			if (current_stone!=-1)spiel->get_current_player()->get_stone(current_stone).rotate_left();
 		if (e->button5 && !e->button1 && !e->button2 && !e->button3 && !e->button4)
-			if (current_stone!=-1)spiel->get_current_player()->get_stone(current_stone)->rotate_right();
+			if (current_stone!=-1)spiel->get_current_player()->get_stone(current_stone).rotate_right();
 
 		/* Mausrad wurde gedreht, aber rechte Maustaste ist down:
 		   Durch alle Steine durchscrollen. */
@@ -632,7 +632,7 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 				/* Vorne wieder hinten anfangen. */
 				if (current_stone<0)current_stone=STONE_COUNT_ALL_SHAPES-1;
 				/* Und wenn der Stein sogar verfuegbar ist, gluecklich sein und raus. */
-				if (spiel->get_current_player()->get_stone(current_stone)->get_available())
+				if (spiel->get_current_player()->get_stone(current_stone).get_available())
 					return;
 			}
 			/* Sonst keinen Stein auswaehlen, da keiner mehr da. */
@@ -646,7 +646,7 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 			{
 				current_stone++;
 				if (current_stone>=STONE_COUNT_ALL_SHAPES)current_stone=0;
-				if (spiel->get_current_player()->get_stone(current_stone)->get_available())
+				if (spiel->get_current_player()->get_stone(current_stone).get_available())
 					return;
 			}
 			current_stone=-1;
@@ -668,11 +668,11 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 			if (abs(e->x-clickx)<4 && abs(e->y-clicky)<4 && spiel->is_local_player() && current_stone!=-1)
 			{
 				/* Dann spiegle den aktuellen Stein um die Y-Achse des Screens. */
-				CStone *s=spiel->get_current_player()->get_stone(current_stone);
+				CStone &s=spiel->get_current_player()->get_stone(current_stone);
 				/* Das ist also abhaenig vom Blickwinkel, also angy */
 				if (angy<45.0 || angy>315.0 || ((angy<45+180) && (angy>-45+180)))
-					s->mirror_over_y();
-				else s->mirror_over_x();
+					s.mirror_over_y();
+				else s.mirror_over_x();
 			}
 		}
 		/* Guckwn, wo ich mit der Maus bin */
@@ -728,10 +728,10 @@ void CGUI::processKeyEvent(unsigned short key)
 	else if (key==VK_SPACE && spiel->is_local_player() && current_stone!=-1)
 	{
 		/* Diesen an der Y-Achse des Screens spiegeln. */
-		CStone *s=spiel->get_current_player()->get_stone(current_stone);
+		CStone &s=spiel->get_current_player()->get_stone(current_stone);
 		if (angy<45.0 || angy>315.0 || ((angy<45+180) && (angy>-45+180)))
-			s->mirror_over_y();
-		else s->mirror_over_x();
+			s.mirror_over_y();
+		else s.mirror_over_x();
 	}else 
 	/* Bei Return, wenn ein Spiel laeuft, die ChatBox sichtbar machen. */
 		if (key==VK_RETURN && !menu && spiel->isConnected())chatbox->show();
@@ -741,10 +741,10 @@ void CGUI::processKeyEvent(unsigned short key)
 	else if (spiel->is_local_player()) {
 		/* Taste rauf, dann aktuelle Stein nach links drehen */
 		if (key==VK_UP && current_stone!=-1)
-			spiel->get_current_player()->get_stone(current_stone)->rotate_left();
+			spiel->get_current_player()->get_stone(current_stone).rotate_left();
 		/* Taste runter, den Rummel nach rechts. */
 		if (key==VK_DOWN && current_stone!=-1)
-			spiel->get_current_player()->get_stone(current_stone)->rotate_right();
+			spiel->get_current_player()->get_stone(current_stone).rotate_right();
 
 		/* Links und rechts -> vorherigen / naechsten Stein auswaehlen. */
 		if (key==VK_LEFT)
@@ -753,7 +753,7 @@ void CGUI::processKeyEvent(unsigned short key)
 			{
 				current_stone--;
 				if (current_stone<0)current_stone=STONE_COUNT_ALL_SHAPES-1;
-				if (spiel->get_current_player()->get_stone(current_stone)->get_available())
+				if (spiel->get_current_player()->get_stone(current_stone).get_available())
 					return;
 			}
 			current_stone=-1;
@@ -764,7 +764,7 @@ void CGUI::processKeyEvent(unsigned short key)
 			{
 				current_stone++;
 				if (current_stone>=STONE_COUNT_ALL_SHAPES)current_stone=0;
-				if (spiel->get_current_player()->get_stone(current_stone)->get_available())
+				if (spiel->get_current_player()->get_stone(current_stone).get_available())
 					return;
 			}
 			/* Keinen Stein auswaehlen, da anscheinend keiner mehr verfuegbar. */
@@ -1094,10 +1094,10 @@ void CGUI::testSelection(int x,int y)
 		if (current_stone!=-1)
 		{
 			/* Gucken, ob aktueller Stein so an die Position passen wuerde. */
-			CStone *stone=spiel->get_current_player()->get_stone(current_stone);
-			int vx=selectedx-stone->get_stone_size()/2,vy=selectedy-stone->get_stone_size()/2;
+			const CStone &stone=spiel->get_current_player()->get_stone(current_stone);
+			int vx=selectedx-stone.get_stone_size()/2,vy=selectedy-stone.get_stone_size()/2;
 			/* Und merken, ob der Stein passen taete. */
-			selected_allowed=(spiel->is_valid_turn(*stone, spiel->current_player(),vy,vx)==FIELD_ALLOWED);
+			selected_allowed=(spiel->is_valid_turn(stone, spiel->current_player(),vy,vx)==FIELD_ALLOWED);
 		}
 	}else if (type==2 && numberOfNames==2)
 	{
@@ -1268,19 +1268,19 @@ void CGUI::renderPlayerStones(int player,double alpha,bool selectionbuffer)const
 	/* Durch alle Steinformen iterieren */
 	for (int num=0;num<STONE_COUNT_ALL_SHAPES;num++)
 	{
-		CStone *stone=spiel->get_player(player)->get_stone(num);
+		CStone &stone=spiel->get_player(player)->get_stone(num);
 		/* Wenn der Stein noch vorhanden ist, aber nicht von einem Effekt behandelt */
-		if (stone->get_available()>1 || (stone->get_available()==1 && (!effects || !effects->handle_player_stone(player,num))))
+		if (stone.get_available()>1 || (stone.get_available()==1 && (!effects || !effects->handle_player_stone(player,num))))
 		{
 			glPushName(2);
 			glPushName(num);
 			/* Wenn der Stein zum aktuellem lokalen Spieler gehoert, current_stone und hovered_stone
 			   mit einbeziehen. */
 			if (player==spiel->current_player() && spiel->is_local_player())
-				renderPlayerStone(player,stone,num,(num==current_stone),(num==hovered_stone),alpha,selectionbuffer);
+				renderPlayerStone(player,&stone,num,(num==current_stone),(num==hovered_stone),alpha,selectionbuffer);
 			/* Sonst statisch rendern, und auch nur, wenn nicht in selectionBuffer. Da haben
 			   Steine vom Computer nix verloren. */
-			else if (!selectionbuffer)renderPlayerStone(player,stone,num,false,false,alpha,false);
+			else if (!selectionbuffer)renderPlayerStone(player,&stone,num,false,false,alpha,false);
 			glPopName();
 			glPopName();
 		}
@@ -1290,7 +1290,7 @@ void CGUI::renderPlayerStones(int player,double alpha,bool selectionbuffer)const
 	{
 		/* Dann rendere die Pfeile um diesen Stein. */
 		glPushName(3);
-		renderPlayerStoneArrows(player,spiel->get_player(player)->get_stone(current_stone),current_stone,selectionbuffer);
+		renderPlayerStoneArrows(player,&spiel->get_player(player)->get_stone(current_stone),current_stone,selectionbuffer);
 		glPopName();
 	}
 }
@@ -1968,15 +1968,15 @@ bool CGUI::isInSelection(int x,int y)const
 	if (selectedx==-1 || selectedy==-1)return false;
 
 	/* Stein holen. */
-	CStone *stone=spiel->get_current_player()->get_stone(current_stone);
+	CStone &stone=spiel->get_current_player()->get_stone(current_stone);
 	/* x/y in Koordinaten relativ zum Stein umrechnen. */
-	y=y-selectedy+stone->get_stone_size()/2;
-	x=x-selectedx+stone->get_stone_size()/2;
+	y=y-selectedy+stone.get_stone_size()/2;
+	x=x-selectedx+stone.get_stone_size()/2;
 	/* Wenn ausserhalb des Steins, ists auf jeden Fall ausserhalb. */
-	if (x<0 || y<0 || x>=stone->get_stone_size() || y>=stone->get_stone_size())return false;
+	if (x<0 || y<0 || x>=stone.get_stone_size() || y>=stone.get_stone_size())return false;
 
 	/* Sonst true, wenn der Stein dort tatsaechlich ein Feld besitzt */
-	if (stone->get_stone_field(y,x)!=STONE_FIELD_FREE)return true;
+	if (stone.get_stone_field(y,x)!=STONE_FIELD_FREE)return true;
 	/* Sonst wohl nicht. */
 	return false;
 }
@@ -2069,17 +2069,17 @@ void CGUI::showHint()
 		spiel->send_message((NET_HEADER*)&data,sizeof(data),MSG_REQUEST_HINT);
 		hint->setEnabled(false);
 #else
-		CTurn *t=spiel->get_ki_turn(spiel->current_player(),KI_HARD); 
+		CTurn *t=board->get_ki_turn(board->current_player(),KI_HARD);
 		/* Animation nicht weiterlaufen lassen, da sonst Spruenge auftreten. */
 		timer.reset(); 
 		/* Wenn es einen Zug gibt */
 		if (t)
 		{
 			/* Effekt zu dem Zug anzeigen, seicht blinken lassen. */
-			effects->add(new CStoneFadeEffect(this,t,spiel->current_player()));
+			effects->add(new CStoneFadeEffect(this,t,board->current_player()));
 			/* Den vorgeschlagenen Zug sogar auswaehlen. */
 			current_stone=t->get_stone_number();
-			spiel->get_current_player()->get_stone(t->get_stone_number())->mirror_rotate_to(t->get_mirror_count(),t->get_rotate_count());
+			board->get_current_player()->get_stone(t->get_stone_number())->mirror_rotate_to(t->get_mirror_count(),t->get_rotate_count());
 		}
 #endif
 	}

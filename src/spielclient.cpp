@@ -287,19 +287,19 @@ void CSpielClient::process_message(NET_HEADER* data)
 		case MSG_SET_STONE: {
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
 			/* Entsprechenden Stein des Spielers holen */
-			CStone *stone=get_player(s->player)->get_stone(s->stone);
+			CStone &stone=get_player(s->player)->get_stone(s->stone);
 			/* Stein in richtige Position drehen */
-			stone->mirror_rotate_to(s->mirror_count,s->rotate_count);
+			stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
 			/* Stein aufs echte Spielfeld setzen */
-			if ((is_valid_turn(*stone, s->player, s->y, s->x) == FIELD_DENIED) ||
-                (set_stone(*stone, s->player, s->y, s->x) != FIELD_ALLOWED))
+			if ((is_valid_turn(stone, s->player, s->y, s->x) == FIELD_DENIED) ||
+                (set_stone(stone, s->player, s->y, s->x) != FIELD_ALLOWED))
 			{	// Spiel scheint nicht mehr synchron zu sein
 				// GAANZ schlecht!!
 				printf("Game not in sync!\n");
 				exit(1);
 			}
 			/* Zug der History anhaengen */
-			addHistory(s->player, stone, s->y, s->x);
+			addHistory(s->player, &stone, s->y, s->x);
 			stoneWasSet(s);
 			break;
 		}
@@ -366,8 +366,8 @@ void CSpielClient::process_message(NET_HEADER* data)
 			if (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR)
 			{
 				for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
-					get_player(1)->get_stone(n)->set_available(0);
-					get_player(3)->get_stone(n)->set_available(0);
+					get_player(1)->get_stone(n).set_available(0);
+					get_player(3)->get_stone(n).set_available(0);
 				}
 			}
 
@@ -402,8 +402,8 @@ void CSpielClient::process_message(NET_HEADER* data)
 			if (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR)
 			{
 				for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){
-					get_player(1)->get_stone(n)->set_available(0);
-					get_player(3)->get_stone(n)->set_available(0);
+					get_player(1)->get_stone(n).set_available(0);
+					get_player(3)->get_stone(n).set_available(0);
 				}
 			}
 			m_current_player=-1;
@@ -414,7 +414,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 		/* Server laesst den letzten Zug rueckgaengig machen */
 		case MSG_UNDO_STONE: {
 			const CTurn *t=history.get_last_turn();
-			CStone *stone=get_player(t->player)->get_stone(t->stone_number);
+			const CStone &stone=get_player(t->player)->get_stone(t->stone_number);
 			stoneUndone(stone, t);
 			undo_turn(history, m_game_mode);
 			break;

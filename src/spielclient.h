@@ -81,7 +81,7 @@ private:
 	virtual void gameFinished(){};
 	virtual void chatReceived(NET_CHAT* c){};
 	virtual void gameStarted(){};
-	virtual void stoneUndone(CStone *s, const CTurn *t){};
+	virtual void stoneUndone(const CStone &s, const CTurn *t){};
 };
 
 #endif
