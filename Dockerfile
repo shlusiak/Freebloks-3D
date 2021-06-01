@@ -7,7 +7,9 @@ RUN apk add autoconf automake g++ make
 ADD . /install
 WORKDIR /install
 
-RUN aclocal && autoconf && automake --add-missing
+RUN aclocal
+RUN autoreconf -i
+RUN automake --add-missing
 RUN ./configure --without-gui --disable-dependency-tracking
 RUN make clean && make all -j 4
 
