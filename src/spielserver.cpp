@@ -1080,7 +1080,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 		FD_SET((unsigned int)listen_sockets[i],&filedescriptors);
 		if (max<listen_sockets[i])max=listen_sockets[i];
 	}
-	for (int i=0;i<CLIENTS_MAX;i++)if (get_game()->clients[i]!=0)
+	for (i=0;i<CLIENTS_MAX;i++)if (get_game()->clients[i]!=0)
 	{
 		FD_SET((unsigned int)get_game()->clients[i],&filedescriptors);
 		if (max<get_game()->clients[i])max=get_game()->clients[i];
@@ -1175,7 +1175,6 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
  **/
 void CServerListener::new_game(int max_humans, int ki_mode, GAMEMODE gamemode, int ki_threads, bool forceDelay)
 {
-	delete server;
 	server = new CSpielServer(max_humans, ki_mode, gamemode, forceDelay);
 	server->set_ki_threads(ki_threads);
 }

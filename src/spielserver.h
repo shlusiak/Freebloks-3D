@@ -127,9 +127,9 @@ private:
 	int num_listen_sockets;
 
 	/* Der CSpielServer, den der Listener aufbaut */
-	CSpielServer* server;
+	CSpielServer* server = nullptr;
 	/* logger */
-	CLogger* logger;
+	CLogger* logger = nullptr;
 public:
 	CServerListener();
 	~CServerListener();

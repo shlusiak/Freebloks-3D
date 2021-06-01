@@ -1,10 +1,8 @@
 /**
  * dedicated.cpp
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
- * Hauptprogramm des dedizierten Freebloks Servers!!
- * Der Server laeuft endlos durch, akzeptiert Verbindungen und laesst ggf. mehrere Spiele
- * gleichzeitig laufen.
+ * Standalone dedicated server that will endlessly run games and listen on a socket.
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -29,11 +27,10 @@
 
 
 
-/* Globale Variablen. Koennen durch Kommandozeilenparameter geaendert werden. */
-static int port=TCP_PORT;
-static char* _interface = nullptr;
-static int max_humans=4;
-static GAMEMODE gamemode=GAMEMODE_4_COLORS_4_PLAYERS;
+static int port = TCP_PORT;
+static const char* _interface = nullptr;
+static int max_humans = 4;
+static GAMEMODE gamemode = GAMEMODE_4_COLORS_4_PLAYERS;
 static int width=20,height=20;
 static int ki_threads=2;
 static int ki_strength=KI_HARD;
@@ -48,13 +45,12 @@ static pthread_mutex_t mutex;
 #endif
 static char* logfile = nullptr;
 static CStdoutWriter logWriter;
-static CServerListener* listener; /* the primary listener for new games */
+static CServerListener* listener = nullptr; /* the primary listener for new games */
 static const char* stats_socket_file = "/tmp/freebloks_stats";
 
 static struct {
 	time_t time_started;
 	int connections_v4, connections_v6;
-
 } stats;
 
 
@@ -69,7 +65,7 @@ inline void init_mutex()
 #ifdef WIN32
 	mutex=CreateMutex(nullptr,FALSE,nullptr);
 #else
-	pthread_mutex_init(&mutex,nullptr);
+	pthread_mutex_init(&mutex, nullptr);
 #endif
 }
 
@@ -203,7 +199,6 @@ static void* stat_thread(void* param) {
 #endif
 
 
-/* Hilfetext ausgeben */
 static void help()
 {
 	printf("Usuage: dedicated [OPTIONS]\n");
@@ -237,8 +232,7 @@ static void help()
 	exit(0);
 }
 
-/* Kommandozeilenparameter verarbeiten */
-static void parseParams(int argc,char **argv)
+static void parse_params(int argc,char **argv)
 {
 	int i=1;
 	while (i<argc)
@@ -460,31 +454,33 @@ static void parseParams(int argc,char **argv)
 
 
 
-
 /**
- * Funktion kriegt einen CServerListener und wartet so lange, bis das Spiel gestartet wurde
+ * Block until the given game is fully established and running.
  **/
-static int EstablishGame(CServerListener* listener)
+static int establish_game()
 {
 	int ret;
+
 	do
 	{
 		sockaddr_storage client;
 		client.ss_family = AF_UNSPEC;
-		/* Listener auf einen Client warten oder eine Netzwerknachricht verarbeiten lassen */
-		ret=listener->wait_for_player(true, &client);
-		/* Bei Fehler: Raus hier */
+
+		ret = listener->wait_for_player(true, &client);
 		if (ret==-1)
 		{
 			perror("wait(): ");
 			return -1;
 		}
+
 		if (client.ss_family == AF_INET6)
 			stats.connections_v6++;
+
 		if (client.ss_family == AF_INET)
 			stats.connections_v4++;
-		/* Solange, wie kein aktueller Spieler festgelegt ist: Spiel laeuft noch nicht */
-	}while (listener->get_game()->current_player()==-1);
+
+	} while (listener->get_game()->current_player()==-1);
+
 	return 0;
 }
 
@@ -494,7 +490,7 @@ unsigned long WINAPI gameRunThread(void* param)
 void* gameRunThread(void* param)
 #endif
 {
-	CSpielServer* game=(CSpielServer*)param;
+	CSpielServer* game=(CSpielServer*) param;
 	CGameLogger logger((CLogWriter*)&logWriter, games_ran);
 	
 	game->setLogger(&logger);
@@ -502,7 +498,7 @@ void* gameRunThread(void* param)
 	lock_mutex();
 	/* Das Spiel laeuft jetzt */
 	logger.logTime();
-	logger.logLine("Game started with %d clients / %d players. (%d games running)",game->num_clients(),game->num_players(),games_running);
+	logger.logLine("Game started with %d clients / %d players. (%d games running)",game->num_clients(), game->num_players(),games_running);
 	unlock_mutex();
 
 	game->run();
@@ -526,11 +522,11 @@ int main(int argc,char ** argv)
 
 	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
 	   und Clients connecten laesst */
-	listener=new CServerListener();
+	listener = new CServerListener();
 	CGameLogger logger((CLogWriter*)&logWriter, 0);
 
 	/* Kommandozeilenparameter verarbeiten */
-	parseParams(argc,argv);
+	parse_params(argc,argv);
 
 #ifdef WIN32
 	/* Winsock initialisieren */
@@ -568,13 +564,10 @@ int main(int argc,char ** argv)
 	logger.logTime();
 	logger.logLine("Server starting\n");
 
-
-	/* Listener fuer Akzeptieren von Verbindungen einrichten */
-	ret=listener->init(_interface,port);
+	ret = listener->init(_interface,port);
 	if (ret!=0)
 	{
-	    /* Konnte nicht "listen", evtl. Port durch andere Anwendung belegt? */
-	    printf("Error calling listen: %s\n",strerror(errno));
+	    printf("Error calling listen: %s\n", strerror(errno));
 	    return -1;
 	}
 	init_mutex();
@@ -586,7 +579,6 @@ int main(int argc,char ** argv)
 	pthread_create(&pt, nullptr, stat_thread, (void*)stats_socket_file);
 #endif
 
-	/* Dedizierter Server laeuft endlos */
 	while (true)
 	{
 		/* Ein neues Spiel soll erstellt werden.
@@ -601,7 +593,7 @@ int main(int argc,char ** argv)
 
 		/* Ein Spiel wurde erstellt, der Listener lauscht. Jetzt Spiel fuellen lassen
 		   und solange warten, bis es von einem Client gestartet wurde */
-		if (EstablishGame(listener)==-1)return -1;
+		if (establish_game()==-1)return -1;
 
 		/* Das aktuelle Spiel in einen sekundaeren Thread auslagern */
 		lock_mutex();
@@ -612,7 +604,7 @@ int main(int argc,char ** argv)
 		DWORD threadid;
 		CloseHandle(CreateThread(nullptr,0,gameRunThread,(void*)listener->get_game(),0,&threadid));
 #else
-		if (pthread_create(&pt,nullptr,gameRunThread,(void*)listener->get_game()))
+		if (pthread_create(&pt, nullptr, gameRunThread, (void*)listener->get_game()))
 			perror("pthread_create");
 		if (pthread_detach(pt))perror("pthread_detach");
 #endif
@@ -643,8 +635,8 @@ int main(int argc,char ** argv)
 		}
 		unlock_mutex();
 	}
-	/* Aufraeumen */
-	// TODO: Diese Codezeilen werden doch eh nie erreicht, aber egal.
+
+	// unreachable code
 	delete listener;
 	destroy_mutex();
 
@@ -652,6 +644,7 @@ int main(int argc,char ** argv)
 	/* Winsock sauber beenden */
 	WSACleanup();
 #endif
+
 	return 0;
 }
 
