@@ -491,7 +491,7 @@ void* gameRunThread(void* param)
 #endif
 {
 	CSpielServer* game=(CSpielServer*) param;
-	CGameLogger logger((CLogWriter*)&logWriter, games_ran);
+	CGameLogger logger(logWriter, games_ran);
 	
 	game->setLogger(&logger);
 	

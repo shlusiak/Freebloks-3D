@@ -110,15 +110,15 @@ void* kiThread(void* p)
 	    return nullptr;
 #endif
 
-	board.follow_situation(*original, ki->m_turnpool.get_turn(data->from));
-	data->best_points = get_ultimate_points(board, data->current_player, data->ai_error, data->ki->m_turnpool.get_turn(data->from));
+	board.follow_situation(*original, *ki->m_turnpool.get_turn(data->from));
+	data->best_points = get_ultimate_points(board, data->current_player, data->ai_error, *data->ki->m_turnpool.get_turn(data->from));
 	data->best = ki->m_turnpool.get_turn(data->from);
 
 	for (int n = data->from + 1; n <= data->to; n++){
 	    const CTurn* turn = data->ki->m_turnpool.get_turn(n);
 
-		board.follow_situation(*original, turn);
-		new_points = get_ultimate_points(board, data->current_player, data->ai_error, turn);
+		board.follow_situation(*original, *turn);
+		new_points = get_ultimate_points(board, data->current_player, data->ai_error, *turn);
 
 		if (new_points >= data->best_points) {
 			data->best = turn;
@@ -174,9 +174,9 @@ const CTurn* CKi::get_ultimate_turn(CBoard& board, const int current_player, con
 
 	CBoard follow_situation(board.get_field_size_x(), board.get_field_size_y());
 	best = m_turnpool.get_turn(1);
-	follow_situation.follow_situation(board, best);
+	follow_situation.follow_situation(board, *best);
 
-	best_points = get_ultimate_points(follow_situation, current_player, ai_error, best);
+	best_points = get_ultimate_points(follow_situation, current_player, ai_error, *best);
 
 	for (i = 0; i < num_threads; i++)
 	{

@@ -20,8 +20,7 @@
 
 CLogWriter::~CLogWriter()
 {
-	if (next)
-		delete next;
+	delete next;
 	next = nullptr;
 }
 
@@ -101,8 +100,7 @@ void CLogFileWriter::log(const char* fmt, va_list va)
 
 void CLogger::logva(const char* fmt, va_list va)
 {
-	if (writer)
-		writer->log(fmt, va);
+	writer.log(fmt, va);
 }
 
 void CLogger::log(const char* fmt, ...)
@@ -143,7 +141,7 @@ void CLogger::logTime()
 
 
 
-CGameLogger::CGameLogger(CLogWriter* _writer, int _game_number)
+CGameLogger::CGameLogger(CLogWriter& _writer, int _game_number)
 :CLogger(_writer)
 {
 	game_number=_game_number;

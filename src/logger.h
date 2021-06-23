@@ -46,11 +46,11 @@ public:
 class CLogger
 {
 private:
-	CLogWriter* writer;
+	CLogWriter& writer;
 protected:
 	void logva(const char* fmt, va_list va);
 public:
-	CLogger(CLogWriter* _writer) { writer = _writer; }
+	CLogger(CLogWriter& _writer): writer(_writer) { }
 
 	void log(const char* fmt, ...);
 	virtual void logLine(const char* fmt, ...);
@@ -63,7 +63,7 @@ class CGameLogger:public CLogger
 private:
 	int game_number;
 public:
-	CGameLogger(CLogWriter* _writer, int _game_number);
+	CGameLogger(CLogWriter& _writer, int _game_number);
 	virtual void logHeader();
 };
 

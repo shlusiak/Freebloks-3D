@@ -188,8 +188,8 @@ void CSpielServer::run()
 			data.y=turn->y;
 
 			/* Zug lokal wirklich setzen, wenn Fehlschlag, ist das Spiel wohl nicht mehr synchron */
-			if ((!CBoard::is_valid_turn(turn)) ||
-                (!CBoard::set_stone(turn)))
+			if ((!CBoard::is_valid_turn(*turn)) ||
+                (!CBoard::set_stone(*turn)))
 			{
 				printf("Game not in sync (2)\n");
 				exit(2);
@@ -651,7 +651,7 @@ void CSpielServer::send_server_status()
 	}
 	status.version = NET_SERVER_STATUS_VERSION;
 	status.version_min = 1;
-	for (int i = 0; i < STONE_COUNT_ALL_SHAPES; i++)
+	for (i = 0; i < STONE_COUNT_ALL_SHAPES; i++)
 		status.stone_numbers[i] = stone_numbers[i];
 
 	send_all((NET_HEADER*)&status,sizeof(status),MSG_SERVER_STATUS);

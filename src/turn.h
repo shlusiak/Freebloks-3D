@@ -21,13 +21,13 @@ public:
 			y(y),
 			x(x) { }
 
-	CTurn(const CTurn* turn):
-			player(turn->player),
-			stone_number(turn->stone_number),
-			mirror_count(turn->mirror_count),
-			rotate_count(turn->rotate_count),
-			y(turn->y),
-			x(turn->x) { }
+	CTurn(const CTurn& turn):
+			player(turn.player),
+			stone_number(turn.stone_number),
+			mirror_count(turn.mirror_count),
+			rotate_count(turn.rotate_count),
+			y(turn.y),
+			x(turn.x) { }
 };
 
 #endif
