@@ -523,7 +523,7 @@ int main(int argc,char ** argv)
 	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
 	   und Clients connecten laesst */
 	listener = new CServerListener();
-	CGameLogger logger((CLogWriter*)&logWriter, 0);
+	CGameLogger logger(logWriter, 0);
 
 	/* Kommandozeilenparameter verarbeiten */
 	parse_params(argc,argv);
