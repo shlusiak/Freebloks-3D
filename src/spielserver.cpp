@@ -914,14 +914,12 @@ int CServerListener::init(const char* interface_,int port)
 #ifndef WIN32
 	if (port == 0)
 	{
+		// Try abstract unix domain socket
+
 		int listen_socket;
 		int i;
 		struct sockaddr_un my_addr;
 		errno=0;
-		if (interface_ == nullptr) {
-			errno = EINVAL;
-			return -1;
-		}
 
 		num_listen_sockets = 0;
 		listen_socket=socket(PF_UNIX,SOCK_STREAM,0);
@@ -929,13 +927,23 @@ int CServerListener::init(const char* interface_,int port)
 			return errno;
 
 		my_addr.sun_family=AF_UNIX;
-		strcpy(my_addr.sun_path, interface_);
+		memset(my_addr.sun_path, 0, UNIX_PATH_MAX);
+		// This moves it into the abstract namespace, copying interface_ after the null byte
+		int addr_len = 0;
+		if (interface_ != nullptr) {
+			strcpy(&my_addr.sun_path[1], interface_);
+			addr_len = strlen(interface_);
+		}
+		my_addr.sun_path[0] = '\0';
+
 		i = 1;
 		if (setsockopt(listen_socket,SOL_SOCKET,SO_REUSEADDR,&i,sizeof(i))==-1)
 		{
 			// nop
 		}
-		if (bind(listen_socket,(struct sockaddr*)&my_addr,sizeof(my_addr))!=0)
+		if (errno) return errno;
+
+		if (bind(listen_socket,(struct sockaddr*)&my_addr,sizeof(my_addr.sun_family) + addr_len + 1)!=0)
 		{
 			closesocket(listen_socket);
 			if (errno) return errno;
@@ -951,7 +959,7 @@ int CServerListener::init(const char* interface_,int port)
 			if (errno) return errno;
 			return -1;
 		}
-		/* Erfolg */
+		/* Success */
 
 		return 0;
 	}
