@@ -30,6 +30,9 @@
 #include <pthread.h>
 #endif
 
+#include "game.h"
+#include "constants.h"
+#include "network.h"
 #include "spielserver.h"
 #include "timer.h"
 
@@ -288,6 +291,9 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 	{
 		/* Der Client fordert einen lokalen Spieler an */
 		case MSG_REQUEST_PLAYER: {
+			if (ntohs(data->data_length) < sizeof(NET_REQUEST_PLAYER) - sizeof(NET_HEADER))
+				return;
+
 			NET_REQUEST_PLAYER *req = (NET_REQUEST_PLAYER*)(data);
 			NET_GRANT_PLAYER msg;
 			int n;
@@ -372,13 +378,16 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 		}
 
 		case MSG_REVOKE_PLAYER: {
+			if (ntohs(data->data_length) < sizeof(NET_REVOKE_PLAYER) - sizeof(NET_HEADER))
+				return;
+
 			/* client requests to revoke an assigned player */
 			NET_REVOKE_PLAYER *rev = (NET_REVOKE_PLAYER*)(data);
 			if (m_current_player > -1)
 				break;
 			if (rev->player < 0)
 				break;
-			if (rev->player > PLAYER_MAX)
+			if (rev->player >= PLAYER_MAX)
 				break;
 
 			if (player[rev->player] == clients[client]) {
@@ -403,6 +412,9 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 
 		/* Ein Client moechte einen Stein setzen */
 		case MSG_SET_STONE:{
+			if (ntohs(data->data_length) < sizeof(NET_SET_STONE) - sizeof(NET_HEADER))
+				return;
+
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
 			/* Den entsprechenden Stein aus den Daten zusammensuchen */
 			if (s->player != m_current_player) {
@@ -452,8 +464,11 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 
 		/* Eine Chat-Nachricht von einem Client empfangen. */
 		case MSG_CHAT:
-			/* Setze in der Nachricht die Nummer des Clients, der sie versendet hat. */
-			((NET_CHAT*)data)->client=client;
+			if (ntohs(data->data_length) < sizeof(NET_CHAT) - sizeof(NET_HEADER))
+				break;
+
+			// Record sending client who sent the message
+			((NET_CHAT*)data)->client = client;
 
 			/* Zwangsnullterminiere den empfangenen Text. Nur zur Sicherheit. */
 			((NET_CHAT*)data)->text[ntohs(data->data_length)-sizeof(NET_CHAT)-1]='\0';
@@ -506,7 +521,13 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 		}
 
 		case MSG_REQUEST_HINT: {
-			const CTurn *turn=m_ki.get_ki_turn(*this, ((NET_REQUEST_HINT*)data)->player,KI_HARD);
+			if (ntohs(data->data_length) < sizeof(NET_REQUEST_HINT) - sizeof(NET_HEADER))
+				return;
+
+			const CTurn *turn = m_ki.get_ki_turn(*this, ((NET_REQUEST_HINT*)data)->player,KI_HARD);
+			if (turn == nullptr)
+				return;
+
 			NET_SET_STONE d;
 
 			d.player=((NET_REQUEST_HINT*)data)->player;
@@ -522,6 +543,9 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 		}
 
 		case MSG_REQUEST_GAME_MODE: {
+			if (ntohs(data->data_length) < sizeof(NET_REQUEST_GAME_MODE) - sizeof(NET_HEADER))
+				return;
+
 			NET_REQUEST_GAME_MODE* r = (NET_REQUEST_GAME_MODE*)data;
 			if (m_current_player > -1) {
 				send_server_status();
