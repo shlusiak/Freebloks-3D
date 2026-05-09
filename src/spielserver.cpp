@@ -462,7 +462,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			start_game();
 			break;
 
-		/* Eine Chat-Nachricht von einem Client empfangen. */
+		// Received a chat message from a client
 		case MSG_CHAT:
 			if (ntohs(data->data_length) < sizeof(NET_CHAT))
 				break;
@@ -470,10 +470,10 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			// Record sending client who sent the message
 			((NET_CHAT*)data)->client = client;
 
-			/* Zwangsnullterminiere den empfangenen Text. Nur zur Sicherheit. */
-			((NET_CHAT*)data)->text[ntohs(data->data_length)-sizeof(NET_CHAT)-1]='\0';
+			// Add terminating zero to the end of the buffer, just in case
+			((NET_CHAT*)data)->text[ntohs(data->data_length) - sizeof(NET_CHAT)]='\0';
 
-			/* Schicke leicht modifizierte Chat-Nachricht an alle anderen Clients weiter. */
+			// Now broadcast that modified message to all clients
 			send_all(data,ntohs(data->data_length),MSG_CHAT);
 
 			if (logger)

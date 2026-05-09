@@ -117,7 +117,7 @@ void CLogger::logLine(const char* fmt, ...)
 	va_start(va, fmt);
 	logHeader();
 	logva(fmt, va);
-	if (fmt[strlen(fmt)-1]!='\n')
+	if (fmt[strlen(fmt) - 1] !=  '\n')
 		log("\n");
 	va_end(va);
 }
