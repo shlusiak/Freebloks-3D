@@ -92,7 +92,7 @@ void CSpielServer::add_client(int s)
 	{
 		char c[50];
 		/* Alle Clients ueber neuen Spieler informieren. */
-		sprintf(c,"Client %d joined",i);
+		snprintf(c, sizeof(c), "Client %d joined", i);
 		if (logger)
 		{
 			logger->logLine(c);
@@ -131,7 +131,7 @@ void CSpielServer::delete_client(int index,bool notify)
 	if (notify)
 	{
 		char c[256];
-		sprintf(c,"Client %d left\n",index);
+		snprintf(c, sizeof(c), "Client %d left\n", index);
 		if (logger)
 		{
 			logger->logLine(c);
@@ -970,7 +970,7 @@ int CServerListener::init(const char* interface_,int port)
 	addrinfo hints,*res,*ressave;
 	char s_port[32];
 
-	sprintf(s_port,"%d",port);
+	snprintf(s_port,sizeof(s_port), "%d",port);
 
 	memset(&hints,0,sizeof(hints));
 	hints.ai_flags=AI_PASSIVE;

@@ -82,8 +82,7 @@ void CStartGameDialog::updateStatus(NET_SERVER_STATUS *status)
 {
 	char c[64];
 	int i;
-	/* Neuen Text bauen */
-	sprintf(c,"%d\n%d\n%d\n\n",status->clients,status->player,status->computer);
+	snprintf(c, sizeof(c), "%d\n%d\n%d\n\n", status->clients, status->player, status->computer);
 	for (i=0;i<PLAYER_MAX;i++)if (client && client->is_local_player(i))
 	{
 		strcat(c,COLOR_NAME[i]);
@@ -255,7 +254,7 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CSpielClient *client)
 			int stones=client->get_stone_count(place[i])
 			    +client->get_stone_count(client->get_teammate(place[i]));
 			/* Text setzen. */
-			sprintf(t,"%s/%s: %d points (%d stones)",COLOR_NAME[place[i]],COLOR_NAME[client->get_teammate(place[i])],
+			snprintf(t, sizeof(t), "%s/%s: %d points (%d stones)", COLOR_NAME[place[i]], COLOR_NAME[client->get_teammate(place[i])],
 				points,stones);
 		}else{
 			/* Wir erstellen nur ein Frame mit der Farbe des Spielers. */
@@ -275,12 +274,12 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CSpielClient *client)
 			}
 			addChild(frame);
 			/* Text setzen. */
-			sprintf(t,"%s: %d points (%d stones)",COLOR_NAME[place[i]],-client->get_stone_points_left(place[i]),client->get_stone_count(place[i]));
+			snprintf(t, sizeof(t), "%s: %d points (%d stones)", COLOR_NAME[place[i]], -client->get_stone_points_left(place[i]), client->get_stone_count(place[i]));
 		}
 		/* Den Text als Statictext in das Frame setzen. */
 		addChild(new CStaticText(20,y+2,this->w-20,t,this));
 		/* Platz Nummer links daneben schreiben, mit *, falls Spieler lokal ist. */
-		sprintf(t,"%c %d.",local?'*':' ',p);
+		snprintf(t, sizeof(t), "%c %d.", local ? '*' :  ' ',p);
 		CStaticText *text=new CStaticText(17,y+2,t,this);
 		if (!local)text->setAlpha(0.5);
 		addChild(text);
