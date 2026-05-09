@@ -291,7 +291,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 	{
 		/* Der Client fordert einen lokalen Spieler an */
 		case MSG_REQUEST_PLAYER: {
-			if (ntohs(data->data_length) < sizeof(NET_REQUEST_PLAYER) - sizeof(NET_HEADER))
+			if (ntohs(data->data_length) < sizeof(NET_REQUEST_PLAYER))
 				return;
 
 			NET_REQUEST_PLAYER *req = (NET_REQUEST_PLAYER*)(data);
@@ -378,7 +378,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 		}
 
 		case MSG_REVOKE_PLAYER: {
-			if (ntohs(data->data_length) < sizeof(NET_REVOKE_PLAYER) - sizeof(NET_HEADER))
+			if (ntohs(data->data_length) < sizeof(NET_REVOKE_PLAYER))
 				return;
 
 			/* client requests to revoke an assigned player */
@@ -412,7 +412,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 
 		/* Ein Client moechte einen Stein setzen */
 		case MSG_SET_STONE:{
-			if (ntohs(data->data_length) < sizeof(NET_SET_STONE) - sizeof(NET_HEADER))
+			if (ntohs(data->data_length) < sizeof(NET_SET_STONE))
 				return;
 
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
@@ -464,7 +464,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 
 		/* Eine Chat-Nachricht von einem Client empfangen. */
 		case MSG_CHAT:
-			if (ntohs(data->data_length) < sizeof(NET_CHAT) - sizeof(NET_HEADER))
+			if (ntohs(data->data_length) < sizeof(NET_CHAT))
 				break;
 
 			// Record sending client who sent the message
@@ -521,7 +521,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 		}
 
 		case MSG_REQUEST_HINT: {
-			if (ntohs(data->data_length) < sizeof(NET_REQUEST_HINT) - sizeof(NET_HEADER))
+			if (ntohs(data->data_length) < sizeof(NET_REQUEST_HINT))
 				return;
 
 			const CTurn *turn = m_ki.get_ki_turn(*this, ((NET_REQUEST_HINT*)data)->player,KI_HARD);
@@ -543,7 +543,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 		}
 
 		case MSG_REQUEST_GAME_MODE: {
-			if (ntohs(data->data_length) < sizeof(NET_REQUEST_GAME_MODE) - sizeof(NET_HEADER))
+			if (ntohs(data->data_length) < sizeof(NET_REQUEST_GAME_MODE))
 				return;
 
 			NET_REQUEST_GAME_MODE* r = (NET_REQUEST_GAME_MODE*)data;
