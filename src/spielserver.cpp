@@ -927,7 +927,7 @@ int CServerListener::init(const char* interface_,int port)
 			return errno;
 
 		my_addr.sun_family=AF_UNIX;
-		memset(my_addr.sun_path, 0, UNIX_PATH_MAX);
+		memset(my_addr.sun_path, 0, sizeof(my_addr.sun_path));
 		// This moves it into the abstract namespace, copying interface_ after the null byte
 		int addr_len = 0;
 		if (interface_ != nullptr) {
