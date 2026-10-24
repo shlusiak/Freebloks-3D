@@ -25,7 +25,8 @@ class CPlayer{
 
 		CStone m_stone[STONE_COUNT_ALL_SHAPES];
 	public:
-		CPlayer():m_nemesis(-1), m_teammate(-1) {}
+		CPlayer():m_stone_points_left(0), m_stone_count(0), m_number_of_possible_turns(0), m_position_points(0),
+		          m_teammate(-1), m_nemesis(-1), m_number(0) {}
 
 		void init(const CBoard& board, const int playernumber);
 		void refresh_data(const CBoard& board);

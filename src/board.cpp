@@ -20,7 +20,7 @@ CBoard::CBoard(){
 CBoard::CBoard(int width, int height) {
 	m_field_size_x = width;
 	m_field_size_y = height;
-	CBoard::m_game_field = new TSingleField[CBoard::m_field_size_y * CBoard::m_field_size_x];
+	CBoard::m_game_field = new TSingleField[CBoard::m_field_size_y * CBoard::m_field_size_x]();
 }
 
 
