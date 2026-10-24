@@ -499,6 +499,9 @@ void CWindow::processEvent(XEvent event)
 		char buffer[16];
 		// Verwandle den Keycode in ein char (nur ein Byte, koennten ja auch mehrere sein)
 		XLookupString((XKeyEvent*)&event, buffer,15, &mykeysym, nullptr);
+		/* processKeyEvent takes 16 bits; truncating a larger keysym (e.g. 0x100ff0d for a Unicode
+		   character) would turn it into an unrelated key like Return. */
+		if (mykeysym > 0xFFFF)break;
 		gui->processKeyEvent(mykeysym);
 		break;
 		}
