@@ -634,8 +634,15 @@ int main(int argc,char ** argv)
 		CloseHandle(CreateThread(nullptr,0,gameRunThread,(void*)listener->get_game(),0,&threadid));
 #else
 		if (pthread_create(&pt, nullptr, gameRunThread, (void*)listener->get_game()))
+		{
 			perror("pthread_create");
-		if (pthread_detach(pt))perror("pthread_detach");
+			/* Nobody will run this game: undo the bookkeeping, disconnect its clients
+			   and do not detach a thread that was never created. */
+			games_running--;
+			delete listener->get_game();
+		}
+		else if (pthread_detach(pt))
+			perror("pthread_detach");
 #endif
 
 		if (games_running>=max_running_games)
