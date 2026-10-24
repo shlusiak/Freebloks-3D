@@ -1224,6 +1224,17 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 #endif
 			}
 
+#ifndef WIN32
+			/* select() cannot handle descriptors beyond FD_SETSIZE, FD_SET would write out of bounds */
+			if (cl >= FD_SETSIZE)
+			{
+				if (logger)
+					logger->logLine("WARNING: Too many open file descriptors, rejecting connection.");
+				closesocket(cl);
+				continue;
+			}
+#endif
+
 			/* Fuege den neuen Socket dem CGameServer als Client hinzu */
 			get_game()->add_client(cl);
 		}
