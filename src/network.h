@@ -161,6 +161,10 @@ bool network_check_message(NET_HEADER *data);
 /* Reads a complete network message from sock and stores it in *data */
 const char* read_network_message(int sock,NET_HEADER *data,int size);
 
+/* Error strings returned by read_network_message(), comparable by pointer */
+extern const char NET_ERR_INVALID_PACKAGE[];
+extern const char NET_ERR_CONNECTION_RESET[];
+
 
 #ifndef WIN32
 /* On Windows it is called closesocket(s); on Linux this provides it too, but it means close(s) */

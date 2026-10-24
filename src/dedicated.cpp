@@ -51,14 +51,18 @@ static CServerListener* listener = nullptr; /* the primary listener for new game
 static const char* stats_socket_file = "/tmp/freebloks_stats";
 #ifndef WIN32
 static volatile sig_atomic_t shutdown_requested = 0;
+static volatile sig_atomic_t shutdown_signal = 0;
+/* Process-wide logger for code outside of games; set up first thing in main() */
+static CLogger* server_logger = nullptr;
 
 static void handle_termination_signal(int signal_number)
 {
+	shutdown_signal = signal_number;
 	shutdown_requested = 1;
 	if (signal_number == SIGTERM)
-		write(STDERR_FILENO, "event=shutdown_signal_received signal=SIGTERM\n", 46);
+		write(STDERR_FILENO, "level=info event=signal_received signal=SIGTERM msg=\"Signal received\"\n", 70);
 	else if (signal_number == SIGINT)
-		write(STDERR_FILENO, "event=shutdown_signal_received signal=SIGINT\n", 45);
+		write(STDERR_FILENO, "level=info event=signal_received signal=SIGINT msg=\"Signal received\"\n", 69);
 }
 #endif
 
@@ -173,6 +177,11 @@ static void print_stats(int fd) {
 	dprintf(fd, "##### STATS END #####\n");
 }
 
+static void stats_error(const char* operation, int err) {
+	if (server_logger)
+		server_logger->logEvent(LOGLEVEL_ERROR, LogFields("stats_socket_failed").tok("operation", operation).err(err), "Stats socket %s failed: %s", operation, strerror(err));
+}
+
 /* opens a unix domain socket, listens for connection and dumps the stat to
  * connected clients */
 static void* stat_thread(void* param) {
@@ -187,7 +196,7 @@ static void* stat_thread(void* param) {
 
 	unlink(file);
 	if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		perror("error creating stats socket");
+		stats_error("create", errno);
 		return nullptr;
 	}
 
@@ -196,20 +205,20 @@ static void* stat_thread(void* param) {
 	strncpy(addr.sun_path, file, sizeof(addr.sun_path)-1);
 
 	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
-		perror("error binding stats socket");
+		stats_error("bind", errno);
 		close(fd);
 		return nullptr;
 	}
 
 	if (listen(fd, 5) == -1) {
-		perror("error listening on stats socket");
+		stats_error("listen", errno);
 		close(fd);
 		return nullptr;
 	}
 
 	while (1) {
 		if ( (cl = accept(fd, nullptr, nullptr)) == -1) {
-			perror("stats socket accept error");
+			stats_error("accept", errno);
 			/* Do not spin when descriptors run out */
 			if (errno != EINTR && errno != ECONNABORTED) CTimer::sleep(1000);
 			continue;
@@ -496,7 +505,8 @@ static int establish_game()
 		ret = listener->wait_for_player(true, &client);
 		if (ret==-1)
 		{
-			perror("wait(): ");
+			if (server_logger)
+				server_logger->logEvent(LOGLEVEL_ERROR, LogFields("wait_failed").err(errno), "Waiting for players failed: %s", strerror(errno));
 			return -1;
 		}
 
@@ -536,7 +546,7 @@ void* gameRunThread(void* param)
 	
 	lock_mutex();
 	/* The game is running now */
-	logger.logFields(LOGLEVEL_INFO, "event=game_started", "Game started with %d clients / %d players. (%d games running)",game->num_clients(), game->num_players(),games_running);
+	logger.logEvent(LOGLEVEL_INFO, LogFields("game_started").num("clients", game->num_clients()).num("players", game->num_players()).num("games_running", games_running).num("mode", gamemode).num("width", width).num("height", height).num("ai_strength", ai_strength), "Game started with %d clients / %d players. (%d games running)",game->num_clients(), game->num_players(),games_running);
 	unlock_mutex();
 
 	game->run();
@@ -544,7 +554,7 @@ void* gameRunThread(void* param)
 	lock_mutex();
 	games_running--;
 
-	logger.logFields(LOGLEVEL_INFO, "event=game_terminating", "Game terminating. (%d games running)",games_running);
+	logger.logEvent(LOGLEVEL_INFO, LogFields("game_terminating").tok("reason", "all_clients_left").num("games_running", games_running), "Game terminating. (%d games running)",games_running);
 
 	unlock_mutex();
 	delete game;
@@ -557,6 +567,9 @@ int main(int argc,char ** argv)
 {
 	int ret;
 
+	CGameLogger logger(logWriter, 0);
+	server_logger = &logger;
+
 #ifndef WIN32
 	/* A write to a closed socket must fail with EPIPE instead of killing the process */
 	signal(SIGPIPE, SIG_IGN);
@@ -566,7 +579,7 @@ int main(int argc,char ** argv)
 	if (sigaction(SIGTERM, &termination_action, nullptr) == -1 ||
 	    sigaction(SIGINT, &termination_action, nullptr) == -1)
 	{
-		perror("sigaction");
+		logger.logEvent(LOGLEVEL_ERROR, LogFields("sigaction_failed").err(errno), "sigaction failed: %s", strerror(errno));
 		return 1;
 	}
 #endif
@@ -574,7 +587,6 @@ int main(int argc,char ** argv)
 	/* Create a ServerListener that listens for connections
 	   and lets clients connect */
 	listener = new CServerListener();
-	CGameLogger logger(logWriter, 0);
 
 	/* Process the command line parameters */
 	parse_params(argc,argv);
@@ -582,7 +594,7 @@ int main(int argc,char ** argv)
 	/* Clients (and the server's own seeding code) reject configurations like DUO on a field below 5x5 */
 	if (!is_valid_game_config(gamemode, width, height))
 	{
-		printf("Invalid combination of game mode and field size (%dx%d).\n", width, height);
+		logger.logEvent(LOGLEVEL_ERROR, LogFields("invalid_config").num("mode", gamemode).num("width", width).num("height", height), "Invalid combination of game mode and field size (%dx%d).", width, height);
 		return 1;
 	}
 
@@ -600,7 +612,7 @@ int main(int argc,char ** argv)
 		if (setregid(gid,gid))
 		{
 			/* Never keep running with more privileges than requested */
-			logger.log(LOGLEVEL_ERROR, "setregid failed: %s", strerror(errno));
+			logger.logEvent(LOGLEVEL_ERROR, LogFields("privilege_drop_failed").tok("target", "gid").err(errno), "setregid failed: %s", strerror(errno));
 			exit(1);
 		}
 	}
@@ -608,7 +620,7 @@ int main(int argc,char ** argv)
 	{
 		if (setreuid(uid,uid))
 		{
-			logger.log(LOGLEVEL_ERROR, "setreuid failed: %s", strerror(errno));
+			logger.logEvent(LOGLEVEL_ERROR, LogFields("privilege_drop_failed").tok("target", "uid").err(errno), "setreuid failed: %s", strerror(errno));
 			exit(1);
 		}
 	}
@@ -624,16 +636,16 @@ int main(int argc,char ** argv)
 			return 1;
 		}
 		logWriter.addLogWriter(fw);
-		logger.log(LOGLEVEL_INFO, "Logging to: %s", logfile);
 	}
 
-
-	logger.logFields(LOGLEVEL_INFO, "event=server_starting", "Server starting");
+	logger.logEvent(LOGLEVEL_INFO, LogFields("server_starting").tok("version", VERSION).num("port", port).num("mode", gamemode).num("width", width).num("height", height).num("ai_strength", ai_strength).num("ai_threads", ai_threads).num("max_humans", max_humans).num("limit", max_running_games), "Server starting");
+	if (logfile)
+		logger.logEvent(LOGLEVEL_INFO, LogFields("log_file_opened"), "Logging to: %s", logfile);
 
 	ret = listener->init(_interface,port);
 	if (ret!=0)
 	{
-	    logger.log(LOGLEVEL_ERROR, "Error calling listen: %s", strerror(errno));
+	    logger.logEvent(LOGLEVEL_ERROR, LogFields("listen_failed").err(errno), "Error calling listen: %s", strerror(errno));
 	    return -1;
 	}
 	init_mutex();
@@ -685,21 +697,21 @@ int main(int argc,char ** argv)
 #else
 		if (pthread_create(&pt, nullptr, gameRunThread, (void*)listener->get_game()))
 		{
-			logger.log(LOGLEVEL_ERROR, "pthread_create failed: %s", strerror(errno));
+			logger.logEvent(LOGLEVEL_ERROR, LogFields("thread_failed").tok("operation", "create").err(errno), "pthread_create failed: %s", strerror(errno));
 			/* Nobody will run this game: undo the bookkeeping, disconnect its clients
 			   and do not detach a thread that was never created. */
 			games_running--;
 			delete listener->get_game();
 		}
 		else if (pthread_detach(pt))
-			logger.log(LOGLEVEL_ERROR, "pthread_detach failed: %s", strerror(errno));
+			logger.logEvent(LOGLEVEL_ERROR, LogFields("thread_failed").tok("operation", "detach").err(errno), "pthread_detach failed: %s", strerror(errno));
 #endif
 
 		if (games_running>=max_running_games)
 		{
 			listener->close();
 			
-			logger.logFields(LOGLEVEL_WARN, "event=listener_closed", "Stopping accepting new connections due to too many running games");
+			logger.logEvent(LOGLEVEL_WARN, LogFields("listener_closed").num("games_running", games_running).num("limit", max_running_games), "Stopping accepting new connections due to too many running games");
 
 			while (games_running>=max_running_games
 #ifndef WIN32
@@ -719,13 +731,13 @@ int main(int argc,char ** argv)
 #endif
 			)
 			{
-			logger.logFields(LOGLEVEL_INFO, "event=listener_reopened", "Resuming accepting new connections");
+			logger.logEvent(LOGLEVEL_INFO, LogFields("listener_reopened").num("games_running", games_running), "Resuming accepting new connections");
 
 			ret=listener->init(_interface,port);
 			if (ret!=0)
 			{
 				/* Could not "listen", maybe the port is used by another application? */
-				logger.log(LOGLEVEL_ERROR, "Error calling listen: %s", strerror(errno));
+				logger.logEvent(LOGLEVEL_ERROR, LogFields("listen_failed").err(errno), "Error calling listen: %s", strerror(errno));
 				return -1;
 			}
 			}
@@ -736,12 +748,12 @@ int main(int argc,char ** argv)
 	// unreachable code
 #ifndef WIN32
 	if (shutdown_requested)
-		logger.logFields(LOGLEVEL_INFO, "event=shutdown_requested", "Shutdown requested");
+		logger.logEvent(LOGLEVEL_INFO, LogFields("shutdown_requested").num("signal", shutdown_signal), "Shutdown requested");
 #endif
 	delete listener;
 #ifndef WIN32
 	if (shutdown_requested)
-		logger.logFields(LOGLEVEL_INFO, "event=shutdown_performed", "Shutdown performed");
+		logger.logEvent(LOGLEVEL_INFO, LogFields("shutdown_performed"), "Shutdown performed");
 #endif
 	destroy_mutex();
 

@@ -12,84 +12,95 @@ format and still use plain console output.
 
 ## Fields
 
+Every line has `ts`, `level`, `event` and `msg`. Event names are a stable
+contract: filter and alert on `event`, not on the text of `msg`.
+
 | Field | Presence | Meaning |
 |---|---|---|
 | ts | always | UTC, ISO 8601, millisecond precision, e.g. `2026-10-24T05:48:51.830Z` |
 | level | always | `info`, `warn` or `error`. Informational only, there is no filtering. |
 | game | in a game | Game number of the dedicated server (1, 2, ...). Absent for listener/startup lines. |
+| event | always | Stable snake_case event name (catalog below) |
 | client | per client | Client slot index inside the game |
-| event | some lines | Stable machine-readable event name (see below) |
-| addr | `connection` | Numeric peer address, no reverse DNS |
-| player | `player_result` | Player (colour) index |
+| reason | some events | Machine-readable cause token (see per-event values below) |
+| errno | after a failed system call | Numeric `errno` value; the text is in `msg` |
+| player | player events | Player (colour) index |
 | msg | always | Human-readable text, last field |
+
+Further fields are listed per event. Numeric fields are integers unless noted
+(`duration_s` has two decimals). `mode` is the numeric `GAMEMODE` from
+constants.h.
 
 Values containing anything other than `A-Za-z0-9 . _ - : / +` are double
 quoted. Inside quotes `"` and `\` are backslash escaped, newline, CR and tab
 become `\n`, `\r`, `\t`, other control characters `\xNN`. Bytes >= 0x80 are
 passed through unchanged. `msg` is truncated to 1023 bytes.
 
-## Message catalog
+## Event catalog
 
-The following messages are emitted by the dedicated server and shared server
-code. Text in square brackets is a runtime value; the actual `msg` text does
-not include the brackets. `game` is present for game-scoped messages, while
-`client` identifies a client slot where shown.
+`game` is present for game-scoped events. Fields in the third column are
+in addition to the common ones.
 
 ### Server and listener
 
-| Level | Event / fields | Message | When it is emitted |
+| Level | Event | Fields | When it is emitted |
 |---|---|---|---|
-| info | `event=server_starting` | `Server starting` | Server startup, after optional file logging is configured. |
-| info | — | `Logging to: [path]` | A log file was successfully opened. |
-| info | `event=connection addr=[address]` | `Connection accepted` | A connection is accepted; address is numeric (no reverse DNS). |
-| error | — | `Error calling listen: [reason]` | Initial listener setup or listener reopen fails. |
-| error | — | `select failed: [reason]` | The listener wait fails for a persistent error. |
-| error | — | `accept failed: [reason]` | Accepting a connection fails. |
-| warn | — | `setsockopt IPV6_V6ONLY failed: [reason]` | Optional IPv6 socket configuration fails. |
-| warn | — | `Too many open file descriptors, rejecting connection.` | An accepted descriptor cannot fit in the server's `select()` set. |
-| warn | `event=listener_closed` | `Stopping accepting new connections due to too many running games` | The configured running-game limit is reached. |
-| info | `event=listener_reopened` | `Resuming accepting new connections` | A game finishes and the listener resumes accepting clients. |
-| error | — | `setregid failed: [reason]`; `setreuid failed: [reason]` | Dropping the configured group or user privileges fails; the server exits. |
-| error | — | `pthread_create failed: [reason]` | Starting a game thread fails; that game is discarded. |
-| error | — | `pthread_detach failed: [reason]` | Detaching a started game thread fails. |
+| info | `server_starting` | `version port mode width height ai_strength ai_threads max_humans limit` | Server startup, after optional file logging is configured. |
+| info | `log_file_opened` | | A log file was opened (path in `msg`). |
+| info | `connection` | `addr family` (`ipv4`, `ipv6`, `other`) | A connection is accepted; address is numeric (no reverse DNS). |
+| warn | `connection_rejected` | `reason=fd_limit` | An accepted descriptor does not fit in the server's `select()` set. |
+| error | `listen_failed` | `errno` | Initial listener setup or listener reopen fails. |
+| error | `select_failed` | `errno` | The listener wait fails for a persistent error. |
+| error | `accept_failed` | `errno` | Accepting a connection fails. |
+| error | `wait_failed` | `errno` | Waiting for players failed; the server exits. |
+| warn | `socket_option_failed` | `option errno` | Optional IPv6 socket configuration fails. |
+| warn | `listener_closed` | `games_running limit` | The configured running-game limit is reached. |
+| info | `listener_reopened` | `games_running` | A game finishes and the listener resumes accepting clients. |
+| error | `privilege_drop_failed` | `target` (`uid`, `gid`) `errno` | Dropping the configured user or group fails; the server exits. |
+| error | `thread_failed` | `operation` (`create`, `detach`) `errno` | Starting or detaching a game thread fails. |
+| error | `invalid_config` | `mode width height` | The game mode and field size are incompatible; the server exits. |
+| error | `sigaction_failed` | `errno` | Installing the termination handlers fails; the server exits. |
+| error | `stats_socket_failed` | `operation errno` | The stats socket cannot be created, bound, listened on or accepted from. |
+| info | `shutdown_requested` | `signal` (number) | The main loop observed SIGTERM/SIGINT. |
+| info | `shutdown_performed` | | The listener is closed and the process is about to exit. |
+
+The signal handler itself writes `level=info event=signal_received signal=SIGTERM|SIGINT`
+to stderr (without `ts`, as it must be async-signal-safe); the line is not
+part of the stdout/file stream.
 
 ### Game lifecycle and clients
 
-| Level | Event / fields | Message | When it is emitted |
+| Level | Event | Fields | When it is emitted |
 |---|---|---|---|
-| info | `event=game_started` | `Game started with [clients] clients / [players] players. ([running] games running)` | A game thread begins running. |
-| info | `event=game_finished` | `Game finished after [seconds] seconds` | The final player has finished; elapsed time is in seconds to two decimals. |
-| info | `event=player_result player=[index]` | `Player [index] has [stones] stones left and [points] points` | Once per player at game completion. Player indices are colour slots. |
-| info | `event=game_terminating` | `Game terminating. ([running] games running)` | The game thread is ending. |
-| info | `client=[slot]` | `Client joined`; `Client left` | A client is added to or removed from the game. |
-| error | `client=[slot]` | `close failed: [reason]` | Closing a client's socket fails. |
-| error | `client=[slot]` | `Player already assigned (2 colors per player)` | A client attempts to claim a colour already assigned to another player; the client is disconnected. |
-| error | — | `Game not in sync, local turn rejected. Exiting.` | The server's own turn fails validation; the game process exits with status 2. |
+| info | `game_started` | `clients players games_running mode width height ai_strength` | A game thread begins running. |
+| info | `game_finished` | `duration_s turns` | The final player has finished. |
+| info | `player_result` | `player stones_left points computer` (0/1) | Once per player at game completion. Player indices are colour slots. |
+| info | `game_terminating` | `reason=all_clients_left games_running` | The game thread is ending. |
+| info | `client_joined` | `client clients` | A client is added to the game; `clients` is the count including it. |
+| info | `client_left` | `client reason clients` | A client is removed. `reason`: `peer_closed`, `invalid_package`, `recv_failed`, `send_failed`, `protocol_violation`. |
+| error | `client_close_failed` | `client errno` | Closing a client's socket fails. |
+| error | `player_claim_rejected` | `client player` | A client claims a colour already assigned to another player; the client is disconnected. |
+| error | `out_of_sync` | `source=local_turn player` | The server's own turn fails validation; the process exits with status 2. |
 
 ### Moves, chat, and protocol
 
-| Level | Event / fields | Message | When it is emitted |
+| Level | Event | Fields | When it is emitted |
 |---|---|---|---|
-| warn | `client=[slot]` | `Ignoring move, no game running.` | A move arrives before there is a current player. |
-| warn | `client=[slot]` | `Ignoring move from non-current player.` | The move is not from the current player. |
-| warn | `client=[slot]` | `Client does not own player, ignoring move.` | The sending client does not own the selected player. |
-| warn | `client=[slot]` | `Ignoring move with invalid stone or orientation.` | The stone or its orientation is invalid. |
-| warn | `client=[slot]` | `Ignoring move with a stone that is not available.` | The player has already used that stone. |
-| warn | `client=[slot]` | `Game seems to be out of sync, ignoring move.` | Applying a client move fails the server's consistency check. |
-| info | `event=chat client=[slot]` | `[chat text]` | A chat message is received; the message body is the `msg` value. |
-| error | `client=[slot]` | `Unhandled network message: #[type]` | The server receives an unrecognized network message type. |
+| warn | `move_rejected` | `client reason player stone` | A client move is ignored. `reason`: `no_game`, `not_current`, `not_owner`, `invalid_stone`, `stone_used`, `out_of_sync`. `player`/`stone` are present when known. |
+| info | `chat` | `client` | A chat message is received; the message body is the `msg` value. |
+| warn | `invalid_package` | `client` | A client sent a malformed, oversized or mismatched message; it is disconnected. |
+| warn | `recv_failed` | `client errno` | Reading from a client failed for another reason; it is disconnected. |
+| warn | `send_failed` | `client msg_type errno` | Sending to a client failed (`errno` 0 means the peer had closed); it is disconnected. |
+| error | `unhandled_message` | `client msg_type` | The server receives an unrecognized network message type. |
 
-Socket and thread errors append the platform's error text as `[reason]`.
-Messages without an `event` are still structured logfmt records; their text is
-intended for people, while the common fields and event names are suitable for
-filtering and aggregation.
+Socket and thread errors append the platform's error text to `msg`.
 
 ## Example
 
-    ts=2026-10-24T05:48:51.830Z level=info event=connection addr=::1 msg="Connection accepted"
-    ts=2026-10-24T05:48:51.830Z level=info client=0 msg="Client joined"
-    ts=2026-10-24T05:48:51.831Z level=info game=1 event=game_started msg="Game started with 1 clients / 4 players. (1 games running)"
-    ts=2026-10-24T05:48:53.574Z level=warn game=1 client=2 msg="Ignoring move from non-current player."
+    ts=2026-10-24T05:48:51.830Z level=info event=connection addr=::1 family=ipv6 msg="Connection accepted"
+    ts=2026-10-24T05:48:51.830Z level=info event=client_joined client=0 clients=1 msg="Client joined"
+    ts=2026-10-24T05:48:51.831Z level=info game=1 event=game_started clients=1 players=4 games_running=1 mode=2 width=20 height=20 ai_strength=5 msg="Game started with 1 clients / 4 players. (1 games running)"
+    ts=2026-10-24T05:48:53.574Z level=warn game=1 event=move_rejected client=2 reason=not_current player=1 msg="Ignoring move from non-current player."
 
 ## Ingestion
 
@@ -101,10 +112,11 @@ filtering and aggregation.
 
 ## API (src/logger.h)
 
-    logger->log(LOGLEVEL_WARN, "text %d", n);
-    logger->logClient(LOGLEVEL_INFO, client, "text");
-    logger->logFields(LOGLEVEL_INFO, "event=foo key=bar", "text");
+    logger->logEvent(LOGLEVEL_WARN,
+        LogFields("move_rejected").client(c).tok("reason", "not_current").num("player", p),
+        "text %d", n);
 
-`logFields` copies its `fields` argument verbatim: keys and values must be
-trusted and contain no spaces, quotes or control characters. User-controlled
-text goes into the `fmt` arguments only (`"%s"`), which are escaped.
+`LogFields` builds `event=... key=value ...`. `tok()` values and all keys are
+copied verbatim and must be trusted constants without spaces, quotes or control
+characters. User-controlled text goes into the `fmt` arguments only (`"%s"`),
+which are escaped. Every call must have an event name.

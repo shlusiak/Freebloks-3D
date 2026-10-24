@@ -214,29 +214,54 @@ void CLogger::vlog(LogLevel level, const char* fields, const char* fmt, va_list 
 	writeLine(writer, "%s\n", line.c_str());
 }
 
-void CLogger::log(LogLevel level, const char* fmt, ...)
+LogFields::LogFields(const char* event)
 {
-	va_list va;
-	va_start(va, fmt);
-	vlog(level, nullptr, fmt, va);
-	va_end(va);
+	len = 0;
+	buf[0] = '\0';
+	append("event=%s", event);
 }
 
-void CLogger::logClient(LogLevel level, int client, const char* fmt, ...)
+void LogFields::append(const char* fmt, ...)
 {
-	char fields[32];
-	snprintf(fields, sizeof(fields), "client=%d", client);
+	char tmp[96];
 	va_list va;
 	va_start(va, fmt);
-	vlog(level, fields, fmt, va);
+	int n = vsnprintf(tmp, sizeof(tmp), fmt, va);
 	va_end(va);
+	if (n < 0 || (size_t)n >= sizeof(tmp))
+		return;
+	/* Separator plus terminator */
+	if (len + (len ? 1 : 0) + (size_t)n + 1 > sizeof(buf))
+		return;
+	if (len)
+		buf[len++] = ' ';
+	memcpy(buf + len, tmp, (size_t)n + 1);
+	len += (size_t)n;
 }
 
-void CLogger::logFields(LogLevel level, const char* fields, const char* fmt, ...)
+LogFields& LogFields::num(const char* key, long long value)
+{
+	append("%s=%lld", key, value);
+	return *this;
+}
+
+LogFields& LogFields::dec(const char* key, double value, int digits)
+{
+	append("%s=%.*f", key, digits, value);
+	return *this;
+}
+
+LogFields& LogFields::tok(const char* key, const char* value)
+{
+	append("%s=%s", key, value);
+	return *this;
+}
+
+void CLogger::logEvent(LogLevel level, const LogFields& f, const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	vlog(level, fields, fmt, va);
+	vlog(level, f.str(), fmt, va);
 	va_end(va);
 }
 

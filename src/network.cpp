@@ -51,7 +51,7 @@ int network_send(int target,NET_HEADER *header,uint16 data_length,uint8 msg_type
 	if (recv(target,&c,1,MSG_PEEK|MSG_DONTWAIT)==0)return -1;
 #endif
 	if (send(target,(char*)header,data_length,0)!=-1)return 0;
-	perror("send: ");
+	/* errno is left for the caller, which knows the client and game to log it for */
 	return -1;
 }
 
@@ -115,6 +115,9 @@ static int recv_exact(int sock, char *buf, int len)
 	return got;
 }
 
+const char NET_ERR_INVALID_PACKAGE[]="Received invalid network message";
+const char NET_ERR_CONNECTION_RESET[]="Connection reset by peer";
+
 /**
  * Reads a complete message from sock and stores it in data
  *
@@ -124,7 +127,6 @@ static int recv_exact(int sock, char *buf, int len)
  **/
 const char* read_network_message(int sock,NET_HEADER *data,int size)
 {
-	static const char* S_INVALID_PACKAGE="Received invalid network message";
 
 	/* If not connected at all, "no message is available" */
 	if (sock==0)return (char*)(-1);
@@ -145,19 +147,17 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 	   was lost. */
 	if (r==0)
 	{
-// 		printf("Connection lost.\n");
-		return "Connection reset by peer";
+		return NET_ERR_CONNECTION_RESET;
 	}
 	/* If less data than a NET_HEADER was read, the header arrived in several
 	   segments. Read the rest, otherwise it is an error */
 	if ((unsigned int)r!=sizeof(NET_HEADER)){
 		if (recv_exact(sock,&((char*)(data))[r],sizeof(NET_HEADER)-r)==-1)
-			return S_INVALID_PACKAGE;
+			return NET_ERR_INVALID_PACKAGE;
 	}
 	/* Check that the message is reasonably plausible */
 	if (!network_check_message(data)){
-// 		printf("Received malformed package!\n");
-		return S_INVALID_PACKAGE;
+		return NET_ERR_INVALID_PACKAGE;
 	}
 	/* The message seems to be OK. Determine the remaining amount of data */
 	int remaining=ntohs(data->data_length)-sizeof(NET_HEADER);
@@ -168,8 +168,7 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 	/* If the whole packet exceeds the size of the buffer: a mighty big ERROR */
 	if (ntohs(data->data_length)>size)
 	{
-// 		printf("Received too big package!\n");
-		return S_INVALID_PACKAGE;
+		return NET_ERR_INVALID_PACKAGE;
 	}
 
 	/* Otherwise read the remaining data and write it into data after the NET_HEADER */
@@ -178,8 +177,7 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 	   it was a packet error. */
 	if (r!=remaining)
 	{
-// 		printf("Package size mismatch!\n");
-		return S_INVALID_PACKAGE;
+		return NET_ERR_INVALID_PACKAGE;
 	}
 	/* SUCCESS! */
 	return nullptr;

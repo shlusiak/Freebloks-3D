@@ -58,9 +58,9 @@ private:
     CLogger *logger;
 
 
-    /* Remove a specific client from the list. With notify=true a message
-       is printed. */
-    void delete_client(int index, bool notify);
+    /* Remove a specific client from the list. With notify=true the other
+       clients are informed. reason is a trusted token for the log. */
+    void delete_client(int index, bool notify, const char* reason);
 
     void process_message(int client, NET_HEADER *data);
 

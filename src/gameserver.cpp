@@ -97,7 +97,7 @@ void CGameServer::add_client(int s)
 		snprintf(c, sizeof(c), "Client %d joined", i);
 		if (logger)
 		{
-			logger->logClient(LOGLEVEL_INFO, i, "Client joined");
+			logger->logEvent(LOGLEVEL_INFO, LogFields("client_joined").client(i).num("clients", num_clients() + 1), "Client joined");
 		}
 		send_server_msg(c);
 
@@ -113,7 +113,7 @@ void CGameServer::add_client(int s)
  * Removes client[index], closes its TCP connection and replaces it with a COMPUTER
  **/
 
-void CGameServer::delete_client(int index,bool notify)
+void CGameServer::delete_client(int index,bool notify,const char* reason)
 {
 	/* All players the client occupied are replaced by a PLAYER_COMPUTER */
 	for (int i=0;i<PLAYER_MAX;i++)if (player[i] == clients[index]) {
@@ -124,18 +124,16 @@ void CGameServer::delete_client(int index,bool notify)
 		names[index] = nullptr;
 	}
 	if (closesocket(clients[index])==-1 && logger)
-		logger->logClient(LOGLEVEL_ERROR, index, "close failed: %s", strerror(errno));
+		logger->logEvent(LOGLEVEL_ERROR, LogFields("client_close_failed").client(index).err(errno), "close failed: %s", strerror(errno));
 	clients[index]=0;
+	if (logger)
+		logger->logEvent(LOGLEVEL_INFO, LogFields("client_left").client(index).tok("reason", reason).num("clients", num_clients()), "Client left");
 	/* Send the current server status to the remaining clients */
 	send_server_status();
 	if (notify)
 	{
 		char c[256];
 		snprintf(c, sizeof(c), "Client %d left\n", index);
-		if (logger)
-		{
-			logger->logClient(LOGLEVEL_INFO, index, "Client left");
-		}
 		send_server_msg(c);
 	}
 }
@@ -190,7 +188,7 @@ void CGameServer::run()
                 (!CBoard::set_stone(*turn)))
 			{
 				if (logger)
-					logger->log(LOGLEVEL_ERROR, "Game not in sync, local turn rejected. Exiting.");
+					logger->logEvent(LOGLEVEL_ERROR, LogFields("out_of_sync").tok("source", "local_turn").num("player", current_player()), "Game not in sync, local turn rejected. Exiting.");
 				exit(2);
 			}
 			/* otherwise send the turn to all clients */
@@ -267,7 +265,18 @@ void CGameServer::handle_client(int index)
 	/* -1 would mean no data is available, which must not happen here
 	   (since select() says data is pending) */
 	else {
-		delete_client(index,true);
+		const char* reason = "recv_failed";
+		if (err == NET_ERR_CONNECTION_RESET)
+			reason = "peer_closed";
+		else if (err == NET_ERR_INVALID_PACKAGE)
+		{
+			reason = "invalid_package";
+			if (logger)
+				logger->logEvent(LOGLEVEL_WARN, LogFields("invalid_package").client(index), "Received invalid network message");
+		}
+		else if (logger)
+			logger->logEvent(LOGLEVEL_WARN, LogFields("recv_failed").client(index).err(errno), "recv failed: %s", err);
+		delete_client(index,true,reason);
 		return;
 	}
 }
@@ -333,8 +342,8 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				if (player[n] != PLAYER_COMPUTER)
 				{
 					if (logger)
-						logger->logClient(LOGLEVEL_ERROR, client, "Player already assigned (2 colors per player)");
-					delete_client(client,false);
+						logger->logEvent(LOGLEVEL_ERROR, LogFields("player_claim_rejected").client(client).num("player", n), "Player already assigned (2 colors per player)");
+					delete_client(client,false,"protocol_violation");
 					return;
 				}
 				msg.player=n;
@@ -360,7 +369,6 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 
 			/* Send the current server status to the clients */
 			send_server_status();
-// 			printf("Client %d requested player (#%d)\n",client,n);
 			break;
 		}
 
@@ -405,26 +413,26 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			/* Without a running game there is no current player, never index player[] with -1 */
 			if (m_current_player < 0) {
 				if (logger)
-					logger->logClient(LOGLEVEL_WARN, client, "Ignoring move, no game running.");
+					logger->logEvent(LOGLEVEL_WARN, LogFields("move_rejected").client(client).tok("reason", "no_game"), "Ignoring move, no game running.");
 				return;
 			}
 			/* Assemble the corresponding stone from the data */
 			if (s->player != m_current_player) {
 				if (logger)
-					logger->logClient(LOGLEVEL_WARN, client, "Ignoring move from non-current player.");
+					logger->logEvent(LOGLEVEL_WARN, LogFields("move_rejected").client(client).tok("reason", "not_current").num("player", s->player), "Ignoring move from non-current player.");
 				send_current_player();
 				return;
 			}
 			if (clients[client] != player[s->player]) {
 				if (logger)
-					logger->logClient(LOGLEVEL_WARN, client, "Client does not own player, ignoring move.");
+					logger->logEvent(LOGLEVEL_WARN, LogFields("move_rejected").client(client).tok("reason", "not_owner").num("player", s->player), "Client does not own player, ignoring move.");
 				send_current_player();
 				return;
 			}
 
 			if (!network_check_set_stone(s)) {
 				if (logger)
-					logger->logClient(LOGLEVEL_WARN, client, "Ignoring move with invalid stone or orientation.");
+					logger->logEvent(LOGLEVEL_WARN, LogFields("move_rejected").client(client).tok("reason", "invalid_stone").num("player", s->player), "Ignoring move with invalid stone or orientation.");
 				send_current_player();
 				return;
 			}
@@ -432,7 +440,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			CStone &stone = get_player(s->player)->get_stone(s->stone);
 			if (stone.get_available() <= 0) {
 				if (logger)
-					logger->logClient(LOGLEVEL_WARN, client, "Ignoring move with a stone that is not available.");
+					logger->logEvent(LOGLEVEL_WARN, LogFields("move_rejected").client(client).tok("reason", "stone_used").num("player", s->player).num("stone", s->stone), "Ignoring move with a stone that is not available.");
 				send_current_player();
 				return;
 			}
@@ -448,7 +456,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				next_player();
 			}else{ // The game seems to be out of sync
 				if (logger) {
-					logger->logClient(LOGLEVEL_WARN, client, "Game seems to be out of sync, ignoring move.");
+					logger->logEvent(LOGLEVEL_WARN, LogFields("move_rejected").client(client).tok("reason", "out_of_sync").num("player", s->player).num("stone", s->stone), "Game seems to be out of sync, ignoring move.");
 //					delete_client(client, true);
 				}
 			}
@@ -458,7 +466,6 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 		}
 
 		case MSG_START_GAME:
-// 			printf("Request game start\n");
 			start_game();
 			break;
 
@@ -477,11 +484,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			send_all(data,ntohs(data->data_length),MSG_CHAT);
 
 			if (logger)
-			{
-				char fields[48];
-				snprintf(fields, sizeof(fields), "event=chat client=%d", client);
-				logger->logFields(LOGLEVEL_INFO, fields, "%s", (const char*)((NET_CHAT*)data)->text);
-			}
+				logger->logEvent(LOGLEVEL_INFO, LogFields("chat").client(client), "%s", (const char*)((NET_CHAT*)data)->text);
 			break;
 
 		case MSG_REQUEST_UNDO: {
@@ -489,10 +492,8 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			   player. */
 			if (num_clients()>1 && num_players()>1)
 			{
-// 				printf("Client %d requested undo. IGNORED.\n",client);
 				return;
 			}
-// 			printf("Client %d requesting undo. ",client);
 			NET_UNDO_STONE undo{};
 
 			/* Keep taking back stones until there are none left in the history,
@@ -512,7 +513,6 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 
 			send_current_player();
 
-// 			printf("Removed %d turns.\n",i);
 			break;
 		}
 
@@ -616,7 +616,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 
 		default:
 			if (logger)
-				logger->logClient(LOGLEVEL_ERROR, client, "Unhandled network message: #%d", data->msg_type);
+				logger->logEvent(LOGLEVEL_ERROR, LogFields("unhandled_message").client(client).num("msg_type", data->msg_type), "Unhandled network message: #%d", data->msg_type);
 			break;
 	}
 }
@@ -627,7 +627,10 @@ void CGameServer::send_all(NET_HEADER* data,uint16 data_length,uint8 msg_type)
 		if (network_send(clients[i],data,data_length,msg_type)==-1)
 	{
 		/* Error while sending, disconnect the client. */
-		delete_client(i,true);
+		int err = errno;
+		if (logger)
+			logger->logEvent(LOGLEVEL_WARN, LogFields("send_failed").client(i).num("msg_type", msg_type).err(err), "send failed: %s", err ? strerror(err) : "connection closed");
+		delete_client(i,true,"send_failed");
 	}
 }
 
@@ -702,7 +705,6 @@ void CGameServer::send_server_msg(const char *text)
 void CGameServer::start_game()
 {
 	if (m_current_player!=-1)return;
-// 	printf("Starting game\n");
 
 	history.delete_all_turns();
 
@@ -741,7 +743,6 @@ void CGameServer::next_player()
 		   it is their turn. Otherwise they pass and the one after is tried. */
 		if (get_number_of_possible_turns(m_current_player)>0)
 		{
-// 			printf("Player %d to move: has %d possible turns.\n",m_current_player,get_number_of_possible_turns(m_current_player));
 			return;
 		}//else printf("Player %d has to pass.\n",m_current_player);
 	}
@@ -755,16 +756,13 @@ void CGameServer::next_player()
 
 	/* Print status messages to the console (e.g. for the dedicated server) */
 	if (logger){
-		logger->logFields(LOGLEVEL_INFO, "event=game_finished", "Game finished after %.2f seconds", timer.elapsed());
+		logger->logEvent(LOGLEVEL_INFO, LogFields("game_finished").dec("duration_s", timer.elapsed()).num("turns", history.size()), "Game finished after %.2f seconds", timer.elapsed());
 	}
 	for (i=0;i<PLAYER_MAX;i++)
 	{
 		CPlayer * player=get_player(i);
-		if (logger) {
-			char fields[48];
-			snprintf(fields, sizeof(fields), "event=player_result player=%d", i);
-			logger->logFields(LOGLEVEL_INFO, fields, "Player %d has %d stones left and %d points", i, get_stone_count(i), -player->get_stone_points_left());
-		}
+		if (logger)
+			logger->logEvent(LOGLEVEL_INFO, LogFields("player_result").num("player", i).num("stones_left", get_stone_count(i)).num("points", -player->get_stone_points_left()).num("computer", this->player[i] == PLAYER_COMPUTER ? 1 : 0), "Player %d has %d stones left and %d points", i, get_stone_count(i), -player->get_stone_points_left());
 	}
 }
 
@@ -820,7 +818,6 @@ void* LocalServerThread(void* param)
 	// Only run the game if any client is connected at all
 	if (listener->get_game()->num_clients()>=1)listener->get_game()->run();
 	delete listener;
-// 	printf("Local server terminating.\n");
 	return 0;
 }
 
@@ -1023,7 +1020,7 @@ int CServerListener::init(const char* interface_,int port)
 				i = 1;
 				if (setsockopt(listen_socket, IPPROTO_IPV6, IPV6_V6ONLY, &i, sizeof(i)) < 0) {
 					if (logger)
-						logger->log(LOGLEVEL_WARN, "setsockopt IPV6_V6ONLY failed: %s", strerror(errno));
+						logger->logEvent(LOGLEVEL_WARN, LogFields("socket_option_failed").tok("option", "IPV6_V6ONLY").err(errno), "setsockopt IPV6_V6ONLY failed: %s", strerror(errno));
 				}
 			}
 
@@ -1131,7 +1128,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 #endif
 		/* Persistent failure (e.g. closed listen socket); retrying would only spin */
 		if (logger)
-			logger->log(LOGLEVEL_ERROR, "select failed: %s", strerror(errno));
+			logger->logEvent(LOGLEVEL_ERROR, LogFields("select_failed").err(errno), "select failed: %s", strerror(errno));
 		return -1;
 	}
 
@@ -1155,7 +1152,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 			{
 				int err = errno;
 				if (logger)
-					logger->log(LOGLEVEL_ERROR, "accept failed: %s", strerror(err));
+					logger->logEvent(LOGLEVEL_ERROR, LogFields("accept_failed").err(err), "accept failed: %s", strerror(err));
 				/* Transient failures (aborted connection, out of file descriptors, ...) must
 				   not take down the whole server. Back off briefly, as the pending connection
 				   keeps the listen socket readable. */
@@ -1193,9 +1190,8 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 #endif
 				if (logger)
 				{
-					char fields[96];
-					snprintf(fields, sizeof(fields), "event=connection addr=%s", clienthost);
-					logger->logFields(LOGLEVEL_INFO, fields, "Connection accepted");
+					/* clienthost is numeric (getnameinfo NI_NUMERICHOST), so it is a safe token */
+					logger->logEvent(LOGLEVEL_INFO, LogFields("connection").tok("addr", clienthost).tok("family", client->ss_family == AF_INET6 ? "ipv6" : (client->ss_family == AF_INET ? "ipv4" : "other")), "Connection accepted");
 				}
 			}
 
@@ -1204,7 +1200,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 			if (cl >= FD_SETSIZE)
 			{
 				if (logger)
-					logger->log(LOGLEVEL_WARN, "Too many open file descriptors, rejecting connection.");
+					logger->logEvent(LOGLEVEL_WARN, LogFields("connection_rejected").tok("reason", "fd_limit"), "Too many open file descriptors, rejecting connection.");
 				closesocket(cl);
 				continue;
 			}

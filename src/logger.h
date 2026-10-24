@@ -61,6 +61,31 @@ public:
 };
 
 
+/**
+ * Builder for the structured fields of a log line: event=<name> followed by
+ * key=value pairs. Keys and token values are copied verbatim, so they must be
+ * trusted constants without spaces, quotes or control characters. Free text
+ * (anything user controlled) belongs into the msg argument of logEvent().
+ * Fields that do not fit into the buffer are dropped.
+ **/
+class LogFields
+{
+private:
+	char buf[256];
+	size_t len;
+	void append(const char* fmt, ...) LOGGER_PRINTF(2, 3);
+public:
+	explicit LogFields(const char* event);
+
+	LogFields& num(const char* key, long long value);
+	LogFields& dec(const char* key, double value, int digits = 2);
+	LogFields& tok(const char* key, const char* value);
+	LogFields& client(int slot) { return num("client", slot); }
+	LogFields& err(int error_number) { return num("errno", error_number); }
+
+	const char* str() const { return buf; }
+};
+
 class CLogger
 {
 private:
@@ -73,16 +98,9 @@ public:
 	CLogger(CLogWriter& _writer): writer(_writer) { }
 	virtual ~CLogger() { }
 
-	/* fmt is a printf format for the msg field. */
-	void log(LogLevel level, const char* fmt, ...) LOGGER_PRINTF(3, 4);
-
-	/* Same, with a client slot index added as client=N */
-	void logClient(LogLevel level, int client, const char* fmt, ...) LOGGER_PRINTF(4, 5);
-
-	/* Same, with additional preformatted fields. fields is a space separated
-	   list of key=value tokens and is copied verbatim: keys and values must be
-	   trusted and free of spaces, quotes and control characters. */
-	void logFields(LogLevel level, const char* fields, const char* fmt, ...) LOGGER_PRINTF(4, 5);
+	/* Emits one line. The event name and fields come from f, fmt is a printf
+	   format for the human readable msg field. */
+	void logEvent(LogLevel level, const LogFields& f, const char* fmt, ...) LOGGER_PRINTF(4, 5);
 };
 
 class CGameLogger:public CLogger
