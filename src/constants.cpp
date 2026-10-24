@@ -7,7 +7,10 @@
 #include <stdlib.h>
 
 void error_exit(const char* message, int code){
-	printf("Error %d: %s\n", code, message);
+	fprintf(stderr, "Error %d: %s\n", code, message);
+#ifdef WIN32
+	/* Keep the console window open so the message can be read */
 	getchar();
+#endif
 	exit (code);
 }
