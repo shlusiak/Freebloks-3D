@@ -21,9 +21,9 @@
     #define WM_MOUSEWHEEL                   0x020A
   #endif
 #else
-  #ifdef HAVE_X11_XPM_H
-    #include <X11/xpm.h>
-  #endif
+  #include <X11/Xatom.h>
+  #include <X11/Xutil.h>
+  #include "icon.h"
 #endif
 
 #include "window.h"
@@ -406,38 +406,24 @@ bool CWindow::createWindow()
 		sizehints.height = WND_SIZE_Y;
 		sizehints.flags = USSize /*| USPosition*/;
 		XSetNormalHints(dpy, wnd, &sizehints);
-		XSetStandardProperties(dpy, wnd, WINDOW_TITLE, WINDOW_TITLE,None, (char **)nullptr, 0, &sizehints);
+		XStoreName(dpy, wnd, WINDOW_TITLE);
+		XSetIconName(dpy, wnd, WINDOW_TITLE);
 	}
 
-#ifdef HAVE_X11_XPM_H
 	{
-		#include "freebloks.xpm"
-  		XpmImage I;
-  		int ret;
-		Pixmap p,s;
-		XWMHints hints;
-		XWindowAttributes root_attr;
-		XpmAttributes attributes;
+		// WM_CLASS lets the desktop match the window to freebloks.desktop (StartupWMClass)
+		char resName[] = "freebloks";
+		char resClass[] = "Freebloks";
+		XClassHint classHint;
+		classHint.res_name = resName;
+		classHint.res_class = resClass;
+		XSetClassHint(dpy, wnd, &classHint);
 
-  		ret=XpmCreateXpmImageFromData(freebloks_xpm,&I,nullptr);
-
-		if (ret==0)
-		{
-	  		XGetWindowAttributes (dpy, root,&root_attr);
-  			attributes.colormap = root_attr.colormap;
-  			attributes.valuemask = XpmCloseness | XpmColormap;
-  			attributes.closeness = 40000;
-
-  			ret=XpmCreatePixmapFromXpmImage (dpy, root, &I, &p, &s, &attributes);
-  			XpmFreeXpmImage(&I);
-
-    			hints.flags=IconPixmapHint|IconMaskHint;
-    			hints.icon_pixmap=p;
-    			hints.icon_mask=s;
-    			if (ret==0)XSetWMHints(dpy,wnd,&hints);
-		}
+		// EWMH window icon, ARGB data from icon.h
+		XChangeProperty(dpy, wnd, XInternAtom(dpy, "_NET_WM_ICON", False), XA_CARDINAL, 32,
+			PropModeReplace, (const unsigned char*)freebloks_icon,
+			sizeof(freebloks_icon) / sizeof(freebloks_icon[0]));
 	}
-#endif
 
 	ctx = glXCreateContext( dpy, visinfo, nullptr, True );
 	if (!ctx) {
