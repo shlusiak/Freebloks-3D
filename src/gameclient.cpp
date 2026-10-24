@@ -438,6 +438,8 @@ void CGameClient::process_message(NET_HEADER* data)
 		/* Server laesst den letzten Zug rueckgaengig machen */
 		case MSG_UNDO_STONE: {
 			const CTurn *t=history.get_last_turn();
+			/* Nothing to undo, the server is out of sync or broken */
+			if (t == nullptr)break;
 			const CStone &stone=get_player(t->player)->get_stone(t->stone_number);
 			stoneUndone(stone, t);
 			undo_turn(history, m_game_mode);

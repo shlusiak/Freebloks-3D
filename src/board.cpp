@@ -219,13 +219,13 @@ bool CBoard::set_stone(CStone& stone, int playernumber, int startY, int startX) 
 
 void CBoard::undo_turn(CTurnPool& turn_pool, GAMEMODE game_mode){
 	const CTurn* turn = turn_pool.get_last_turn();
+	if (turn == nullptr) return;
 	CStone& stone = CBoard::m_player[turn->player].get_stone(turn->stone_number);
 	int x, y;
 	stone.mirror_rotate_to(turn->mirror_count, turn->rotate_count);
 
 	#ifdef _DEBUG
 		//check valid
-		if (turn == nullptr) error_exit("No turn", 42);
 		for (x = 0; x < stone->get_stone_size(); x++){
 			for (y = 0; y < stone->get_stone_size(); y++){
 				if (stone->get_stone_field(y, x) != STONE_FIELD_FREE){
