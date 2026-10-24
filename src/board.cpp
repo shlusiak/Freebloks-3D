@@ -118,9 +118,12 @@ void CBoard::refresh_player_data(){
 
 
 void CBoard::init_field(){
+	/* Allocate first: if new[] throws, m_game_field still points to a valid allocation
+	   instead of a deleted one that the destructor would free again. */
+	TSingleField *field = new TSingleField[CBoard::m_field_size_y * CBoard::m_field_size_x];
+	memset(field, 0, sizeof(TSingleField) * m_field_size_y * m_field_size_x);
 	delete[] CBoard::m_game_field;
-	CBoard::m_game_field = new TSingleField[CBoard::m_field_size_y * CBoard::m_field_size_x];
-	memset(m_game_field, 0, sizeof(TSingleField) * m_field_size_y * m_field_size_x);
+	CBoard::m_game_field = field;
 }
 
 void CBoard::set_seeds(GAMEMODE game_mode) {

@@ -336,6 +336,8 @@ void CGameClient::process_message(NET_HEADER* data)
 			/* The oldest protocol version ends right before player_owner */
 			if (ntohs(data->data_length) < offsetof(NET_SERVER_STATUS, player_owner))break;
 			NET_SERVER_STATUS *s=(NET_SERVER_STATUS*)data;
+			/* The field size is used for allocations and as loop bounds, never trust it blindly */
+			if (!is_valid_game_config(s->gamemode, s->width, s->height))break;
 			int version = 1;
 
 			if (ntohs(data->data_length) >= 143 + 5)
