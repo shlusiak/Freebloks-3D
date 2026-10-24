@@ -102,13 +102,9 @@ void* aiThread(void* p)
 	CBoard board(original->get_field_size_x(), original->get_field_size_y());
 
 	int new_points;
-#ifdef HAVE_PTHREAD_CREATE
-	if (data->from > data->to)
-	    pthread_exit((void*)0);
-#else
+	/* Return instead of pthread_exit(): it is not guaranteed to run the destructor of board */
 	if (data->from > data->to)
 	    return nullptr;
-#endif
 
 	board.follow_situation(*original, *ai->m_turnpool.get_turn(data->from));
 	data->best_points = get_ultimate_points(board, data->current_player, data->ai_error, *data->ai->m_turnpool.get_turn(data->from));
@@ -126,9 +122,6 @@ void* aiThread(void* p)
 		}
 	}
 
-#ifdef HAVE_PTHREAD_CREATE
-	pthread_exit((void*)0);
-#endif
 	return nullptr;
 }
 
