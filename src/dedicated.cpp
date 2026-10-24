@@ -52,9 +52,13 @@ static const char* stats_socket_file = "/tmp/freebloks_stats";
 #ifndef WIN32
 static volatile sig_atomic_t shutdown_requested = 0;
 
-static void handle_termination_signal(int)
+static void handle_termination_signal(int signal_number)
 {
 	shutdown_requested = 1;
+	if (signal_number == SIGTERM)
+		write(STDERR_FILENO, "event=shutdown_signal_received signal=SIGTERM\n", 46);
+	else if (signal_number == SIGINT)
+		write(STDERR_FILENO, "event=shutdown_signal_received signal=SIGINT\n", 45);
 }
 #endif
 
