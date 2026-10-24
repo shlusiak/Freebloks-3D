@@ -121,7 +121,7 @@ static void parseParams(int argc,char **argv)
 			continue;
 		}
 
-		if (strcmp("-s",argv[i])==0 || strcmp("--autostart",argv[i])==1)
+		if (strcmp("-s",argv[i])==0 || strcmp("--autostart",argv[i])==0)
 		{
 			auto_start = 1;
 			i++;
