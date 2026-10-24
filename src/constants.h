@@ -72,6 +72,24 @@ enum GAMEMODE {
 	GAMEMODE_JUNIOR,
 };
 
+/* Field edge limits accepted from the network */
+const int FIELD_SIZE_MIN = 4;
+const int FIELD_SIZE_MAX = 50;
+
+/**
+ * Checks a game mode and field size received from the network.
+ * DUO and JUNIOR place their seeds at offset 4 from the field edges, which needs at least 5 fields.
+ **/
+inline bool is_valid_game_config(int gamemode, int width, int height)
+{
+	if (gamemode < GAMEMODE_2_COLORS_2_PLAYERS || gamemode > GAMEMODE_JUNIOR) return false;
+	if (width < FIELD_SIZE_MIN || width > FIELD_SIZE_MAX) return false;
+	if (height < FIELD_SIZE_MIN || height > FIELD_SIZE_MAX) return false;
+	if (gamemode == GAMEMODE_DUO || gamemode == GAMEMODE_JUNIOR)
+		if (width < 5 || height < 5) return false;
+	return true;
+}
+
 
 
 void error_exit(const char* message, int code);

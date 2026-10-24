@@ -574,9 +574,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			if (r->version >= 1) {
 				if (ntohs(r->header.data_length) < sizeof(NET_HEADER) + 25)
 					break;
-				if (r->width < 4 || r->width > 50)
-					break;
-				if (r->height < 4 || r->height > 50)
+				if (!is_valid_game_config(r->gamemode, r->width, r->height))
 					break;
 
 				set_field_size(r->width, r->height);
