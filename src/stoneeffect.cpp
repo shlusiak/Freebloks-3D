@@ -327,6 +327,7 @@ CPhysicalStone::CPhysicalStone(CGUI *vgui,CStone *vstone,int player)
 	angspeed=0.0;
 	ax=az=speedx=speedy=speedz=0.0;
 	ay=1.0;
+	dx=dy=dz=0.0;
 }
 
 void CPhysicalStone::setPos(double sx,double sy,double sz)

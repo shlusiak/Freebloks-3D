@@ -59,6 +59,8 @@ CGUI::CGUI()
 	window=new CWindow(this);
 
 	game=nullptr;
+	lastx=lasty=0;
+	clickx=clicky=0;
 	selectedx=selectedy=-1;
 	selected_allowed=false;
 	current_stone=-1;
