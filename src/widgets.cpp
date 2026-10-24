@@ -1026,7 +1026,7 @@ void CSpinBox::setValue(int value)
 {
 	if (value<min)value=min;
 	if (value>max)value=max;
-	sprintf(text,"%d",value);
+	snprintf(text,sizeof(text),"%d",value);
 
 	/* up is enabled if value<max, i.e. the value could still be increased. */
 	up->setEnabled(value<max);
@@ -1294,7 +1294,7 @@ void CFPS::execute(double elapsed)
 	{
 		/* Update the label. */
 		char c[100];
-		sprintf(c,"fps: %.1f",(double)counter / time);
+		snprintf(c,sizeof(c),"fps: %.1f",(double)counter / time);
 		setText(c,true);
 		/* Reset the counter. */
 		time=0.0;

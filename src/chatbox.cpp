@@ -193,10 +193,15 @@ void CChatBox::addChatMessage(int client,const char *text)
 	if (lines[CHAT_LINES-1])lineanim=0.0; else lineanim=1.0;
 
 	/* Build a new string with "Client %d: " in front. */
-	char *t=(char*)malloc(strlen(text)+20);
+	const char *fmt=(client==-1)?"  *  %s":"Client %d: %s";
+	int tlen=(client==-1)?snprintf(nullptr,0,fmt,text):snprintf(nullptr,0,fmt,client,text);
+	if (tlen<0)return;
+	size_t tsize=(size_t)tlen+1;
+	char *t=(char*)malloc(tsize);
+	if (t==nullptr)return;
 	if (client==-1)
-		sprintf(t,"  *  %s",text);
-	else 	sprintf(t,"Client %d: %s",client,text);
+		snprintf(t,tsize,fmt,text);
+	else 	snprintf(t,tsize,fmt,client,text);
 	unsigned int i;
 	/* Chop the string up and add the wrapped pieces one by one */
 	for (i=0;i<strlen(t)/(maxlen);i++)

@@ -224,7 +224,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	strcpy(path, "127.0.0.1");
 	port = TCP_PORT+1;
 #else
-	sprintf(path, P_tmpdir"/freebloks-%d", rand()%131072);
+	snprintf(path, sizeof(path), P_tmpdir"/freebloks-%d", rand()%131072);
 	port = 0;
 #endif
 
@@ -250,7 +250,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	if (err!=nullptr)
 	{
 		char t[300];
-		sprintf(t,"Could not connect to local server:\n%s.",err);
+		snprintf(t,sizeof(t),"Could not connect to local server:\n%s.",err);
 		widgets.addSubChild(new CMessageBox(300,150,"Error",t));
 		return false;
 	}
@@ -308,7 +308,7 @@ bool CGUI::joinMultiplayerGame(const char *host, int port, int players, const ch
 	if (err!=nullptr)
 	{
 		char t[300];
-		sprintf(t,"Could not connect to remote server:\n%s.",err);
+		snprintf(t,sizeof(t),"Could not connect to remote server:\n%s.",err);
 		widgets.addSubChild(new CMessageBox(300,150,"Error",t));
 		return false;
 	}else{
@@ -391,7 +391,7 @@ void CGUI::run()
 			/* And on error show the corresponding error message,
 			   probably "Connection Lost" or similar. */
 			char c[1000];
-			sprintf(c,"Connection to server lost:\n%s.",err);
+			snprintf(c,sizeof(c),"Connection to server lost:\n%s.",err);
 			/* Show a fully modal dialog */
 			widgets.addSubChild(new CMessageBox(300,200,"Error",c));
 		}
@@ -1433,8 +1433,8 @@ void CGUI::renderPlayerStone(int player,CStone* stone,int stone_number,bool curr
 		}
 		if (stone->get_available()>1)
 		{
-			char c[5];
-			sprintf(c,"%dx",stone->get_available());
+			char c[16];
+			snprintf(c,sizeof(c),"%dx",stone->get_available());
 			glTranslated(0,1.5,+stone_size+((double)stone->get_stone_size()/2.0)*stone_size*2.0);
 			/* But always let the digit face the camera. */
 			glRotated(-angy,0,1,0);
@@ -1896,7 +1896,7 @@ void CGUI::newCurrentPlayer(int player)
 		}
 		if (game->is_local_player())
 		{
-			sprintf(text,"%s, it's your turn!",COLOR_NAME[player]);
+			snprintf(text,sizeof(text),"%s, it's your turn!",COLOR_NAME[player]);
 			/* Hint should only be enabled if only one client, or only one
 			   local player, is playing. */
 			bool b=game->getServerStatus()->clients<=1;
@@ -1906,7 +1906,7 @@ void CGUI::newCurrentPlayer(int player)
 			undo->setEnabled(b);
 			testSelection(lastx,lasty);
 		}else{
-			sprintf(text,"Waiting for %s...",COLOR_NAME[player]);
+			snprintf(text,sizeof(text),"Waiting for %s...",COLOR_NAME[player]);
 			hint->setEnabled(false);
 			undo->setEnabled(false);
 		}
