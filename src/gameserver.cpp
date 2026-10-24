@@ -1116,8 +1116,12 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 		if (max<get_game()->clients[i])max=get_game()->clients[i];
 	}
 
-	/* Block indefinitely until data is available on a socket */
-	retval = select(max+1, &filedescriptors, nullptr, nullptr, nullptr);
+	/* Bound the wait so the dedicated server can observe a termination request
+	   even when the signal is delivered to another thread. */
+	struct timeval timeout;
+	timeout.tv_sec = 1;
+	timeout.tv_usec = 0;
+	retval = select(max+1, &filedescriptors, nullptr, nullptr, &timeout);
 
 	if (retval<0)
 	{

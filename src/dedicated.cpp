@@ -49,6 +49,14 @@ static char* logfile = nullptr;
 static CStdoutWriter& logWriter = *new CStdoutWriter();
 static CServerListener* listener = nullptr; /* the primary listener for new games */
 static const char* stats_socket_file = "/tmp/freebloks_stats";
+#ifndef WIN32
+static volatile sig_atomic_t shutdown_requested = 0;
+
+static void handle_termination_signal(int)
+{
+	shutdown_requested = 1;
+}
+#endif
 
 /* Shared with the stats thread, protected by mutex. clients and players describe the game that
    is currently waiting for players and are only written by the main thread; the stats thread
@@ -499,7 +507,11 @@ static int establish_game()
 		stats.players = listener->get_game()->num_players();
 		unlock_mutex();
 
-	} while (listener->get_game()->current_player()==-1);
+	} while (listener->get_game()->current_player()==-1
+#ifndef WIN32
+		 && !shutdown_requested
+#endif
+	);
 
 	return 0;
 }
@@ -544,6 +556,15 @@ int main(int argc,char ** argv)
 #ifndef WIN32
 	/* A write to a closed socket must fail with EPIPE instead of killing the process */
 	signal(SIGPIPE, SIG_IGN);
+	struct sigaction termination_action = {};
+	termination_action.sa_handler = handle_termination_signal;
+	sigemptyset(&termination_action.sa_mask);
+	if (sigaction(SIGTERM, &termination_action, nullptr) == -1 ||
+	    sigaction(SIGINT, &termination_action, nullptr) == -1)
+	{
+		perror("sigaction");
+		return 1;
+	}
 #endif
 
 	/* Create a ServerListener that listens for connections
@@ -620,7 +641,13 @@ int main(int argc,char ** argv)
 	pthread_create(&pt, nullptr, stat_thread, (void*)stats_socket_file);
 #endif
 
-	while (true)
+	while (
+#ifndef WIN32
+		!shutdown_requested
+#else
+		true
+#endif
+	)
 	{
 		/* A new game is to be created.
 		   AI level is hard */
@@ -635,6 +662,10 @@ int main(int argc,char ** argv)
 		/* A game was created and the listener is listening. Now let the game fill up
 		   and wait until a client has started it */
 		if (establish_game()==-1)return -1;
+#ifndef WIN32
+		if (shutdown_requested)
+			break;
+#endif
 
 		/* Move the current game to a secondary thread */
 		lock_mutex();
@@ -666,12 +697,24 @@ int main(int argc,char ** argv)
 			
 			logger.logFields(LOGLEVEL_WARN, "event=listener_closed", "Stopping accepting new connections due to too many running games");
 
-			while (games_running>=max_running_games)
+			while (games_running>=max_running_games
+#ifndef WIN32
+				&& !shutdown_requested
+#endif
+			)
 			{
 				unlock_mutex();
 				CTimer::sleep(2000);
 				lock_mutex();
 			}
+			if (
+#ifndef WIN32
+				!shutdown_requested
+#else
+				true
+#endif
+			)
+			{
 			logger.logFields(LOGLEVEL_INFO, "event=listener_reopened", "Resuming accepting new connections");
 
 			ret=listener->init(_interface,port);
@@ -681,12 +724,21 @@ int main(int argc,char ** argv)
 				logger.log(LOGLEVEL_ERROR, "Error calling listen: %s", strerror(errno));
 				return -1;
 			}
+			}
 		}
 		unlock_mutex();
 	}
 
 	// unreachable code
+#ifndef WIN32
+	if (shutdown_requested)
+		logger.logFields(LOGLEVEL_INFO, "event=shutdown_requested", "Shutdown requested");
+#endif
 	delete listener;
+#ifndef WIN32
+	if (shutdown_requested)
+		logger.logFields(LOGLEVEL_INFO, "event=shutdown_performed", "Shutdown performed");
+#endif
 	destroy_mutex();
 
 #ifdef WIN32

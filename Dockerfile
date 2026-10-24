@@ -27,5 +27,8 @@ RUN mkdir /logs/
 
 WORKDIR /install
 COPY --from=builder /install/src/freebloks_* ./
+COPY docker-entrypoint.sh .
 
-ENTRYPOINT /install/freebloks_dedicated --log $LOGFILE --limit $LIMIT
+EXPOSE 59995
+
+ENTRYPOINT ["/install/docker-entrypoint.sh"]
