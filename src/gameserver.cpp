@@ -798,7 +798,8 @@ void* LocalServerThread(void* param)
 	do
 	{
 		sockaddr_storage client;
-		listener->wait_for_player(false, &client);
+		if (listener->wait_for_player(false, &client) == -1)
+			break;
 		// Remember whether a client was ever connected
 		if (listener->get_game()->num_clients()>=1)hadClient=true;
 		// Die when the last client has disconnected
@@ -1109,6 +1110,17 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 	/* Block indefinitely until data is available on a socket */
 	retval = select(max+1, &filedescriptors, nullptr, nullptr, nullptr);
 
+	if (retval<0)
+	{
+#ifndef WIN32
+		/* A signal interrupted the wait; the caller simply tries again */
+		if (errno == EINTR) return 0;
+#endif
+		/* Persistent failure (e.g. closed listen socket); retrying would only spin */
+		perror("select");
+		return -1;
+	}
+
 	if (retval>0)
 	{
 		/* Go through the clients to see whether data is pending. */
@@ -1154,16 +1166,8 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 				}
 
 
-				/* First resolve the FQDN */
-				retval = getnameinfo((sockaddr*)client,l,
-					clienthost,sizeof(clienthost),
-					nullptr,0,
-					NI_NAMEREQD);
-
-				if (retval == 0 && logger)
-					logger->log("%s, ",clienthost);
-
-				/* Then resolve the IP */
+				/* Log the numeric address only. A reverse DNS lookup would block
+				   this thread, which also accepts all other connections. */
 				getnameinfo((sockaddr*)client,l,
 					clienthost,sizeof(clienthost),
 					nullptr,0,
@@ -1172,8 +1176,6 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 				if (logger)
 					logger->log("%s\n",clienthost);
 #else
-				hostent *host;
-				host=gethostbyaddr((char*)client->sin_addr.s_addr,sizeof(client->sin_addr.s_addr),AF_INET);
 				unsigned int a,b,c,d,i;
 				i=ntohl(client->sin_addr.s_addr);
 				a=(i>>24)&0xFF;
@@ -1181,12 +1183,10 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 				c=(i>>8)&0xFF;
 				d=(i>>0)&0xFF;
 				printf("Connection from: ");
-				if (host)printf("%s, ",host->h_name);
 				printf("%d.%d.%d.%d\n",a,b,c,d);
 				if (CLogger::logfile)
 				{
 					fprintf(CLogger::logfile,"Connection from: ");
-					if (host)fprintf(CLogger::logfile,"%s, ",host->h_name);
 					fprintf(CLogger::logfile,"%d.%d.%d.%d\n",a,b,c,d);
 					CLogger::flush();
 				}
