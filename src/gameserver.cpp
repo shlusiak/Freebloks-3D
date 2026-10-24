@@ -416,6 +416,12 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				return;
 
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
+			/* Without a running game there is no current player, never index player[] with -1 */
+			if (m_current_player < 0) {
+				if (logger)
+					logger->logLine("WARNING: Ignoring move, no game running.\n");
+				return;
+			}
 			/* Den entsprechenden Stein aus den Daten zusammensuchen */
 			if (s->player != m_current_player) {
 				if (logger)
