@@ -138,7 +138,10 @@ const CTurn* CAI::get_ultimate_turn(CBoard& board, const int current_player, con
 #endif
 
 	volatile THREADDATA data[8];
+	/* false if the thread could not be created and the slice was computed right here */
+	bool started[8];
 	if (num_threads > 8) num_threads = 8;
+	if (num_threads < 1) num_threads = 1;
 
 // 	printf("AI using %d threads\n",num_threads);
 	for (i = 0; i < num_threads; i++)
@@ -158,11 +161,15 @@ const CTurn* CAI::get_ultimate_turn(CBoard& board, const int current_player, con
 #ifdef WIN32
 		DWORD tid;
 		threads[i]=CreateThread(nullptr,0,aiThread,(void*)&data[i],0,&tid);
+		started[i]=(threads[i]!=nullptr);
 #elif defined HAVE_PTHREAD_CREATE
-		pthread_create(&threads[i],nullptr,aiThread,(void*)&data[i]);
+		started[i]=(pthread_create(&threads[i],nullptr,aiThread,(void*)&data[i])==0);
 #else
-		aiThread((void*)&data[i]);
+		started[i]=false;
 #endif
+		/* Without a thread, evaluate this slice synchronously instead of dropping it */
+		if (!started[i])
+			aiThread((void*)&data[i]);
 	}
 
 	CBoard follow_situation(board.get_field_size_x(), board.get_field_size_y());
@@ -175,9 +182,9 @@ const CTurn* CAI::get_ultimate_turn(CBoard& board, const int current_player, con
 	{
 #ifdef HAVE_PTHREAD_CREATE
 		int *pi;
-		pthread_join(threads[i], (void**)&pi);
+		if (started[i])pthread_join(threads[i], (void**)&pi);
 #elif defined WIN32
-		WaitForSingleObject(threads[i],INFINITE);
+		if (started[i])WaitForSingleObject(threads[i],INFINITE);
 #endif
 		if (data[i].best_points > best_points && data[i].best != nullptr)
 		{
