@@ -20,7 +20,9 @@ Windows (.sln/.vcproj/.dsp, config-win32.h), debian/, build/, *.ebuild and .deb 
 
 ## Architecture
 
-Flat C++ code base in src/, C-prefixed classes, mixed German/English names (Spiel=game, Spieler=player, Stein=stone, Zug=turn, KI=AI). Some files are Latin-1 encoded; do not re-encode.
+Flat C++ code base in src/, C-prefixed classes. Some files are Latin-1 encoded; do not re-encode.
+
+Language policy: all documentation, comments, identifiers and file names are English. German is legacy and is being removed. Write new code, comments, docs and file names in English only, and translate or rename German ones when touching them. Legacy glossary for existing names: Spiel=game, Spieler=player, Stein=stone, Zug=turn, KI=AI (e.g. CSpielServer, spielserver.cpp, CSpielClient, spielclient.cpp, CKi, ki.cpp, the KI_* constants, NET_SERVER_STATUS.spieler). Renaming a NET_* field does not change the wire format; renaming files requires updating src/Makefile.am.
 
 - Core: CBoard (grid + rules) -> CGame (state, current player, game mode, turn history). player[] holds a socket fd or PLAYER_COMPUTER (-2) / PLAYER_LOCAL (-1). Game modes in constants.h.
 - AI: CKi (ki.cpp), strength KI_* and thread count configurable.
@@ -32,4 +34,4 @@ Flat C++ code base in src/, C-prefixed classes, mixed German/English names (Spie
 - Telemetry (telemetry.cpp/.h, namespace telemetry): lock-free atomic counters/gauges/histograms exposed as Prometheus text on GET /metrics and /healthz by a detached HTTP thread. Off unless --metrics-port is non-zero; binds 127.0.0.1 by default. Hooks live in spielserver.cpp and dedicated.cpp. Linked into dedicated, benchmark and GUI sources, not freebloks_client. POSIX-only.
 - Logger (logger.cpp): process-wide recursive mutex; always call logLine("%s", s), never pass untrusted strings as the format.
 
-Design docs (German) are in docs/ (Netzwerk.png is the protocol diagram).
+Documentation is in docs/ (English). docs/protocol.md is the wire-format reference; update it whenever network.h or message handling changes.
