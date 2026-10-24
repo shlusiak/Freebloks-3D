@@ -326,7 +326,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				n=rand()%PLAYER_MAX;
 				/* seit 1.5: optional ist ein Wunschspieler angegeben */
 				if (ntohs(data->data_length) > sizeof(NET_HEADER)) {
-					if (req->player >= 0 && req->player <= PLAYER_MAX)
+					if (req->player >= 0 && req->player < PLAYER_MAX)
 						n = req->player;
 				}
 				/* Suche den naechsten, der frei ist (!=PLAYER_COMPUTER) */
