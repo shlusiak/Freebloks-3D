@@ -343,6 +343,8 @@ void CGameClient::process_message(NET_HEADER* data)
 			status.height=s->height;
 			if (status.width!=get_field_size_x() || status.height!=get_field_size_y()) {
 				set_field_size(status.width, status.height);
+				// Turns recorded on the old board must not be replayed on the new one
+				history.delete_all_turns();
 				start_new_game((GAMEMODE)s->gamemode);
 			}
 			if (version <= 2)

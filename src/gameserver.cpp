@@ -600,6 +600,8 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 					}
 				}
 
+				// Turns recorded on the old board must not be replayed on the new one
+				history.delete_all_turns();
 				start_new_game((GAMEMODE)r->gamemode);
 				set_stone_numbers(r->stone_numbers);
 			}
@@ -813,6 +815,9 @@ void* LocalServerThread(void* param)
  **/
 int CGameServer::run_server(const char* interface_,int port,int maxhumans,int ai_mode,int width,int height,GAMEMODE gamemode,int8 stone_numbers[],int ai_threads)
 {
+	if (!is_valid_game_config(gamemode, width, height))
+		return EINVAL;
+
 	CServerListener *listener=new CServerListener();
 	int r=listener->init(interface_,port);
 	if (r!=0)
@@ -978,7 +983,8 @@ int CServerListener::init(const char* interface_,int port)
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_STREAM;
 
-	if (getaddrinfo(interface_,s_port,&hints,&res)<0)
+	// getaddrinfo reports errors as non-zero EAI_* codes, whose sign differs between platforms
+	if (getaddrinfo(interface_,s_port,&hints,&res)!=0)
 		return errno?errno:-1;
 
 	num_listen_sockets = 0;
@@ -1007,7 +1013,7 @@ int CServerListener::init(const char* interface_,int port)
 #endif
 			if (bind(listen_socket,res->ai_addr,res->ai_addrlen)==0)
 			{
-				if (listen(listen_socket,5)==0)
+				if (listen(listen_socket,5)==0 && num_listen_sockets < LISTEN_SOCKETS_MAX)
 				{
 					listen_sockets[num_listen_sockets++] = listen_socket;
 				} else {

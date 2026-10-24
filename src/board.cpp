@@ -128,7 +128,7 @@ void CBoard::init_field(){
 
 void CBoard::set_seeds(GAMEMODE game_mode) {
 	#define set_seed(x, y, player) \
-		if (get_game_field(player, y, x) == FIELD_FREE) \
+		if (is_position_inside_field(y, x) && get_game_field(player, y, x) == FIELD_FREE) \
 			set_game_field(y, x, PLAYER_BIT_ALLOWED[player])
 	if (game_mode == GAMEMODE_DUO || game_mode == GAMEMODE_JUNIOR) {
 		set_seed(4, m_field_size_y - 5, 0);
@@ -242,7 +242,9 @@ void CBoard::undo_turn(CTurnPool& turn_pool, GAMEMODE game_mode){
 	for (x = 0; x < stone.get_stone_size(); x++){
 		for (y = 0; y < stone.get_stone_size(); y++){
 			if (stone.get_stone_field(y, x) != STONE_FIELD_FREE){
-				CBoard::free_game_field(turn->y + y, turn->x + x);
+				// The history may stem from a board of a different size
+				if (is_position_inside_field(turn->y + y, turn->x + x))
+					CBoard::free_game_field(turn->y + y, turn->x + x);
 			}
 		}
 	}
