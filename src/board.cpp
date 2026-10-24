@@ -197,7 +197,7 @@ bool CBoard::set_stone(const CTurn& turn){
 
 bool CBoard::set_stone(CStone& stone, int playernumber, int startY, int startX) {
 #ifdef _DEBUG
-	if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Falsche Spielerzahl", playernumber); //debug
+	if (playernumber < 0 || playernumber >= PLAYER_MAX) error_exit("Invalid player number", playernumber); //debug
 #endif
 
 	for (int y = 0; y < stone.get_stone_size(); y++){
@@ -222,13 +222,13 @@ void CBoard::undo_turn(CTurnPool& turn_pool, GAMEMODE game_mode){
 
 	#ifdef _DEBUG
 		//check valid
-		if (turn == nullptr) error_exit("Kein turn", 42);
+		if (turn == nullptr) error_exit("No turn", 42);
 		for (x = 0; x < stone->get_stone_size(); x++){
 			for (y = 0; y < stone->get_stone_size(); y++){
 				if (stone->get_stone_field(y, x) != STONE_FIELD_FREE){
 					if (CBoard::get_game_field(turn->get_y() + y, turn->get_x() + x) != turn->get_playernumber()) {
 						printf("y: %d, x: %d\n", turn->get_y() + y, turn->get_x() +x);
-						error_exit("�bergebener Turnpool fehlerhaft (undo turn)", 44);//return false;
+						error_exit("Invalid turn pool passed (undo turn)", 44);//return false;
 					}
 				}
 			}

@@ -34,7 +34,7 @@ static void help()
 	printf("  -p, --port        Specify the TCP port to accept connections. Default: %d\n",TCP_PORT);
 	printf("  -n, --maxplayers  Define the maximum of players to play by client\n"
                "                    Default: %d\n",max_players);
-	printf("  -k  --ki          Strength of AI. Lower number means stronger.\n"
+	printf("  -k  --ai          Strength of AI. Lower number means stronger.\n"
 	       "                    Default: %d\n", ai_strength);
 	printf("  -s, --autostart   Start the game after connecting to server\n"
 	       "                    Default: not set\n");
@@ -85,7 +85,7 @@ static void parseParams(int argc,char **argv)
 			continue;
 		}
 
-		if (strcmp("-k",argv[i])==0 || strcmp("--ki",argv[i])==0)
+		if (strcmp("-k",argv[i])==0 || strcmp("--ai",argv[i])==0)
 		{
 			i++;
 			if (i==argc) {

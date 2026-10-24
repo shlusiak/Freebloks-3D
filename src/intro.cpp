@@ -204,7 +204,7 @@ void CIntro::addChar(char c,int color,int x,int y)
 		add(9,color,x,y+2);
 		break;
 
- 	default: printf("Falscher char uebergeben: %c.\n",c);
+ 	default: printf("Invalid char passed: %c.\n",c);
  		break;
 	}
 }

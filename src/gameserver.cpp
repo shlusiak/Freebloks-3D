@@ -346,7 +346,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				n=(n+2)%PLAYER_MAX;
 				if (player[n] != PLAYER_COMPUTER)
 				{
-					printf("ERROR: Spieler bereits vergeben!?!?!? (2 Farben pro Spieler)\n");
+					printf("ERROR: player already assigned (2 colors per player)\n");
 					delete_client(client,false);
 					return;
 				}
@@ -611,7 +611,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			break;
 		}
 
-		default: printf("FEHLER: Unbehandelte Netzwerknachricht: #%d\n",data->msg_type);
+		default: printf("ERROR: unhandled network message: #%d\n",data->msg_type);
 			break;
 	}
 }
@@ -747,9 +747,9 @@ void CGameServer::next_player()
 		   ist dieser dran. Sonst muss er aussetzen, und der uebernaechste wird probiert. */
 		if (get_number_of_possible_turns(m_current_player)>0)
 		{
-// 			printf("Spieler %d ist dran: Hat %d moegliche Zuege.\n",m_current_player,get_number_of_possible_turns(m_current_player));
+// 			printf("Player %d to move: has %d possible turns.\n",m_current_player,get_number_of_possible_turns(m_current_player));
 			return;
-		}//else printf("Spieler %d muss aussetzen.\n",m_current_player);
+		}//else printf("Player %d has to pass.\n",m_current_player);
 	}
 	/* Ist man hier angelangt, hat keiner der PLAYER_MAX Spieler noch freie Zuege.
 	   Das Spiel ist vorbei. */

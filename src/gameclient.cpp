@@ -419,7 +419,7 @@ void CGameClient::process_message(NET_HEADER* data)
 			undo_turn(history, m_game_mode);
 			break;
 		}
-		default: printf("FEHLER: unbekannte Nachricht empfangen: #%d\n",data->msg_type);
+		default: printf("ERROR: unknown message received: #%d\n",data->msg_type);
 			break;
 	}
 }

@@ -32,7 +32,7 @@ static int ai_strength=AI_PERFECT;
 static void help()
 {
 	printf("Usuage: benchmark [OPTIONS]\n\n");
-	printf("  -k  --ki          Strength of AI. Lower number means stronger.\n"
+	printf("  -k  --ai          Strength of AI. Lower number means stronger.\n"
 	       "                    Default: %d\n", ai_strength);
 	printf("      --width       Width of the field. Default: 20\n"
 	       "      --height      Height of the field. Default: 20\n"
@@ -49,7 +49,7 @@ static void parseParams(int argc,char **argv)
 	{
 		if (strcmp("--help",argv[i])==0) help();
 
-		if (strcmp("-k",argv[i])==0 || strcmp("--ki",argv[i])==0)
+		if (strcmp("-k",argv[i])==0 || strcmp("--ai",argv[i])==0)
 		{
 			i++;
 			if (i==argc) {

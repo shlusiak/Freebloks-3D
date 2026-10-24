@@ -207,7 +207,7 @@ static void help()
 	printf("  -L                Listen on specified IP address. Default: OS default\n");
 	printf("  -h, --maxhumans   Define the maximum of human players per game (0-4)\n"
                "                    Default: %d\n",max_humans);
-	printf("  -k  --ki          Strength of AI. Lower number means stronger.\n"
+	printf("  -k  --ai          Strength of AI. Lower number means stronger.\n"
 	       "                    Default: %d\n", ai_strength);
 	printf("  -m, --mode        The game mode for the hosted game. Valid modes:\n"
 	       "                    2: 2 colors, 2 players\n"
@@ -283,7 +283,7 @@ static void parse_params(int argc,char **argv)
 			i++;
 			continue;
 		}
-		if (strcmp("-k",argv[i])==0 || strcmp("--ki",argv[i])==0)
+		if (strcmp("-k",argv[i])==0 || strcmp("--ai",argv[i])==0)
 		{
 			i++;
 			if (i==argc) {
