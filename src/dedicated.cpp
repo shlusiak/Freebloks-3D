@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <errno.h>
+#include <signal.h>
 #include "gameserver.h"
 #include "logger.h"
 
@@ -519,6 +520,11 @@ void* gameRunThread(void* param)
 int main(int argc,char ** argv)
 {
 	int ret;
+
+#ifndef WIN32
+	/* A write to a closed socket must fail with EPIPE instead of killing the process */
+	signal(SIGPIPE, SIG_IGN);
+#endif
 
 	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
 	   und Clients connecten laesst */

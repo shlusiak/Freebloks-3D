@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <signal.h>
 #include "gui.h"
 
 
@@ -42,6 +43,10 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpcmdline,
  **/
 int main(int argc, char *argv[])
 {
+#ifndef WIN32
+    /* A write to a closed socket must fail with EPIPE instead of killing the process */
+    signal(SIGPIPE, SIG_IGN);
+#endif
     /* Zufallsgenerator starten */
     srand(time(0));
     /* GUI erstellen und starten */
