@@ -408,6 +408,8 @@ void CGameClient::process_message(NET_HEADER* data)
 		case MSG_CHAT: {
 			if (ntohs(data->data_length) < sizeof(NET_CHAT))break;
 			NET_CHAT* chat=(NET_CHAT*)data;
+			/* The text is a C string for the consumers, but nothing guarantees a terminator */
+			((char*)data)[ntohs(data->data_length) - 1] = '\0';
 			chatReceived(chat);
 			break;
 		}
