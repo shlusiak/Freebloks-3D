@@ -561,9 +561,14 @@ int main(int argc,char ** argv)
 	if (logfile) 
 	{
 		CLogFileWriter *fw = new CLogFileWriter();
+		if (!fw->createFile(logfile))
+		{
+			fprintf(stderr, "Cannot open log file %s\n", logfile);
+			delete fw;
+			return 1;
+		}
 		logWriter.addLogWriter(fw);
 		printf("Logging to: %s\n",logfile);
-		fw->createFile(logfile);
 	}
 
 

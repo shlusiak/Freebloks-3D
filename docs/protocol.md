@@ -161,7 +161,7 @@ Lobby/game state snapshot. Broadcast on client join, on client leave, after `MSG
 | 9      | 1    | `height`                 | `int8`. Board height. |
 | 10     | 5    | `stone_numbers_obsolete` | `int8[5]`. Obsolete. The server always sends `1` in each. Only used by version <= 2 logic on the client. |
 | 15     | 1    | `gamemode`               | `int8`. See [game modes](#game-modes). |
-| 16     | 4    | `spieler`                | `int8[4]`. Owner of each player slot: `-2` computer, otherwise the index (`0..7`) of the owning client. (`-1` = `PLAYER_LOCAL` is a client-internal value.) Added in 1.5 (version 2). |
+| 16     | 4    | `player_owner`           | `int8[4]`. Owner of each player slot: `-2` computer, otherwise the index (`0..7`) of the owning client. (`-1` = `PLAYER_LOCAL` is a client-internal value.) Added in 1.5 (version 2). |
 | 20     | 128  | `client_names`           | `uint8[8][16]`. Name of each client, NUL-terminated, empty string for unnamed/unused slots. Added in 1.5 (version 2). |
 | 148    | 1    | `version`                | `int8`. Currently `3`. Added in 1.6 (version 3). |
 | 149    | 1    | `version_min`            | `int8`. Minimum message version the server supports. Currently `1`. |
@@ -171,7 +171,7 @@ Client-side version detection (`CSpielClient::process_message`) is length based:
 
 | `data_length` | Interpreted version |
 |---------------|---------------------|
-| `< 148`       | 1 (no `spieler`, no names) |
+| `< 148`       | 1 (no `player_owner`, no names) |
 | `>= 148`      | 2 |
 | `>= 150`      | the `version` byte of the message (3 today) |
 

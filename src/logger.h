@@ -38,7 +38,8 @@ public:
 	void closeFile();
 	void flush();
 
-	void createFile(const char* filename);
+	/* Returns false if the file could not be opened */
+	bool createFile(const char* filename);
 	virtual void log(const char* fmt, va_list va);
 };
 

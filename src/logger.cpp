@@ -61,15 +61,15 @@ CLogFileWriter::~CLogFileWriter()
 	closeFile();
 }
 
-void CLogFileWriter::createFile(const char* filename)
+bool CLogFileWriter::createFile(const char* filename)
 {
 	logfile=fopen(filename,"a");
-	if (logfile)
+	if (logfile == nullptr)
 	{
-
-	} else {
 		perror("fopen: ");
+		return false;
 	}
+	return true;
 }
 
 void CLogFileWriter::closeFile()
@@ -92,6 +92,8 @@ void CLogFileWriter::flush()
 void CLogFileWriter::log(const char* fmt, va_list va)
 {
 	CLogWriter::log(fmt, va);
+	if (logfile == nullptr)
+		return;
 	vfprintf(logfile, fmt, va);
 	flush();
 }
