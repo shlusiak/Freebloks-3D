@@ -36,11 +36,13 @@ CGameClient::CGameClient()
 {
 	start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
 	client_socket=0;
-	status.clients=status.player=status.computer=0;
+	memset(&status, 0, sizeof(status));
+	status.version=NET_SERVER_STATUS_VERSION;
+	status.version_min=1;
 	status.width=status.height=20;
+	for (int i=0;i<PLAYER_MAX;i++)
+		status.player_owner[i]=PLAYER_COMPUTER;
 	set_stone_numbers(0,0,0,0,0);
-	for (int i=0;i<STONE_SIZE_MAX;i++)
-		status.stone_numbers[i]=0;
 }
 
 CGameClient::~CGameClient()
@@ -379,6 +381,9 @@ void CGameClient::process_message(NET_HEADER* data)
 			if (version >= 2) {
 				int i;
 				memcpy(status.client_names, s->client_names, sizeof(s->client_names));
+				// The names come from the network and need not be terminated
+				for (i = 0; i < CLIENTS_MAX; i++)
+					status.client_names[i][sizeof(status.client_names[i]) - 1] = '\0';
 				for (i = 0; i < PLAYER_MAX; i++) {
 					status.player_owner[i] = s->player_owner[i];
 				}
@@ -412,6 +417,7 @@ void CGameClient::process_message(NET_HEADER* data)
 					get_player(1)->get_stone(n).set_available(0);
 					get_player(3)->get_stone(n).set_available(0);
 				}
+				refresh_player_data();
 			}
 			m_current_player=-1;
 			gameStarted();
@@ -480,6 +486,7 @@ void CGameClient::chat(const char *text)
 	int len=sizeof(NET_CHAT)+sizeof(char)*strlen(text)+1;
 	/* Allocate the memory properly */
 	NET_CHAT *chat=(NET_CHAT*)malloc(len);
+	memset(chat, 0, len);
 	chat->length=strlen(text);
 	strcpy((char*)&chat->text[0],text);
 	send_message((NET_HEADER*)chat,len,MSG_CHAT);

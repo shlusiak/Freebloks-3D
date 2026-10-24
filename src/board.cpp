@@ -57,7 +57,8 @@ int CBoard::get_player_start_y(const int player_number)const{
 void CBoard::set_stone_numbers(int8 stone_numbers[]){
 	for (int n = 0 ; n < STONE_COUNT_ALL_SHAPES; n++){  
 		for (int p = 0; p < PLAYER_MAX; p++){
-			m_player[p].get_stone(n).set_available(stone_numbers[n]);
+			// A negative count from the network would count as available
+			m_player[p].get_stone(n).set_available(stone_numbers[n] < 0 ? 0 : stone_numbers[n]);
 		}
 	}
 

@@ -486,7 +486,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				return;
 			}
 // 			printf("Client %d requesting undo. ",client);
-			NET_UNDO_STONE undo;
+			NET_UNDO_STONE undo{};
 			int i=0;
 
 			/* Keep taking back stones until there are none left in the history,
@@ -639,6 +639,10 @@ void CGameServer::send_server_status()
 {
 	NET_SERVER_STATUS status;
 	int i;
+	// Do not send uninitialised stack bytes to the clients
+	memset(&status, 0, sizeof(status));
+	for (i = 0; i < PLAYER_MAX; i++)
+		status.player_owner[i] = PLAYER_COMPUTER;
 	int max= (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR) ? 2 : PLAYER_MAX;
 	status.player=num_players();
 	status.computer=max-num_players();
@@ -679,6 +683,7 @@ void CGameServer::send_server_status()
 void CGameServer::send_server_msg(const char *text)
 {
 	NET_CHAT *chat=(NET_CHAT*)malloc(sizeof(NET_CHAT)+strlen(text)+1);
+	memset(chat, 0, sizeof(NET_CHAT)+strlen(text)+1);
 	/* The sender is -1, the server */
 	chat->client=-1;
 	strcpy((char*)(&chat->text[0]),text);
@@ -704,6 +709,7 @@ void CGameServer::start_game()
 			get_player(1)->get_stone(n).set_available(0);
 			get_player(3)->get_stone(n).set_available(0);
 		}
+		refresh_player_data();
 	}
 
 	/* The starting player is always player 0 (= blue) */
@@ -711,7 +717,7 @@ void CGameServer::start_game()
 	/* Send the server status, the game start notice and the current player */
 	send_server_status();
 
-	NET_START_GAME data;
+	NET_START_GAME data{};
 	send_all((NET_HEADER*)&data,sizeof(data),MSG_START_GAME);
 	send_current_player();
 
@@ -737,7 +743,7 @@ void CGameServer::next_player()
 	m_current_player=-1;
 
 	/* Send the clients an MSG_GAME_FINISH message announcing the end of the game. */
-	NET_GAME_FINISH data;
+	NET_GAME_FINISH data{};
 	send_all((NET_HEADER*)&data,sizeof(data),MSG_GAME_FINISH);
 
 	/* Print status messages to the console (e.g. for the dedicated server) */
@@ -764,7 +770,7 @@ void CGameServer::set_stone_numbers(int8 stone_numbers[])
 			this->stone_numbers[i] = 1;
 	} else {
 		for (int i = 0; i < STONE_COUNT_ALL_SHAPES; i++)
-			this->stone_numbers[i] = stone_numbers[i];
+			this->stone_numbers[i] = stone_numbers[i] < 0 ? 0 : stone_numbers[i];
 	}
 	/* CBoard sets up the players correctly here */
 	CBoard::set_stone_numbers(this->stone_numbers);
