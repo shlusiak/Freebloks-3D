@@ -32,7 +32,6 @@ private:
 	/* Phase des Intros. */
 	int phase;
 
-	/* Alles initialisieren. */
 	void init();
 	/* Einen fliegenden Stein erstellen, der auf dx/dy landet */
 	void add(int stone,int color,int dx,int dy);
@@ -42,16 +41,13 @@ private:
 	/* Das Feld abraeumen, Wippen starten. */
 	void wipe();
 public:
-	/* Konstruktor, alles initialisieren. */
 	CIntro(CGUI *vgui);
 	/* Aufraeumen */
 	~CIntro();
 
-	/* Alles animieren. */
 	bool execute(double elapsed);
 	/* Intro rendern. */
 	void render();
-	/* Intro rendert Schatten der Steine. */
 	void renderShadow();
 };
 

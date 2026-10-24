@@ -29,7 +29,6 @@ const double bevel_height=0.15;
 // Die Richtung unserer direktionalen Lichtquelle. Wird u.a. fuer Schatten benoetigt
 const float light0_pos[]    = {2.5f, 5.0f, -2.0f, 0.0f};
 
-// Namen der Spielerfarben
 const char * const COLOR_NAME[4]={"Blue","Yellow","Red","Green"};
 
 
@@ -39,7 +38,6 @@ const char * const COLOR_NAME[4]={"Blue","Yellow","Red","Green"};
 class CGUI
 {
 private:
-	// Wir brauchen ein CWindow, also ein Hauptfenster mit OpenGL Unterstuetzung
 	CWindow * window;
 
 	// Einen Timer, fuer hochgenaue Timings, die das Rendern und die Animationen betreffen
@@ -67,10 +65,8 @@ private:
 	// Das Intro Objekt, sofern es gerade abgespielt wird.
 	CIntro *intro;
 
-	// Die Textur des Untergrunds, und der Wand
 	CTexture texture_ground,texture_wall,texture_field;
 
-	// Die eingestellten Optionen
 	TOptions options;
 
 	// Aktuelle Winkel der Ansicht, um Y-Achse und X-Achse und Entfernung der Kamera vom Mittelpunkt
@@ -100,7 +96,6 @@ private:
 	// Pfeil (Rotation, Spiegelung), der gerade mit der Maus selektiert ist
 	int selected_arrow;
 
-	// Globaler Zeiger auf ein GLFont Objekt.
 	CGLFont *font;
 
 	// DisplayLists
@@ -135,7 +130,6 @@ public:
 	// CWindow ruft dies auf, wenn ein TMouseEvent anliegt. Wird hier von der GUI verarbeitet
 	void processMouseEvent(TMouseEvent *e);
 
-	// CWindow teilt uns hier einen Tastendruck mit
 	void processKeyEvent(unsigned short key);
 
 	// CGameClient teilt hier mit, dass ein Spielerwechsel stattgefunden hat
@@ -147,16 +141,12 @@ public:
 	// Setze Zoom-Faktor
 	void setZoom(double z) { camera_distance=z; }
 private:
-	// Belege die OpenGL Statusmachine mit brauchbaren Voreinstellungen
 	void initGL();
 
-	// Erstellt die GL Display Lists
 	void createDisplayLists();
 
-	// Startet das erste Spiel
 	void startFirstGame();
 
-	// Rendere einen Frame in den Backbuffer
 	void render();
 
 	// Animiere alles bei einer Zeitdifferenz von elapsed, seit dem letzten Frame
@@ -168,7 +158,6 @@ private:
 	// true, wenn das uebergebene Feld in Feldkoordinaten, zur aktuellen Auswahl auf dem Feld gehoert, also der User gerade dort einen Stein platzieren will
 	bool isInSelection(int x,int y)const;
 
-	// Rendert einen stinknormalen Wuerfel
 	void renderCube(double x1,double z1,double x2,double z2,double y1,double y2)const;
 
 	// Rendert alle Steine des Spielers direkt vor den Betrachter
@@ -177,13 +166,11 @@ private:
 	// Rendert einen einzigen Stein aus dem Sortiment des Spielers, ggf. samt Pfeile
 	void renderPlayerStone(int player,CStone* stone,int stone_number,bool current,bool hovered,double alpha,bool selectionbuffer)const;
 
-	// Rendert die Pfeile eines Stein des Spielers
 	void renderPlayerStoneArrows(int player,CStone* stone,int stone_number,bool selectionbuffer)const;
 
 	// Rendert exakt einen Pfeil an den Ursprung des aktuellen Koordinatensystems
 	void renderArrow(bool doublearrow,bool selected)const;
 
-	// Rendert ein 4eck an den Ursprung
 	void renderQuad(double size)const;
 
 	// Beendet das Intro, z.B. bei Mausklick oder Tastendruck
@@ -221,14 +208,10 @@ public:
 	// Anhaenig von den Betrachtungswinkeln. Wird auch von CStoneRollEffect benutzt
 	void getPlayerStonePos(int player,int stone,double *dx,double *dy,double *dz)const;
 
-	// Startet ein Einzelspielerspiel
 	bool startSingleplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ai_threads);
-	// Hostet und startet ein Mehrspielerspiel
 	bool startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ai_threads, const char* name);
-	// Tritt einem Mehrspielerspiel bei
 	bool joinMultiplayerGame(const char *host,int port,int localplayers, const char* name);
 
-	// Startet das Intro
 	void showIntro();
 
 	// Fuegt der CChatBox die uebergebene Textnachricht an, die vom Netzwerk empfangen wurde
@@ -237,10 +220,8 @@ public:
 	// Ist die ChatBox sticky, so verschwindet sie NICHT automatisch nach 7 sek. 
 	void setChatBoxSticky(bool sticky);
 
-	// Gebe die Einstellungen der GUI als Zeiger zurueck
 	TOptions* getOptions() { return &options; }
 
-	// Aktuellen Stein setzen
 	void setCurrentStone(int s) { current_stone=s; selected_allowed=false; }
 
 	void setHintEnable(bool b);

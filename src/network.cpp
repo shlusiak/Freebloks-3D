@@ -39,7 +39,6 @@ int network_send(int target,NET_HEADER *header,uint16 data_length,uint8 msg_type
 	header->check1=(uint8)(data_length & 0x0055) ^ msg_type;
 	/* Speichere data_length (in NETWORK BYTE ORDER) in der Struktur ab */
 	header->data_length=htons(data_length);
-	/* Nachrichtentyp in Nachricht speichern */
 	header->msg_type=msg_type;
 	/* Noch eine Checksum setzen errechnen. */
 	header->check2=(uint8)(header->check1 ^ 0xD6)+msg_type;
@@ -50,7 +49,6 @@ int network_send(int target,NET_HEADER *header,uint16 data_length,uint8 msg_type
 	   dies mit einem recv() pruefen, und bei Fehler direkt raus. */
 	if (recv(target,&c,1,MSG_PEEK|MSG_DONTWAIT)==0)return -1;
 #endif
-	/* Nachricht versenden */
 	if (send(target,(char*)header,data_length,0)!=-1)return 0;
 	perror("send: ");
 	return -1;
@@ -139,7 +137,6 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 #ifdef WIN32
 		if (errno==0)return (char*)(-1);
 #endif
-		/* Sonst ist ein Lesefehler aufgetreten. */
 		return strerror(errno);
 	}
 

@@ -25,11 +25,9 @@ private:
 	/* Fortschritt der Animation */
 	double anim;
 public:
-	/* Alles einrichten. */
 	CAboutWidget(double x,double y,double w,double h);
 	/* Animieren */
 	virtual void execute(double elapsed);
-	/* Und Widget rendern */
 	virtual void render(bool selection);
 };
 
@@ -112,17 +110,12 @@ static const char *AboutText[]={
 
 
 
-/**
- * Das Widget initialisieren.
- **/
 CAboutWidget::CAboutWidget(double x,double y,double w,double h)
 :CFrame(x,y,w,h)
 {
-	/* Farbe ist schwarz. */
 	setColor(0,0,0);
 	/* Und fadet langsam rein, also Alpha bei 0 beginnen lassen. */
 	setAlpha(0.0);
-	/* Animation startet bei 0 */
 	anim=0.0;
 }
 
@@ -135,21 +128,15 @@ void CAboutWidget::execute(double elapsed)
 	anim+=elapsed*8.0;
 	/* Widget langsam einblenden, also Alpha animieren. */
 	if (anim<12.0)setAlpha(0.6*anim/12.0);else setAlpha(0.6);
-	/* Und andere Widgets auch animieren. */
 	CFrame::execute(elapsed);
 }
 
-/**
- * Das Widget rendern.
- **/
 void CAboutWidget::render(bool selection)
 {
-	/* Frame und andere Unterelemente Rendern */
 	CFrame::render(selection);
 	if (!selection)
 	{
 		unsigned int i;
-		/* Wir wollen eine 8x20 Schrift. */
 		CGLFont font(8,20);
 		/* Wir wollen einen drehenden Zylinder, das ist der Radius. */
 		const double radius=h/2.1;
@@ -163,7 +150,6 @@ void CAboutWidget::render(bool selection)
 		/* Zylinder in Mitte des Widgets verschieben und ausrichten. */
 		glTranslated(x+w/2.0,y+h/2.0,radius);
 		glRotated(20.0,0,1,0);
-		/* Wir starten bei -105 Grad */
 		ang=-100.0+anim;
 		glRotated(ang,-1,0,0);
 		for (i=0;i<sizeof(AboutText)/sizeof(AboutText[0]);i++)
@@ -187,15 +173,11 @@ void CAboutWidget::render(bool selection)
 }
 
 
-/**
- * AboutBox Konstruktor.
- **/
 CAboutBox::CAboutBox()
 :CDialog(400,300,"About Freebloks")
 {
 	/* Tuffige Farbe setzen */
 	setColor(0.7,0.2,0.4);
-	/* Und Close-Button sowie AboutWidget einfuegen. */
 	addChild(new CButton((w-70)/2,h-30,70,25,1,this,"Okay"));
 	addChild(new CAboutWidget(x+10,y+30,w-20,h-70));
 }

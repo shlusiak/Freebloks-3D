@@ -29,14 +29,12 @@
  **/
 CWidget::CWidget()
 {
-	/* Verkettete Listen leeren. Das Widget ist ganz allein auf der Welt. */
 	next=child=subchild=0; 
 	/* Nimmt erstmal gesamten Bildschirm in Anspruch. Stoert nicht, ausser wenn eine
 	   m_id gesetzt ist. */
 	x=y=0.0;
 	w=640.0;
 	h=480.0;
-	/* Keine ID */
 	m_id=0;
 	/* Und Widget ist am Leben und will vorerst nicht entfernt werden. */
 	m_deleted=false;
@@ -82,7 +80,6 @@ void CWidget::execute(double elapsed)
 			/* ... und als Einziges entfernt. */
 			delete w;
 		}
-		/* Gibt es ein SubChild, execute aufrufen. */
 		if (subchild)subchild->execute(elapsed);
 	}
 	if (child)
@@ -109,7 +106,6 @@ void CWidget::execute(double elapsed)
 			w->next=0;
 			delete w;
 		}
-		/* Das next animieren. */
 		if (next)next->execute(elapsed);
 	}
 }
@@ -164,7 +160,6 @@ void CWidget::renderSubChild(bool selectionBuffer)
 	   modaler Unterdialog existiert. */
 	if (child &&(!subchild || !selectionBuffer))child->renderSubChild(selectionBuffer);
 	if (next && (!subchild || !selectionBuffer))next->renderSubChild(selectionBuffer);
-	/* Das subchild rendern, wenn vorhanden. */
 	if (subchild)
 	{
 		/* Aktuelle Transformation merken (z.B. Dialogverformungen) */
@@ -173,7 +168,6 @@ void CWidget::renderSubChild(bool selectionBuffer)
 		/* SubChild normal rendern. */
 		subchild->render(selectionBuffer);
 		glPopMatrix();
-		/* Und dann subChilds von subchild rendern. */
 		subchild->renderSubChild(selectionBuffer);
 	}
 }
@@ -195,7 +189,6 @@ void CWidget::processSelection(int id)
 	/* Wenn das Widget der obersten Ebene angehoert, und die id==getId() ist, darf
 	   mouseEnter aufgerufen werden. */
 	if (!subchild && id!=0 && id==getId())mouseEnter();
-	/* Wenn die Ids nicht stimmen, mouseLeave() aufrufen. */
 	if (id!=0 && id!=getId())mouseLeave();
 }
 
@@ -211,10 +204,8 @@ bool CWidget::processKey(unsigned short key)
 	    if (subchild->processKey(key))return true;
 	    else return false;
 	}
-	/* Sonst child und next die Taste verarbeiten lassen. */
 	if (child) if (child->processKey(key))return true;
 	if (next)if (next->processKey(key))return true;
-	/* Die Taste wurde nicht von uns verarbeitet, also false zurueck. */
 	return false;
 }
 
@@ -233,11 +224,9 @@ int CWidget::processMouseEvent(TMouseEvent *event)
 		r=subchild->processMouseEvent(event);
 		if (r!=0 || subchild->handleUI())return r;
 	}
-	/* Wenn child, darf child es verarbeiten. */
 	if (child)r=child->processMouseEvent(event);
 	/* Wenn next und child es noch NICHT verarbeitet hat, hier verarbeiten. */
 	if (next && r==0)return next->processMouseEvent(event);
-	/* Rueckgabe von child oder next zurueckgeben, sonst 0. */
 	return r;
 }
 
@@ -249,7 +238,6 @@ int CWidget::processMouseEvent(TMouseEvent *event)
  **/
 void CWidgetPane::render(bool selectionBuffer)
 {
-	/* Wir stellen eine orthogonale Projektion ein. */
 	glMatrixMode(GL_PROJECTION);
 	if (!selectionBuffer)
 	{
@@ -268,7 +256,6 @@ void CWidgetPane::render(bool selectionBuffer)
 	glPushMatrix();
 	glLoadIdentity();
 
-	/* Widgets werden ohne Z-Buffer und ohne Beleuchtung gerendert. */
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
 	/* Falls wir NICHT in den SelectionBuffer rendern, schalten wir Alpha-Blending ein */
@@ -278,7 +265,6 @@ void CWidgetPane::render(bool selectionBuffer)
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	/* Materialien auf Standard setzen. */
 	const float mat[]={1.0,1.0,1.0,1.0};
 	const float spec[]={0,0,0,1};
 	glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE,mat);
@@ -289,7 +275,6 @@ void CWidgetPane::render(bool selectionBuffer)
 	/* dann die SubChilds der Reihe nach durchrendern. */
 	CWidget::renderSubChild(selectionBuffer);
 
-	/* Alpha Blending aus, und DepthBuffer und Beleuchtung wieder ein */
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
@@ -312,12 +297,10 @@ void CWidgetPane::render(bool selectionBuffer)
  **/
 int CWidgetPane::processMouseEvent(TMouseEvent *event)
 {
-	/* Erstmal Nachricht verarbeiten. Default-Handler des CWidget aufrufen. */
 	int r=CWidget::processMouseEvent(event);
 	/* Wenn die Nachricht nicht bearbeitet wurde, aber subChilds existieren, 
 	   dann -1 zurueck geben! */
 	if (r==0 && hasSubChild())return -1;
-	/* Sonst 0 */
 	if (r==0 && !hasSubChild())return 0;
 	return r;
 }
@@ -333,7 +316,6 @@ CButton::CButton(double vx,double vy,double vw,double vh,int id,CWidget* parent,
 	y=vy;
 	w=vw;
 	h=vh;
-	/* Der Button ist erstmal enabled */
 	enabled=true;
 	/* Ist parent!=nullptr, relative Position zu parent in absolute umrechnen. */
 	if (parent) {
@@ -348,17 +330,11 @@ CButton::CButton(double vx,double vy,double vw,double vh,int id,CWidget* parent,
 	text=strdup(vtext);
 }
 
-/**
- * Destruktor: Lediglich Speicher der Beschriftung wieder freigeben.
- **/
 CButton::~CButton()
 {
 	if (text)free(text);
 }
 
-/**
- * Einen CButton rendern
- **/
 void CButton::render(bool selectionBuffer)
 {
 	/* Nur wirklich was rendern, wenns nicht der SelectionBuffer ist.
@@ -374,14 +350,12 @@ void CButton::render(bool selectionBuffer)
 		g=0.2+anim*0.4+pushanim*0.3;
 		b=0.4+anim*0.4+pushanim*0.2;
 
-		/* Ich brauch ein Schriftobjekt */
 		CGLFont font(text_width,h*0.9);
 		glPushMatrix();
 		glTranslated(x+w/2.0,y+h/2.0,0);
 		glScaled(1.0+scale*0.2,1.0+scale*0.25,1);
 		
 		if (!enabled)a=0.3;
-		/* Rechteck des Buttons rendern. */
 		{
 			glBegin(GL_QUADS);
 			glColor4d(r,g,b,a);
@@ -438,20 +412,17 @@ void CButton::render(bool selectionBuffer)
  **/
 void CButton::execute(double elapsed)
 {
-	/* Wenn hovered, dann anim rauf animieren, bis 1. */
 	if (hovered)
 	{
 		anim+=elapsed*3.9;
 		if (anim>1.0)anim=1.0;
 	}else{
-		/* Sonst runter animieren, bis 0 */
 		anim-=elapsed*1.4;
 		if (anim<0.0)anim=0.0;
 	}
 	/* pushanim runter animieren, bis 0 */
 	pushanim-=elapsed*2.5;
 	if (pushanim<0.0)pushanim=0.0;
-	/* Und an verkettete Listen uebergeben. */
 	CWidget::execute(elapsed);
 }
 
@@ -472,10 +443,8 @@ int CButton::processMouseEvent(TMouseEvent *event)
 	{
 		/* Dann wurde genau dieser Button betaetigt. pushanim starten. */
 		pushanim=1.0;
-		/* Und ID als Kommando zurueck geben */
 		return getId();
 	}
-	/* Ansonsten 0 zurueckgeben, Nachricht wurde nicht bearbeitet. */
 	return 0;
 }
 
@@ -494,7 +463,6 @@ CCheckBox::CCheckBox(double vx,double vy,double vw,double vh,int id,const char *
 	y=vy;
 	w=vw;
 	h=vh;
-	/* Checkbox ist enabled. */
 	enabled=true;
 	/* Wenn parent uebergeben wurde, liegen vx und vy in relativen Koordinaten vor. 
 	   Diese hier in absolute umrechnen. */
@@ -506,19 +474,13 @@ CCheckBox::CCheckBox(double vx,double vy,double vw,double vh,int id,const char *
 	pushanim=1.0;
 	/* Id merken */
 	setId(id);
-	/* CheckBox ist vorerst nicht hovered. */
 	hovered=false;
 	/* Checked merken */
 	checked=vchecked;
-	/* Speicher fuer Beschriftungstext alloziieren und Text merken. */
 	text=strdup(vtext);
-	/* Die verketteten Listen fuer Gruppen auf leer setzen. */
 	nextCheckBox=prevCheckBox=0;
 }
 
-/**
- * CheckBox aufraeumen, hier lediglich Speicher fuer Beschriftungstext freigeben.
- **/
 CCheckBox::~CCheckBox()
 {
 	if (text)free(text);
@@ -529,7 +491,6 @@ CCheckBox::~CCheckBox()
  **/
 void CCheckBox::execute(double elapsed)
 {
-	/* Rest der Listen animieren. */
 	CWidget::execute(elapsed);
 	/* pushanim von 0 bis 1 hoch animieren. */
 	pushanim+=elapsed*2.0;
@@ -549,7 +510,6 @@ void CCheckBox::render(bool selectionBuffer)
 		CGLFont font(text_width,h*0.9);
 		
 		const double a=(enabled?1.0:0.4);
-		/* Das Rechteck der "CheckBox" links rendern. */
 		glBegin(GL_QUADS);
 		if (hovered)
 		{
@@ -608,7 +568,6 @@ void CCheckBox::render(bool selectionBuffer)
 			glPopMatrix();
 		}
 		glPushMatrix();
-		/* Den Beschriftungstext rendern. */
 		glTranslated(x+40.0+h,y+h/2.0,0);
 		glColor4d(0.2,0.2,0.2,1);
 		/* Erst Schatten. */
@@ -616,7 +575,6 @@ void CCheckBox::render(bool selectionBuffer)
 		if (hovered)glColor4d(1,1,1,1);
 		else if (enabled)glColor4d(0.65,0.65,0.65,1);
 		else glColor4d(0.3,0.3,0.3,1);
-		/* Dann echten Text drueber. */
 		font.drawText(-30,-h*0.9/2.0,text);
 		/* Wenn die Animation laeuft, den Text nochmal in groesser drueber. */
 		if (pushanim<1.0)
@@ -639,9 +597,7 @@ void CCheckBox::render(bool selectionBuffer)
  **/
 int CCheckBox::processMouseEvent(TMouseEvent *event)
 {
-	/* Alle anderen Widgets haben erstmal Vorrang. */
 	int r=CWidget::processMouseEvent(event);
-	/* Wird das Ereignis bearbeitet, raus hier. */
 	if (r)return r;
 	/* Wenn die CheckBox nicht ge-hovert ist, ist das Ereignis auch nicht fuer sie */
 	if (!hovered)return 0;
@@ -653,7 +609,6 @@ int CCheckBox::processMouseEvent(TMouseEvent *event)
 		   dann ist sie eine echte CheckBox (an/aus). */
 		if (checked && !nextCheckBox && !prevCheckBox)
 		{
-			/* Animieren, und getId() zurueckgeben. */
 			pushanim=0.0;
 			checked=false;
 			return getId();
@@ -661,7 +616,6 @@ int CCheckBox::processMouseEvent(TMouseEvent *event)
 		/* Nur weiter machen, wenn die CheckBox aus ist. */
 			if (!checked)
 		{
-			/* Dann mach sie an, und animiere sie. */
 			checked=true;
 			pushanim=0.0;
 			/* Sofern die CheckBox zu einer Gruppe gehoert, hier alle Elemente der
@@ -680,20 +634,14 @@ int CCheckBox::processMouseEvent(TMouseEvent *event)
 				b->setCheck(false);
 				b=b->prevCheckBox;
 			}
-			/* Und ID zurueck geben. */
 			return getId();
 		}
 	}
-	/* Event wurde nicht beachtet. 0 zurueck geben. */
 	return 0;
 }
 
-/**
- * Eine CheckBox der Gruppe von CheckBoxes anfuegen.
- **/
 void CCheckBox::addCheckBox(CCheckBox *b)
 {
-	/* Einfach rekursiv der Liste hinten anhaengen. */
 	if (nextCheckBox)nextCheckBox->addCheckBox(b);
 	else
 	{
@@ -715,7 +663,6 @@ void CCheckBox::addCheckBox(CCheckBox *b)
 CStaticText::CStaticText(double x,double y,const char *vtext,CWidget* parent)
 :CWidget()
 {
-	/* Alpha-Wert ist 1. Also voll opak. */
 	a=1.0;
 	/* Position merken. */
 	this->x=x;
@@ -723,7 +670,6 @@ CStaticText::CStaticText(double x,double y,const char *vtext,CWidget* parent)
 	/* Ein Zeichen ist 8 Einheiten breit, also hier Breite des Widgets errechnen, damit der
 	   Text links an x ausgerichtet wird. */
 	this->w=8*strlen(vtext);
-	/* Wenn Koordinaten relativ zu parent angegeben wurden, hier auf absolute umrechnen. */
 	if (parent)
 	{
 		this->x+=parent->getX();
@@ -752,9 +698,6 @@ CStaticText::CStaticText(double x,double y,double w,const char *vtext,CWidget* p
 	text=strdup(vtext);
 }
 
-/**
- * Destructor. Speicher fuer text wieder freigeben.
- **/
 CStaticText::~CStaticText()
 {	
 	if (text)free(text);
@@ -768,9 +711,7 @@ void CStaticText::setText(const char *vtext,bool adjustwidth)
 {
 	/* Alten Speicher freigeben. */
 	if (text)free(text);
-	/* und neuen alloziieren und text kopieren. */
 	text=strdup(vtext);
-	/* Neue Breite des Widgets an neue Textlaenge anpassen? */
 	if (adjustwidth) w=8*strlen(vtext);
 	/* Etwas Transparenz setzen */
 	setAlpha(0.625);
@@ -784,11 +725,9 @@ void CStaticText::render(bool selectionbuffer)
 	   eh nix gerendert, da wahrscheinlich (getId()==0) */
 	if (!selectionbuffer && !deleted())
 	{
-		/* Ein Schriftobjekt fester Groesse holen, und Text rendern. */
 		CGLFont font(8,15);
 		/* Transparenz-Grad setzen. */
 		glColor4d(a,a,a,1.0);
-		/* Text zentriert an x mit Breite w ausrichten und rendern. */
 		font.drawText(x+(w-8*strlen(text))/2.0,y,text);
 	}
 	/* Andere Widgets rendern. */
@@ -803,7 +742,6 @@ void CStaticText::render(bool selectionbuffer)
  * Ist numbers_only=true, koennen nur Zahlen eingegeben werden, sonst auch Buchstaben. 
  **/
 CTextEdit::CTextEdit(double x,double y,double w,double h,int id,const char *vtext,bool numbers_only,CWidget *parent)
-/* Wir haben uns ja von CFrame abgeleitet, um einen normalen Hintergrund zu erhalten. */
 :CFrame(x,y,w,h)
 {
 	/* Koordinaten umrechnen. */
@@ -823,17 +761,12 @@ CTextEdit::CTextEdit(double x,double y,double w,double h,int id,const char *vtex
 	/* Der Text in dem Edit soll links ausgerichtet sein. Koennte man auch auf false setzen,
 	   fuer Rechtsbuendig. So machts die CSpinBox. */
 	left_align=true;
-	/* CFrame sagen, dass wir 0.55 opacity haben wollen. */
 	setAlpha(0.55);
 }
 
-/**
- * Destructor. Wir haben (noch) nix zum aufraeumen.
- **/
 CTextEdit::~CTextEdit()
 { }
 
-/** Zeiger auf text zurueckgeben. */
 const char* CTextEdit::getText()
 {
 	return &text[0];
@@ -847,7 +780,6 @@ const char* CTextEdit::getText()
 void CTextEdit::setText(const char *vtext)
 {
 	m_committed=false;
-	/* Einfach Text kopieren, keinen Speicher alloziieren, da text ein Array fester Groesse ist. */
 	strncpy(text,vtext,sizeof(text));
 }
 
@@ -864,7 +796,6 @@ void CTextEdit::render(bool selection)
 	   derselben Ebene, sowie das Widget in den SelectionBuffer, falls selection=true. */
 	CFrame::render(selection);
 
-	/* Wenn nicht in den selectionBuffer gerendert wird, malen wir hier froehlich weiter. */
 	if (!selection)
 	{
 		
@@ -876,7 +807,6 @@ void CTextEdit::render(bool selection)
 		if ((strlen(text)+2)*tw>w)tw=w/(double)((double)strlen(text)+1.0+(lastchar?(1.0-animatechar):animatechar));
 		CGLFont font(tw,h*0.90);
 	
-		/* Hier ein huebsches weisses Rechteck um das Frame ziehen. */
 		glColor4d(1,1,1,hovered?0.8:0.4);
 		glBegin(GL_LINE_LOOP);
 		glVertex3d(x+w,y,0);
@@ -920,7 +850,6 @@ void CTextEdit::render(bool selection)
 			   ist das letzte von text[]. */
 			if (lastchar=='\0')
 			{
-				/* Zuerst alle Zeichen rendern, bis auf das Letzte. */
 				if (strlen(text)>1)font.drawText(left_align?0:(w-tw*strlen(text)-otw),0,text,strlen(text)-1);
 				/* Und das Letzte wird hier separat animiert dargestellt. */
 				if (strlen(text)>=1)
@@ -955,13 +884,10 @@ void CTextEdit::render(bool selection)
  **/
 void CTextEdit::execute(double elapsed)
 {
-	/* Parent animieren. Kuemmert sich um alle anderen Widgets. */
 	CFrame::execute(elapsed);
-	/* Wenn das Feld nen Fokus hat, diesen animieren. */
 	if (focused){
 		animatefocused+=elapsed*0.6;
 	}
-	/* Wenn ein Zeichen animiert wird, animieren. */
 	animatechar+=elapsed*8.0;
 	if (animatechar>1.0)animatechar=1.0;
 }
@@ -971,11 +897,9 @@ void CTextEdit::execute(double elapsed)
  **/
 int CTextEdit::processMouseEvent(TMouseEvent *event)
 {
-	/* Wenn das Ereignis von anderen Widgets verarbeitet wird, hier raus. */
 	int r=CWidget::processMouseEvent(event);
 	if (r)return r;
 
-	/* Wenn linke Maustaste gedrueckt. */
 	if (event->press && event->button1)
 	{
 		if (!focused)animatefocused=0.0;
@@ -985,12 +909,10 @@ int CTextEdit::processMouseEvent(TMouseEvent *event)
 			/* Wenn das Feld vorher den Fokus hatte, bisherige Eingabe validieren. */
 			if (focused)endEdit();
 			focused=false; 
-		}else focused=true;	// Das Feld ist hovered, und die Maus gedrueckt, so gib dem Feld den Fokus
+		}else focused=true;
 	}
-	/* Die rechte Maustaste wurde gedrueckt. */
 	if (event->press && event->button2)
 	{
-		/* Wenn die Maus ueber dem Textfeld ist. */
 		if (hovered)
 		{
 			/* Textfeld leeren! */
@@ -998,13 +920,11 @@ int CTextEdit::processMouseEvent(TMouseEvent *event)
 			/* (Eingabe validieren) */
 			endEdit();
 			animatefocused=0.0;
-			/* Fokus geben, da wir auf dem Feld sind. */
 			focused=true;
 			return 0;
 		}else{
 			/* Eingabe validieren, wenn wir vorher den Fokus hatten. */
 			if (focused)endEdit();
-			/* Sonst einfach Fokus nehmen, da wir woanders hin gedrueckt haben. */
 			focused=false;
 		}
 	}
@@ -1017,12 +937,9 @@ int CTextEdit::processMouseEvent(TMouseEvent *event)
  **/
 bool CTextEdit::processKey(unsigned short key)
 {
-	/* Wenn jemand anders schneller war, raus. */
 	if (CFrame::processKey(key))return true;
-	/* Wenn wir nicht den Fokus haben, brauchen wir nix zu behandeln. */
 	if (!focused)return false;
 	
-	/* Pruefen, ob Taste ein Eingabezeichen ist. */
 	if (isascii(key) && isprint(key)
 	   && ((!numbers) || (numbers && isdigit(key))))
 	{
@@ -1031,20 +948,16 @@ bool CTextEdit::processKey(unsigned short key)
 		/* Buchstaben hinten anfuegen und auf terminierende \0 achten (besonders bei strlen) */
 		text[strlen(text)+1]='\0';
 		text[strlen(text)]=(unsigned char)(key&0xFF);
-		/* das Zeichen animieren. */
 		animatechar=0.0;
 		/* Und anzeigen, dass das animierte Zeichen das letzte aus text[] ist. */
 		lastchar='\0';
 	}else{
-		/* Es ist ein Steuerzeichen. */
 
-		/* Es ist ein Backspace. Wenn wir einen text haben, das letzte Zeichen loeschen. */
 		if (key==VK_BACK && strlen(text)>0)
 		{
 			/* Das letzte Zeichen merken, da dies noch animiert werden soll. */
 			lastchar=text[strlen(text)-1];
 			animatechar=0.0;
-			/* Und einfach ne abschliessende terminierende \0 ueber das letzte Zeichen legen. */
 			text[strlen(text)-1]='\0';
 		}
 		/* Escape. Das Textfeld verliert nur den Fokus. */
@@ -1077,7 +990,6 @@ CSpinBox::CSpinBox(double x,double y,double w,double h,int id,int min,int max,in
 /* Parameter an CTextEdit uebergeben. */
 :CTextEdit(x,y,w-21,h,id,"",true,parent)
 {
-	/* Wir wollen ein rechts-buendiges TextEdit. */
 	left_align=false; 
 	/* Grenzen merken. */
 	this->min=min;
@@ -1097,13 +1009,9 @@ CSpinBox::CSpinBox(double x,double y,double w,double h,int id,int min,int max,in
 		addChild(up=new CButton(-20,-h/10.0,18,h/1.9,10000000+id,this,"^"));
 		addChild(down=new CButton(-20,h-h/2.0+h/10.0,18,h/1.9,20000000+id,this,"v"));
 	}
-	/* Und den Anfangswert setzen. */
 	setValue(value);
 }
 
-/**
- * Gibt den momentan eingegebenen Wert der SpinBox als Zahl zurueck.
- **/
 int CSpinBox::getValue()
 {
 	return atoi(text);
@@ -1116,15 +1024,12 @@ int CSpinBox::getValue()
  **/
 void CSpinBox::setValue(int value)
 {
-	/* value anpassen, falls es aus dem erlaubten Bereich faellt */
 	if (value<min)value=min;
 	if (value>max)value=max;
-	/* value als Zeichenkette in text aus dem TextEdit-Feld schreiben. */
 	sprintf(text,"%d",value);
 
 	/* up ist enabled, wenn value<max, also man den Wert noch erhoehen koennte. */
 	up->setEnabled(value<max);
-	/* Andersrum bei down. */
 	down->setEnabled(value>min);
 }
 
@@ -1133,7 +1038,6 @@ void CSpinBox::setValue(int value)
  **/
 int CSpinBox::processMouseEvent(TMouseEvent *event)
 {
-	/* Uebergeordnetes Widget die Taste verarbeiten lassen. */
 	int r=CTextEdit::processMouseEvent(event);
 	/* Wenn 10000000+getId() (dann wurde up betaetigt), oder das Mausrad hoch bewegt wurde,
 	   Wert um 1 erhoehen. */
@@ -1141,7 +1045,6 @@ int CSpinBox::processMouseEvent(TMouseEvent *event)
 	/* Wenn 20000000+getId() (dann wurde up betaetigt), oder das Mausrad runter bewegt wurde,
 	   Wert um 1 erniedrigen. */
 	else if (r==20000000+getId()  || (hovered && event->press && event->button5))setValue(getValue()-1);
-	/* Sonst Rueckgabe von CTextEdit weiter nach oben durchreichen. */
 	else return r;
 	/* Ansonsten wurde der Wert veraendert. :) Also getId() zurueckgeben. */
 	return getId();
@@ -1170,7 +1073,6 @@ CFrame::CFrame(double vx,double vy,double vw,double vh)
 	y=vy;
 	w=vw;
 	h=vh;
-	/* Und auf Standardfarbe / Standardtransparenz setzen. */
 	setColor(0.8,0.8,0.8);
 	setAlpha(0.92);
 }
@@ -1214,7 +1116,6 @@ CDialog::CDialog(double vw,double vh,const char *vcaption)
 /* Dialog ist ein zentrierter CFrame mit bestimmter Groesse. */
 :CFrame((640.0-vw)/2.0,(480.0-vh)/2.0,vw,vh)
 {
-	/* Animation ist am Anfang. */
 	anim=0.0;
 	starting=true;
 	/* Titelleistentext kopieren. */
@@ -1266,10 +1167,8 @@ void CDialog::render(bool selectionBuffer)
 		glVertex3d(x+w+shadowsize/1.5,y+h+shadowsize,0);
 		glEnd();
 	}
-	/* Dann das CFrame rendern, welches das Rechteck malt, und alle Widgets. */
 	CFrame::render(selectionBuffer);
 	
-	/* Danach den Titelleistentext zentriert rendern. */
 	CGLFont font(10,20);
 	glColor4d(1,1,1,1);
 	font.drawText(x+(w-10*strlen(caption))/2.0,y+5,caption);
@@ -1310,7 +1209,6 @@ int CDialog::processMouseEvent(TMouseEvent *event)
 {
 	if (!starting)return 0;
 	int r=CWidget::processMouseEvent(event);
-	/* Wenn als Kommando 1 zurueckgegeben wurde... */
 	switch (r)
 	{
 	// Dialog schliessen. Das ist einfach mal als Close-Button definiert, den es ja fast ueberall gibt. 
@@ -1327,13 +1225,11 @@ int CDialog::processMouseEvent(TMouseEvent *event)
  **/
 bool CDialog::processKey(unsigned short key)
 {
-	/* Wenn schon bearbeitet, geh raus. */
 	if (CFrame::processKey(key))return true;
 	
 	/* Wenn der Dialog gerade geschlossen wird, nix bearbeiten. */
 	if (starting==false)return false;
 
-	/* Wenn Escape gedrueckt, Dialog schliessen. */
 	if (key==VK_ESCAPE){
 		close();
 		return true;
@@ -1384,7 +1280,6 @@ CFPS::CFPS(double x,double y,CGUI *gui)
 {
 	counter=0;
 	time=0.0;
-	/* Optionen der GUI merken. */
 	options=gui->getOptions();
 }
 
@@ -1407,9 +1302,6 @@ void CFPS::execute(double elapsed)
 	}
 }
 
-/**
- * Text rendern, und Zaehler fuer Frames erhoehen.
- **/
 void CFPS::render(bool selectionBuffer)
 {
 	/* Wenn der Text gerendert werden soll, ruf CStaticText::render auf. Dieser ruft CWidget::render 

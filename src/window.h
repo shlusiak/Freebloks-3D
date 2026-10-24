@@ -66,25 +66,20 @@ private:
 	CGUI *gui;
 
 #ifdef WIN32
-	// Unter Windows, ein HWND
 	HWND hWnd;
-	// Der HDC des obigen Fensters
 	HDC hDC;
 	// Der OpenGL Kontext, der mit dem hDC verknuepft wird
 	HGLRC ctx;
 #else
-	// Unter X11 ein Window
 	Window window;
 	// Einen GLXContext, der mit dem Window verknuepft wird
 	GLXContext ctx;
-	// Das Display, fuer alle X11 Operationen
 	Display *dpy;
 
 	// Sortiert und wandelt X11-Events und leitet sie an die GUI weiter
 	void processEvent(XEvent e);
 #endif
 
-	// Signalisiert, dass das Fenster geschlossen ist
 	bool closed;
 
 	// true, wenn der GL Kontext erfolgreich mit STENCIL-Buffer erstellt wurde,
@@ -97,13 +92,11 @@ public:
 	// Erstellt das Fenster, mit allem drum und dran. Gibt true zurueck bei Erfolg, sonst false
 	bool createWindow();
 
-	// Macht das Fenster auf dem Bildschirm sichtbar
 	void show();
 
 	// Gilt das Fenster als geschlossen? GUI reagiert darauf, und beendet sich und das Programm bei true
 	bool isClosed() { return closed; }
 
-	// Setzt das Fenster als geschlossen. 
 	void close() { closed=true; }
 
 	// Grast alle anliegenden Events des Fensters ab und behandelt sie. Sollte immer mal aufgerufen werden,
@@ -117,7 +110,6 @@ public:
 	// Updated den OpenGL Zustand fuer die Verwendung einer neuen Fenstergroesse
 	void reshape(int w,int h);
 
-	// Koennen Schatten ueberhaupt gerendert werden?
 	bool canShadow() { return m_canShadow; }
 
 #ifdef WIN32

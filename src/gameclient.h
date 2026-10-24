@@ -32,10 +32,8 @@ public:
 
 	void Connect(int client_socket, int blocking = 0);
 
-	/* Aktuelle Verbindung zum Spielserver trennen */
 	void Disconnect();
 
-	/* true, wenn eine Verbindung hergestellt ist */
 	const bool isConnected()const { return client_socket!=0; }
 
 	/* Verarbeitet alle anstehenden Netzwerknachrichten.
@@ -44,20 +42,15 @@ public:
 	 */
 	const char* poll();
 
-	/* Schickt eine Anfrage fuer einen lokalen Spieler an den Server */
 	void request_player(int wish_player, const char* name)const;
 
-	/* Schickt eine Anfrage fuer Spielstart an den Server */
 	void request_start()const;
 
-	/* Erfragt freundlich eine Zugzuruecknahme */
 	void request_undo()const;
 
-	/* Sendet eine Netzwerknachricht an den Server */
 	const int send_message(NET_HEADER *header,uint16 data_length,uint8 msg_type) const
 	{ return network_send(client_socket,header,data_length,msg_type); }
 
-	/* Verarbeitet eine einzelne empfangene Nachricht */
 	void process_message(NET_HEADER* data);
 
 	/* Von GUI aufgerufen: schickt eine Nachricht zum Setzen eines Steins an den Server */
@@ -66,10 +59,8 @@ public:
 	/* Gibt Pointer auf zuletzt empfangenes Status-Paket des Servers zurueck */
 	NET_SERVER_STATUS* getServerStatus() { return &status; }
 
-	/* Schickt eine Chat-Nachricht an den Server los */
 	void chat(const char *text);
 
-	/* true, wenn aktueller Spieler ein lokaler Spieler ist */
 	const bool is_local_player()const { return is_local_player(m_current_player); }
 	/* true, wenn der Spieler ein lokaler Spieler ist */
 	const bool is_local_player(const int player)const;

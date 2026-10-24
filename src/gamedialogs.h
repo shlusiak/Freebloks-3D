@@ -17,15 +17,11 @@
 class CStartGameDialog:public CDialog
 {
 private:
-	// Wir brauchen Zeiger auf GUI, um Rueckwaerts Zugriff auf bestimmte Fkt. zu haben
 	CGUI* gui;
-	// Sowie den SpielClients, mit dem wir interagieren sollen
 	CGameClient *client;
-	// Der Text des aktuellen Server-Status. 
 	CStaticText *statustext;
 	// Ein Zeitzaehler, um periodisch das Fenster zu aktualisieren
 	double time;
-	// Und ein Chat-TextEdit
 	CTextEdit *chat;
 
 	// Den NET_SERVER_STATUS des SpielClient in dem statustext anzeigen
@@ -53,9 +49,7 @@ class CGameFinishDialog:public CDialog
 private:
 	// GUI merken
 	CGUI *gui;
-	// Chat-Edit-Feld
 	CTextEdit *chat;
-	// Chat-Nachricht versenden
 	void sendChat();
 
 public:
@@ -65,7 +59,6 @@ public:
 	virtual int processMouseEvent(TMouseEvent *event);
 	// Taste verarbeiten
 	virtual bool processKey(unsigned short key);
-	// Schliessen des Fensters abfangen
 	virtual void close();
 	// Wir wollen nicht exklusiv die Maus, und hiermit kann man die Ansicht noch rotieren
 	virtual bool handleUI() { return true; }

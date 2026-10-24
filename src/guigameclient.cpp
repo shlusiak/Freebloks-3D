@@ -18,9 +18,6 @@
 
 
 
-/**
- * Leeren SpielClient initialisieren
- **/
 CGUIGameClient::CGUIGameClient(CGUI* vgui)
 :CGameClient()
 {
@@ -42,15 +39,11 @@ void CGUIGameClient::stoneWasSet(NET_SET_STONE *s)
 
 void CGUIGameClient::hintReceived(NET_SET_STONE *s)
 {
-	/* Entsprechenden Stein des Spielers holen */
 	CStone &stone=get_player(s->player)->get_stone(s->stone);
 	if ((stone.get_available() > 0) && (s->player==current_player()))
 	{
-		/* Stein in richtige Position drehen */
 		stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
-		/* Stein aufs echte Spielfeld setzen */
 		if (gui)gui->addEffect(new CStoneFadeEffect(gui,&stone,s->player,s->x,s->y));
-		/* Den vorgeschlagenen Zug sogar auswaehlen. */
 		if (gui)gui->setCurrentStone(s->stone);
 		if (gui)gui->setHintEnable(true);
 	}

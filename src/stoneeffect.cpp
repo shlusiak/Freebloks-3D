@@ -39,7 +39,6 @@ CStoneEffect::CStoneEffect(CGUI *vgui,const CStone *vstone,int vplayer,int vx,in
 	player=vplayer;
 	gui=vgui;
 
-	/* Den stone kopieren und uebernehmen */
 	stone = *vstone;
 }
 
@@ -85,11 +84,9 @@ bool CStoneEffect::execute(double elapsed)
 	/* Wenn Nachfolger entfernt werden will */
 	if (next) if (next->execute(elapsed))
 	{
-		/* Stein aus Liste aushaengen. */
 		CStoneEffect *n=next;
 		next=next->next;
 		n->next=0;
-		/* Und loeschen. */
 		delete n;
 	}
 	/* Wir wollen nicht sterben */
@@ -113,7 +110,6 @@ bool CStoneEffect::is_effected(int x,int y)
 
 	/* Wenn unser Stein an der errechneten Stelle ein Element hat: true */
 	if (stone.get_stone_field(y,x)!=STONE_FIELD_FREE)return true;
-	/* Sonst: false */
 	return false;
 }
 
@@ -172,7 +168,6 @@ void CStoneFadeEffect::render()
 CStoneRollEffect::CStoneRollEffect(CGUI *vgui, const CStone *vstone,int stone_number,int vplayer,int vx,int vy,bool vreverse)
 :CStoneEffect(vgui,vstone,vplayer,vx,vy)
 {
-	/* Alles brav initialisieren. */
 	reverse=vreverse;
 	if (reverse)time=1.0;
 	else time=0.0;
@@ -222,9 +217,6 @@ bool CStoneRollEffect::execute(double elapsed)
 	return (time<0.0)||(time>1.0);
 }
 
-/**
- * Stein an antsprechender Stelle der Parabel rendern.
- **/
 void CStoneRollEffect::render()
 {
 	int i,j;
@@ -238,13 +230,11 @@ void CStoneRollEffect::render()
 	const double z=cz+time*(dz-cz);
 	
 	CStoneEffect::render();
-	/* Position und Rotation setzen. */
 	glPushMatrix();
 	glTranslated(x,y,z);
 	glScaled(s,s,s);
 	glRotated(ang,axe_x,axe_y,axe_z);
 
-	/* Und einfach Stein rendern. */
 	for (i=0;i<stone.get_stone_size();i++)
 	for (j=0;j<stone.get_stone_size();j++)
 	if (stone.get_stone_field(j,i)!=STONE_FIELD_FREE)
@@ -269,7 +259,6 @@ void CStoneRollEffect::renderShadow()
 	/* Skalierung ausrechnen. */
 	double s=scale+(1.0-scale)*(time*3.5);
 	if (s>1.0)s=1.0;
-	/* Aktuelle Position des Steins errechnen. */
 	const double x=cx+time*(dx-cx);
 	const double y=parabola_a*time*time+parabola_b*time+cy;
 	const double z=cz+time*(dz-cz);
@@ -340,9 +329,6 @@ CPhysicalStone::CPhysicalStone(CGUI *vgui,CStone *vstone,int player)
 	ay=1.0;
 }
 
-/**
- * Aktuelle Position des Steins in Welt-Koordinaten setzen.
- **/
 void CPhysicalStone::setPos(double sx,double sy,double sz)
 {
 	x=sx;
@@ -350,9 +336,6 @@ void CPhysicalStone::setPos(double sx,double sy,double sz)
 	z=sz;
 }
 
-/**
- * Aktuelle Rotationsgeschwindigkeit und Achse setzen
- **/
 void CPhysicalStone::setRotationSpeed(double angs,double ax,double ay,double az)
 {
 	angspeed=angs;
@@ -361,9 +344,6 @@ void CPhysicalStone::setRotationSpeed(double angs,double ax,double ay,double az)
 	this->az=az;
 }
 
-/**
- * Aktuelle Geschwindigkeit des Steins setzen
- **/
 void CPhysicalStone::setSpeed(double sx,double sy,double sz)
 {
 	speedx=sx;
@@ -403,10 +383,8 @@ bool CPhysicalStone::execute(double elapsed)
 		/* Soll nicht mehr rotieren, und soll genau parallel zur Erde sein. */
 		angspeed=0.0;
 		ang=0.0;
-		/* x und y Geschw. auf 0 setzen. */
 		speedx=0.0;
 		speedz=0.0;
-		/* Position auf Ziel setzen. */
 		x=dx;
 		y=dy;
 		z=dz;
@@ -445,9 +423,6 @@ void CPhysicalStone::render()
 	glPopMatrix();
 }
 
-/**
- * Schatten des Steins rendern.
- **/
 void CPhysicalStone::renderShadow()
 {
 	CStoneEffect::renderShadow();
@@ -466,7 +441,6 @@ void CPhysicalStone::renderShadow()
 	dir[1]=-(M[ 1]*v[0]+M[ 5]*v[1]+M[ 9]*v[2]);
 	dir[2]=-(M[ 2]*v[0]+M[ 6]*v[1]+M[10]*v[2]);
 
-	/* Stein in Position bringen. */
 	glPopMatrix();
 	glPushMatrix();
 	glTranslated(x,y,z);

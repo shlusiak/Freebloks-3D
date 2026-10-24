@@ -29,7 +29,6 @@
 #include "window.h"
 #include "gui.h"
 
-// Titel des Fensters
 static const char* WINDOW_TITLE="Freebloks 3D";
 // Startgroesse des Fensters (unter Windows ist das Fenster zusaetzlich noch maximiert
 static const int WND_SIZE_X=800;
@@ -54,9 +53,6 @@ LRESULT CALLBACK WndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 #endif
 
 
-/**
- * Simpler Konstruktor, initialisiert lediglich Variablen
- **/
 CWindow::CWindow(CGUI *vgui)
 {
 	gui=vgui;
@@ -119,17 +115,17 @@ bool CWindow::createWindow()
 	// Zuerst will die Klasse des Fensters registriert sein
 	WNDCLASS wndclass;
 	ZeroMemory(&wndclass,sizeof(wndclass));
-	wndclass.style=CS_HREDRAW|CS_VREDRAW;	// Fenster neuzeichnen, beim Groesse-Aendern
-	wndclass.lpfnWndProc=WndProc;		// Die Fensterfunktion ist global.
-	wndclass.hInstance=::hInstance;		// Unsere HINSTANCE des Progz
-	wndclass.hCursor=LoadCursor(nullptr,IDC_ARROW);	// Fenster soll Pfeil als Cursor
-	wndclass.hIcon=LoadIcon(::hInstance,MAKEINTRESOURCE(IDI_ICON));	// Fenster soll eigenes Icon haben
-	wndclass.lpszClassName="FreebloksWindowClass";	// Der Name unserer Fenster-Klasse. 
-	if (!RegisterClass(&wndclass))return false;	// Klasse bei Windows registrieren, bei Fehler raus
+	wndclass.style=CS_HREDRAW|CS_VREDRAW;
+	wndclass.lpfnWndProc=WndProc;
+	wndclass.hInstance=::hInstance;
+	wndclass.hCursor=LoadCursor(nullptr,IDC_ARROW);
+	wndclass.hIcon=LoadIcon(::hInstance,MAKEINTRESOURCE(IDI_ICON));
+	wndclass.lpszClassName="FreebloksWindowClass";
+	if (!RegisterClass(&wndclass))return false;
 
 	// Erstelle ein Win32-Fenster, standard Position, aber vorgegebene Groesse. Nix besonderes.
 	hWnd=CreateWindow("FreebloksWindowClass",WINDOW_TITLE,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,CW_USEDEFAULT,CW_USEDEFAULT,WND_SIZE_X,WND_SIZE_Y,nullptr,nullptr,::hInstance,nullptr);
-	if (hWnd==0)return false; // Bei Fehler raus
+	if (hWnd==0)return false;
 
 	// Hier muss USERDATA des Fensters mit this assoziiert werden, damit die globale Fensterfunktion
 	// Das Fenster mit dieser Klasse verbinden und unsere processMessage() aufrufen kann. 
@@ -140,10 +136,8 @@ bool CWindow::createWindow()
 	int iPixelFormat;
 	m_canShadow=true;
 
-	// Wir brauchen den DisplayContext des erstellten Fensters.
 	hDC=GetDC(hWnd);
 
-	// PixelFormatDescriptor leeren und initialisieren. 
 	ZeroMemory(&pfd,sizeof(pfd));
 	pfd.nSize=sizeof(pfd);
 	pfd.nVersion=1;
@@ -162,21 +156,17 @@ bool CWindow::createWindow()
 		// Auf jeden Fall koennen wir nun keine Schatten mehr
 		m_canShadow=false;
 	}
-	// Wenn bis hier kein PixelFormat gefunden wurde, schlagen wir mal fehl.
 	if (iPixelFormat==0)return false;
 
-	// Das gefundenen PixelFormat weisen wir dem hDC zu.
 	SetPixelFormat(hDC,iPixelFormat,&pfd);
 
 	// Und verbinden einen OpenGL Kontext zu dem hDC und damit dem hWnd (Fenster). 
 	ctx=wglCreateContext(hDC);
-	// Ohne OpenGL-Kontext kein Spiel!
 	if (ctx==0)return false;
 
 	// Kontext aktivieren, gilt global fuer die gesamte Anwendung.
 	wglMakeCurrent(hDC,ctx);
 
-	// Das Fenster ist NICHT geschlossen.
 	closed=false;
 
 	// ERFOLG!
@@ -189,7 +179,6 @@ bool CWindow::createWindow()
 void CWindow::processEvents()
 {
 	MSG msg;
-	// Schleife, solange Nachricht abgeholt werden konnte
 	while (PeekMessage(&msg, nullptr,0,0,PM_REMOVE))
 	{
 		// WM_QUIT setzt das WM_DESTROY des Fensters ab. Damit wird das Fenster als geschlossen betrachtet
@@ -217,25 +206,21 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 	case WM_DESTROY:PostQuitMessage(0);
 		break;
 
-	// Das Fenster wurde frisch erstellt.
 	case WM_CREATE:
 		{
 			RECT r;
 			// Hole Groesse des Clientbereichs (Fenster ohne Rahmen/Titelleiste)
 			GetClientRect(hWnd,&r);
-			// Informiere OpenGL ueber den verfuegbaren Platz zum Rendern
 			reshape(r.right,r.bottom);
 		}
 		break;
 
-	// Die linke Maustaste wurde gedrueckt
 	case WM_LBUTTONDOWN:
 		{
 			// Baue ein passendes TMouseEvent, pressed und button1, Position steht in LOWORD(lParam) und HIWORD(lParam)
 			TMouseEvent me={true,false,false, true,false,false,false,false,(short)LOWORD(lParam),(short)HIWORD(lParam)};
 			// Wir wollen exklusive Nachrichten der Maus, solange die Taste gedrueckt wurde
 			SetCapture(hWnd);
-			// Nachricht an GUI weiterreichen
 			gui->processMouseEvent(&me);
 		}
 		break;
@@ -253,7 +238,6 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 			gui->processMouseEvent(&me);	
 		}
 		break;
-	// Das Mausrad wurde bewegt
 	case WM_MOUSEWHEEL:
 		{
 			// Die Koordinaten liegen seltsamerweise in Screen-Koordinaten vor
@@ -268,15 +252,12 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 			me.button3=(LOWORD(wParam)&MK_MBUTTON)!=0;
 			if ((short)HIWORD(wParam)>0)me.button4=true;
 			if ((short)HIWORD(wParam)<0)me.button5=true;
-			// Und Nachricht an GUI uebergeben
 			gui->processMouseEvent(&me);	
 			break;
 		}
 
-	// Die Maustaste wurde losgelassen
 	case WM_LBUTTONUP:
 		{
-			// TMouseEvent fuer das Ereignis bauen
 			TMouseEvent me={false,true,false, true,false,false,false,false,(short)LOWORD(lParam),(short)HIWORD(lParam)};
 			// Ereignis an GUI weitergeben
 			gui->processMouseEvent(&me);
@@ -300,14 +281,12 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 		}
 		break;
 	
-	// Die Maus wurde bewegt.
 	case WM_MOUSEMOVE:
 		{
-			// Ein TMouseEvent dazu erstellen
 			TMouseEvent me;
-			me.move=true;	// Maus wurde bewegt
-			me.press=me.release=false;	// Und nicht gedrueckt, oder losgelassen
-			me.button1=(wParam&MK_LBUTTON)!=0;	// Ist dabei LBUTTON gedrueckt?
+			me.move=true;
+			me.press=me.release=false;
+			me.button1=(wParam&MK_LBUTTON)!=0;
 			me.button2=(wParam&MK_RBUTTON)!=0;	// ...
 			me.button3=(wParam&MK_MBUTTON)!=0;	// ...
 			me.button4=me.button5=false;	// "Mausrad" ist generell nicht bewegt
@@ -320,7 +299,6 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 
 	// Obige TranslateMessage hat uns ein WM_CHAR generiert, das ein char in wParam enthaelt
 	case WM_CHAR:
-		// Die gedrueckte Taste an die GUI weiterreichen
 		gui->processKeyEvent(wParam);
 		break;
 
@@ -330,13 +308,10 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 			gui->processKeyEvent(wParam);
 		break;
 
-	// Das Fenster wurde in der Groesse geaendert. 
 	case WM_SIZE:
-		// Wir sollten OpenGL von der neuen Groesse in Kenntnis setzen. 
 		reshape(LOWORD(lParam),HIWORD(lParam));
 		break;
 	
-	// Fuer alle nicht behandelten Nachrichten bietet Windows eine Standardimplementierung:
 	default: return DefWindowProc(hWnd,uMsg,wParam,lParam);
 	}
 	// 0 zurueckgeben, als Zeichen, dass wir die Nachricht behandelt haben.
@@ -380,7 +355,7 @@ bool CWindow::createWindow()
 		GLX_STENCIL_SIZE, 1,
 		None };
 	int scrnum;	// DefaultScreen
-	XSetWindowAttributes attr;	// Attribute des zu erstellenden Fensters. 
+	XSetWindowAttributes attr;
 	unsigned long mask;
 	Window root,wnd;
 	XVisualInfo *visinfo;
@@ -390,16 +365,14 @@ bool CWindow::createWindow()
 	if (dpy==0)
 	{
 		printf("Error: could not open display\n");
-		return false;	// Bei Fehler, stopp.
+		return false;
 	}
 
-	// Standard-Screen des Displays holen
 	scrnum = DefaultScreen( dpy );
-	root = RootWindow( dpy, scrnum );	// Sowie das root-Fenster des Screens (Desktop)
+	root = RootWindow( dpy, scrnum );
 
 	// Wir wollen ein OpenGL-Visual mit den obigen Anforderungen
 	visinfo = glXChooseVisual( dpy, scrnum, attrib );
-	// Kein Visual gefunden? Dann Fehler. 
 	if (!visinfo) {
 		printf("Error: couldn't get an RGB, Double-buffered visual\n");
 		return false;
@@ -416,7 +389,6 @@ bool CWindow::createWindow()
 	wnd= XCreateWindow( dpy, root, 0, 0, WND_SIZE_X, WND_SIZE_Y,
 		0, visinfo->depth, InputOutput,
 		visinfo->visual, mask, &attr );
-	// Bei Fehler, raus.
 	if (wnd==0)
 	{
 		printf("Error: couldn't create window\n");
@@ -426,7 +398,6 @@ bool CWindow::createWindow()
 	// Wir wollten einen Stencil Buffer, sind wir hier, haben wir ihn auch gekriegt, also koennen wir Schatten rendern
 	m_canShadow=true;
 
-	// Einige Eigenschaften des Fensters setzen
 	{
 		XSizeHints sizehints;
 		sizehints.x = 0;
@@ -435,12 +406,10 @@ bool CWindow::createWindow()
 		sizehints.height = WND_SIZE_Y;
 		sizehints.flags = USSize /*| USPosition*/;
 		XSetNormalHints(dpy, wnd, &sizehints);
-		// Setze hints und Titel des Fensters
 		XSetStandardProperties(dpy, wnd, WINDOW_TITLE, WINDOW_TITLE,None, (char **)nullptr, 0, &sizehints);
 	}
 
 #ifdef HAVE_X11_XPM_H
-	// Fenster ein Icon verpassen
 	{
 		#include "freebloks.xpm"
   		XpmImage I;
@@ -470,9 +439,8 @@ bool CWindow::createWindow()
 	}
 #endif
 
-	// Erstelle einen OpenGL-Kontext, mit dem vorher gewaehltem visual
 	ctx = glXCreateContext( dpy, visinfo, nullptr, True );
-	if (!ctx) {	// Bei Fehlschlag raus
+	if (!ctx) {
 		printf("Error: glXCreateContext failed\n");
 		return false;
 	}
@@ -485,7 +453,6 @@ bool CWindow::createWindow()
 	closed=false;
 
 	glXMakeCurrent(dpy,window,ctx);
-	// OpenGL ueber die Fenstergroesse informieren
 	reshape(WND_SIZE_X,WND_SIZE_Y);
 
 	// Erfolg!!
@@ -497,7 +464,6 @@ bool CWindow::createWindow()
  **/
 void CWindow::show()
 {
-	// Macht Fenster auf dem Display sichtbar
 	XMapWindow(dpy, window);
 	// Aktiviert den OpenGL Kontext, er ist fuer die Instanz global
 	glXMakeCurrent(dpy,window,ctx);
@@ -508,13 +474,11 @@ void CWindow::show()
  */
 void CWindow::processEvents()
 {
-	// Solange XEvents vorhanden sind,
 	while (XPending(dpy) > 0) 
 	{
 		XEvent event;
 		// Hole naechstes X11-Event ab
 		XNextEvent(dpy, &event);
-		// Und verarbeite es, ueber eigene Nachrichtenfunktion
 		processEvent(event);
 	}
 }
@@ -530,7 +494,6 @@ void CWindow::processEvent(XEvent event)
  		reshape(event.xconfigure.width, event.xconfigure.height);
       		break;
 
-	// Eine Taste wurde gedrueckt
 	case KeyPress: {
 		KeySym mykeysym;
 		char buffer[16];
@@ -540,10 +503,8 @@ void CWindow::processEvent(XEvent event)
 		break;
 		}
 
-	// Es wurde eine Maustaste gedrueckt
 	case ButtonPress:
 		{
-			// Transferriere die Daten aus dem XButtonEvent an ein TMouseEvent
 			XButtonEvent* e=(XButtonEvent*)(&event);
 			TMouseEvent me;
 			me.press=true;
@@ -556,15 +517,12 @@ void CWindow::processEvent(XEvent event)
 			me.button4=(e->button==Button4);
 			me.button5=(e->button==Button5);
 
-			// Und leite es an die GUI weiter
 			// X11 gibt uns automatisch alle weiteren MouseEvents, solang die Taste noch gedrueckt ist
 			gui->processMouseEvent(&me);
 		}
 		break;
-	// Eine Maustaste wuede losgelassen.
 	case ButtonRelease:
 		{
-			// Wandle das XButtonEvent in ein TMouseEvent
 			XButtonEvent* e=(XButtonEvent*)(&event);
 			TMouseEvent me;
 			me.release=true;
@@ -576,15 +534,12 @@ void CWindow::processEvent(XEvent event)
 			me.button3=e->button==Button2;
 			me.button4=e->button==Button4;
 			me.button5=e->button==Button5;
-			// Und uebergib es an die GUI
 			gui->processMouseEvent(&me);
 		}
 		break;
 
-	// Die Maus wurde bewegt
 	case MotionNotify:
 		{
-			// Wandle das XMotionEvent in ein TMouseEvent
 			XMotionEvent *e=(XMotionEvent*)(&event);
 			TMouseEvent me;
 			me.move=true;
@@ -596,16 +551,12 @@ void CWindow::processEvent(XEvent event)
 			me.button3=e->state & Button2Mask;
 			me.button4=e->state & Button4Mask;
 			me.button5=e->state & Button5Mask;
-			// Und gib es an die GUI weiter
 			gui->processMouseEvent(&me);
 		}
 		break;
 	}
 }
 
-/**
- * Vertausche OpenGL-Buffer, und mach Renderings von vorher sichtbar
- **/
 void CWindow::swapBuffers()
 {
 	glXSwapBuffers(dpy, window);

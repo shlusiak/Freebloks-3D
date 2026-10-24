@@ -63,12 +63,8 @@ COptionsDialog::COptionsDialog(CGUI *vgui)
 		addChild(fps=new CFPSSpinBox(140,125,45,20,10008,2,99,this,options));
 }
 
-/**
- * Mausereignis verarbeiten, effektiv Aenderungen der Checkboxes.
- **/
 int COptionsDialog::processMouseEvent(TMouseEvent *event)
 {
-	/* Dialog das Ereignis verarbeiten lassen. */
 	int r=CDialog::processMouseEvent(event);
 	switch (r)
 	{
@@ -102,7 +98,6 @@ int COptionsDialog::processMouseEvent(TMouseEvent *event)
 
 	default: return r;
 	}
-	/* Bei Bearbeitung, nicht weiter verarbeiten. */
 	return 0;
 }
 

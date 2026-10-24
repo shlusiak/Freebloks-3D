@@ -43,16 +43,11 @@ CStartGameDialog::CStartGameDialog(CGameClient *vclient,CGUI* vgui,const char* s
 	addChild(new CButton(245,188,50,24,96,this,"Chat"));
 	addChild(new CButton(30,h-35,110,25,99,this,"Start Now"));
 	addChild(new CButton(150,h-35,110,25,98,this,"Cancel"));
-	/* Einen leeren statustext. */
 	addChild(statustext=new CStaticText(190,60,0,"",this));
 }
 
-/**
- * Mausereignis verarbeiten (Druck auf Button).
- **/
 int CStartGameDialog::processMouseEvent(TMouseEvent *event)
 {
-	/* Dialog das Event verarbeiten lassen. */
 	int r=CDialog::processMouseEvent(event);
 	/* Spielstart wurde betaetigt. */
 	if (r==99)
@@ -69,7 +64,6 @@ int CStartGameDialog::processMouseEvent(TMouseEvent *event)
 		return 0;
 	}else if (r==96)
 	{
-		/* Chat-Nachricht abschicken. */
 		sendChat();
 		return 0;
 	}else return r;
@@ -88,13 +82,9 @@ void CStartGameDialog::updateStatus(NET_SERVER_STATUS *status)
 		strcat(c,COLOR_NAME[i]);
 		strcat(c,"\n");
 	}
-	/* Und statustext neu zuweisen. */
 	statustext->setText(c,true);
 }
 
-/**
- * Verbindung ueberpruefen und so
- **/
 void CStartGameDialog::execute(double elapsed)
 {
 	CDialog::execute(elapsed);
@@ -124,11 +114,8 @@ void CStartGameDialog::sendChat()
 {
 	/* The dialog stays alive during its close animation, but client is already gone then */
 	if (client==nullptr)return;
-	/* Chat-Nachricht abschicken. */
 	client->chat(chat->getText());
-	/* Und Eingabefeld leeren */
 	chat->setText("");
-	/* Sowie ihm wieder den Fokus geben. */
 	chat->setFocus();
 }
 
@@ -137,10 +124,8 @@ void CStartGameDialog::sendChat()
  **/
 bool CStartGameDialog::processKey(unsigned short key)
 {
-	/* Wird hier Escape gedrueckt. */
 	if (key==VK_ESCAPE)
 	{
-		/* Verbindung zum Server kappen. */
 		if (client)client->Disconnect();
 		client=0;
 		/* Chatbox darf wieder automatisch geschlosen werden. */
@@ -149,7 +134,6 @@ bool CStartGameDialog::processKey(unsigned short key)
 		close();
 		return true;
 	}
-	/* Sonst Rest des Dialogs die Nachricht verarbeiten lassen. */
 	bool b=CDialog::processKey(key);
 	/* Und wenn ueber dem Chat EditFeld Enter gedrueckt wurde, die Nachricht abschicken. */
 	if (chat->committed())sendChat();
@@ -168,7 +152,6 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 {
 	/* Welcher Spieler auf dem entsprechenden Platz ist. Wird noch sortiert. */
 	int place[PLAYER_MAX]={0,1,2,3};
-	/* Farbnamen der Spieler. */
 	int i;
 	double y,w;
 
@@ -217,7 +200,6 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 		/* In diesem Spielmodi addieren wir die Punkte und malen zwei Frames in beiden Farben. */
 		if (client->get_game_mode() == GAMEMODE_4_COLORS_2_PLAYERS)
 		{
-			/* Linken Frame erstellen und Farbe setzen */
 			frame=new CFrame(x+20+(this->w-w)/2.0,this->y+y,(w-20)/2.0,20);
 			frame->setAlpha(local?0.7:0.25);
 			switch (place[i])
@@ -234,7 +216,6 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 			}
 			addChild(frame);
 
-			/* Rechten Frame erstellen und Farbe setzen. */
 			frame=new CFrame(x+10+(this->w-w)/2.0+w/2.0,this->y+y,(w-20)/2.0,20);
 			frame->setAlpha(local?0.7:0.25);
 			switch (client->get_teammate(place[i]))
@@ -259,7 +240,6 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 			snprintf(t, sizeof(t), "%s/%s: %d points (%d stones)", COLOR_NAME[place[i]], COLOR_NAME[client->get_teammate(place[i])],
 				points,stones);
 		}else{
-			/* Wir erstellen nur ein Frame mit der Farbe des Spielers. */
 			frame=new CFrame(x+20+(this->w-w)/2.0,this->y+y,w-20,20);
 			frame->setAlpha(local?0.7:0.25);
 			switch (place[i])
@@ -278,14 +258,12 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 			/* Text setzen. */
 			snprintf(t, sizeof(t), "%s: %d points (%d stones)", COLOR_NAME[place[i]], -client->get_stone_points_left(place[i]), client->get_stone_count(place[i]));
 		}
-		/* Den Text als Statictext in das Frame setzen. */
 		addChild(new CStaticText(20,y+2,this->w-20,t,this));
 		/* Platz Nummer links daneben schreiben, mit *, falls Spieler lokal ist. */
 		snprintf(t, sizeof(t), "%c %d.", local ? '*' :  ' ',p);
 		CStaticText *text=new CStaticText(17,y+2,t,this);
 		if (!local)text->setAlpha(0.5);
 		addChild(text);
-		/* Neue Posistion und Platz waehlen. */
 		y+=25;
 		w+=5;
 		p++;
@@ -294,7 +272,6 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 	/* Nur Chat anbieten, wenn mehr als ein Client verbunden */
 	if (client->getServerStatus()->clients>1)
 	{
-		/* Chat TextEdit Feld und Button erstellen. */
 		addChild(chat=new CTextEdit(30,155,270,20,97,"",false,this));
 		chat->setFocus();
 		addChild(new CButton(310,153,50,24,96,this,"Chat"));
@@ -308,13 +285,9 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 	addChild(new CButton((this->w-120.0-50.0),this->h-35,120,25,18,this,(client->getServerStatus()->clients>1)?"Disconnect":"Close"));
 }
 
-/**
- * Mausereignis verarbeiten (Druck auf Button)
- **/
 int CGameFinishDialog::processMouseEvent(TMouseEvent *event)
 {
 	int r=CDialog::processMouseEvent(event);
-	/* Chat-Nachricht senden. */
 	if (r==96)sendChat();
 	else if (r==17)
 	/* Neue Runde starten und Dialog schliessen. */
@@ -330,16 +303,11 @@ int CGameFinishDialog::processMouseEvent(TMouseEvent *event)
 	return 0;
 }
 
-/**
- * Nachricht aus Texteingabefeld versenden
- **/
 void CGameFinishDialog::sendChat()
 {
-	/* Nachricht senden. */
 	gui->game->chat(chat->getText());
 	/* Eingabefeld leeren. */
 	chat->setText("");
-	/* Und Fokus geben. */
 	chat->setFocus();
 }
 
@@ -348,16 +316,13 @@ void CGameFinishDialog::sendChat()
  **/
 bool CGameFinishDialog::processKey(unsigned short key)
 {
-	/* Wird hier Escape gedrueckt. */
 	if (key==VK_ESCAPE)
 	{
-		/* Verbindung zum Server kappen. */
 		gui->game->Disconnect();
 		/* Dialog schliessen. */
 		close();
 		return true;
 	}
-	/* Dialog die Taste verarbeiten lassen. */
 	bool b=CDialog::processKey(key);
 	/* Und wenn das Text-Feld mit Enter verlassen wurde, Nachricht verschicken */
 	if (chat && chat->committed())sendChat();

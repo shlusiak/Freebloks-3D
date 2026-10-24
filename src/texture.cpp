@@ -32,13 +32,11 @@ typedef struct                       /**** BMP file info structure ****/
 } MYBITMAPINFOHEADER;
 
 
-/* Nur ein leerer Textur-Container */
 CTexture::CTexture()
 {
 	m_texture=0;
 }
 
-/* Laedt die angegebene Textur */
 CTexture::CTexture(const char *filename)
 {
 	m_texture=0;
@@ -53,7 +51,6 @@ CTexture::~CTexture()
 
 void CTexture::unload()
 {
-	/* Eine einzelne OpenGL Textur freigeben */
 	if (m_texture)glDeleteTextures(1,&m_texture);
 	m_texture=0;
 }
@@ -106,7 +103,6 @@ bool CTexture::load(const char *filename)
 
 	fseek(file, 18, SEEK_CUR);  /* start reading width & height */
 
-	/* Breite und Hoehe des Bilds ermitteln */
 	unsigned int num;
 	if (!freadnum(sizeof(int), file, &num)) { fclose(file); return false; }
 	infoheader.biWidth=(int)num;
@@ -121,7 +117,6 @@ bool CTexture::load(const char *filename)
 		return false;
 	}
 
-	/* Anzahl planes lesen und pruefen */
 	if (!freadnum(sizeof(short int), file, &num)) { fclose(file); return false; }
 	infoheader.biPlanes=(unsigned short)num;
 	if (infoheader.biPlanes != 1) {
@@ -150,7 +145,6 @@ bool CTexture::load(const char *filename)
 		return false;
 	}
 
-	/* Einlesen der Bilddaten in den Puffer */
 	if (fread(infoheader.data, data_size, 1, file) != 1) {
 		printf("Error reading image data from %s.\n", filename);
 		free(infoheader.data);
@@ -168,21 +162,17 @@ bool CTexture::load(const char *filename)
 	/* Datei schliessen */
 	fclose(file);
 
-	/* Bei OpenGL eine Textur anfordern */
 	glGenTextures(1,&m_texture);
 	/* Erhaltene Textur aktivieren */
 	glBindTexture(GL_TEXTURE_2D, m_texture);
 
 	/* Texturparameter setzen */
-	/* Textur soll sich wiederholen */
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	/* Lineare Texturfilter fuer schoenere Ausgabe*/
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 
-	/* Daten aus Puffer nach OpenGL in die neue Textur uebertragen */
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, infoheader.biWidth, infoheader.biHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, infoheader.data);
 
 	/* Mipmaps zur weichen Darstellung der Textur bei Verkleinerung */
@@ -191,7 +181,6 @@ bool CTexture::load(const char *filename)
 	/* Speicher wieder freigeben */
 	free(infoheader.data);
 
-	/* Und Textur deaktivieren */
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return true;

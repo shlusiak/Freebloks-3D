@@ -26,7 +26,6 @@
 #include "helpbox.h"
 
 
-/* Standardserver zum Verbinden */
 const char* DEFAULT_SERVER="blokus.saschahlusiak.de";
 
 
@@ -43,7 +42,6 @@ static int ai_multithreading=2;
 static char* mp_oldserver=nullptr;
 static const char* oldname="";
 
-/* Groesse des Feldes */
 static int size_x=20,size_y=20;
 
 
@@ -87,7 +85,6 @@ int CMainMenu::processMouseEvent(TMouseEvent *event)
 		addSubChild(new CNewGameDialog(GUI,false));
 		break;
 	case 1003:
-		/* ...die Namen sprechen ja f�r sich.. */
 		addSubChild(new CNewGameDialog(GUI,true));
 		break;
 	case 1004:

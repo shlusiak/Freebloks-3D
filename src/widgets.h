@@ -53,11 +53,8 @@ public:
 	// Fuegt ein Unterfenster an, dieses kriegt etwas exklusiver Nachrichten und wird bevorzugt behandelt, als haette es den Fokus
 	void addSubChild(CWidget *subchild);
 	
-	// true, wenn Widget im Begriff ist, entfernt zu werden.
 	bool deleted() { return m_deleted; }
-	// true, wenn das Widget ein (wichtigeres) Subchild hat
 	bool hasSubChild() { return (subchild!=0); }
-	// das Subchild zurueckgeben. 
 	CWidget *getSubChild() { return subchild; }
 
 	// Kommt hier true zustande, verzichtet die GUI auf eigene Mausbehandlung beim Spielfeld (sinnvoll bei modalen Dialogen)
@@ -77,14 +74,11 @@ public:
 	// Wird von GUI aufgerufen, wenn eine Taste gedrueckt wurde, die verarbeitet werden will. Gibt true, wenn das Widget die Taste verarbeitet hat, bei true sollte KEIN anderes Widget die Taste weiter verarbeiten, da schon geschehen.
 	virtual bool processKey(unsigned short key);
 
-	// Widget zur Entfernung kennzeichnen
 	void remove() { m_deleted=true; }
 	// ID dieses Widgets zurueckgeben
 	const int getId()const { return m_id; }
-	// X-Koordinate, bzw. Y-Koordinate des Widgets zurueckgeben
 	double getX() { return x; }
 	double getY() { return y; }
-	// ID des Widgets setzen
 	void setId(int id) { m_id=id; }
 
 	// Hier kommen Animationen und sonstige automatische Aktionen rein
@@ -104,7 +98,6 @@ class CWidgetPane:public CWidget
 public:
 	// Hier wird OpenGL fuers Rendern der 2D Widgets vorbereitet, dann werden die eigentlichen Widgets der verketteten Listen gerendert
 	void render(bool selectionBuffer);
-	// Verwaltet Mausereignisse der Widgets
 	virtual int processMouseEvent(TMouseEvent *event);
 };
 
@@ -114,7 +107,6 @@ public:
 class CFrame:public CWidget
 {
 private:
-	// Farbwerte des Rechtecks
 	double r,g,b,a;
 public:
 	// Hm...
@@ -129,9 +121,6 @@ public:
 	void setSize(double vx,double vy,double vw,double vh);
 };
 
-/**
- * Ein Knopf
- **/
 class CButton:public CWidget
 {
 private:
@@ -139,7 +128,6 @@ private:
 	bool hovered,enabled;
 	// Animation des Mouse-Over Effekts (0.0-1.0), und Animation des Klicks
 	double anim,pushanim;
-	// Die Beschriftung des Buttons
 	char *text;
 protected:
 	// Maus bewegt sich ueber Widget, damit ist hover=enabled
@@ -149,12 +137,9 @@ protected:
 public:
 	// Constructor
 	CButton(double vx,double vy,double vw,double vh,int id,CWidget* parent,const char *vtext);
-	// Destructor zum Aufraeumen
 	virtual ~CButton();
 
-	// Rendern des Buttons
 	virtual void render(bool selection);
-	// Animieren des Buttons
 	virtual void execute(double elapsed);
 	// Mausereignis verarbeiten. Wenn gedrueckt und hovered, dann wird die ID des Buttons zurueck gegeben
 	virtual int processMouseEvent(TMouseEvent *event);
@@ -186,7 +171,6 @@ public:
 
 	// Constructor
 	CCheckBox(double vx,double vy,double vw,double vh,int id,const char *vtext,bool vchecked,CWidget *parent);
-	// Destructor zum Aufraeumen
 	virtual ~CCheckBox();
 	
 	// Rendern
@@ -195,7 +179,6 @@ public:
 	virtual void execute(double elapsed);
 	// Mausereignis verarbeiten, gibt ID zurueck, wenn auf Checkbox geklickt wurde
 	virtual int processMouseEvent(TMouseEvent *event);
-	// Ist Checkbox gecheckt?
 	bool getCheck() { return checked; }
 	// check setzen
 	void setCheck(bool vchecked) { checked=vchecked; }
@@ -212,9 +195,7 @@ public:
 class CStaticText:public CWidget
 {
 private:
-	// Der Text
 	char *text;
-	// Alpha Wert fuer Transparenz
 	double a;
 public:
 	// Konstruktor, Text wird links an x und y ausgerichtet, relativ zur Koordinate von parent
@@ -225,7 +206,6 @@ public:
 	virtual ~CStaticText();
 	// Den Text setzen, ggf. alten Text freigeben. adjustwidth: soll neue Breite dem Text angepasst werden?
 	void setText(const char *vtext,bool adjustwidth=false);
-	// Den Text rendern
 	virtual void render(bool selection);
 	// Transparenz setzen
 	void setAlpha(double va) { a=va; }
@@ -250,9 +230,7 @@ protected:
 	char text[100];
 	// Soll der Text links im Edit Feld ausgerichtet werden?
 	bool left_align;
-	// Maus ist ueber Edit-Feid *gaehn*
 	virtual void mouseEnter() { hovered=true; }
-	// Und nicht mehr drueber, also hovered anpassen
 	virtual void mouseLeave() { hovered=false; }
 	// Aufgerufen, wenn TextEdit den Fokus verliert, hier koennten Ueberpruefungen rein (wie bei SpinBox)
 	virtual void endEdit() {}
@@ -264,13 +242,10 @@ public:
 
 	// Textfeld soll den Fokus haben, kann von extern bei Initialisierung von Dialogen aufgerufen werden
 	void setFocus() { focused=true; }
-	// Hat das Feld den Fokus?
 	bool hasFocus() { return focused; }
 	// Gibt eingegebenen Text zurueck. Zeiger sollte kopiert und nicht veraendert werden
 	const char *getText();
-	// Text vorinitialisieren oder fest setzen
 	void setText(const char *vtext);
-	// Wurde das Feld mit Enter verlassen?
 	bool committed() { return m_committed; }
 	void unsetCommitted() { m_committed=false; }
 
@@ -299,7 +274,6 @@ protected:
 	// Wenn das Editieren beendet ist, soll eine Ueberpruefung des Werts stattfinden
 	virtual void endEdit();
 public:
-	// Constructor, mit initialisierenden Werten
 	CSpinBox(double x,double y,double w,double h,int id,int min,int max,int value,CWidget *parent,bool rightButtons=true);
 
 	// Aktuellen Wert als Zahl zurueckgeben
@@ -347,7 +321,6 @@ public:
 	virtual bool handleUI() { return starting; }
 	// Extra close() Funktionen, um dem Dialog ein animiertes Ableben zu verschaffen
 	virtual void close();
-	// Dialog schliessen, mit Unterfenstern?
 	virtual void close(bool recursive);
 
 	// Dialog voll anzeigen, Animation beenden.
@@ -377,18 +350,14 @@ public:
 class CFPS:public CStaticText
 {
 private:
-	/* Zaehlt die Anzahl Frames */
 	int counter;
 	/* Und die Zeit, wie lange Frames gerendert werden. */
 	double time;
-	/* Die Optionen der GUI merken. */
 	TOptions *options;
 public:
-	/* Konstruktor, soso. */
 	CFPS(double x,double y,CGUI* gui);
 	/* execute. */
 	virtual void execute(double elapsed);
-	/* Und rendern. */
 	virtual void render(bool selectionBuffer);
 };
 

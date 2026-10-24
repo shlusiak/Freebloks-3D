@@ -125,9 +125,6 @@ void CLogger::logLine(const char* fmt, ...)
 }
 
 
-/**
- * Schreibt die aktuelle Uhrzeit
- **/
 void CLogger::logTime()
 {
 	char time_string[256];

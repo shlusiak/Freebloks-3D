@@ -10,9 +10,6 @@
 
 #include <stdio.h>
 
-/**
- * Kapselung fuer Zugriff auf genaue Zeitfunktionen
- **/
 class CTimer
 {
 private:
@@ -28,7 +25,6 @@ private:
 public:
 	CTimer();
 
-	/* Setzt den Timer zurueck. */
 	void reset();
 
 	/* Gibt Zeitdifferenz von jetzt bis zum vorherigem reset() zurueck, in Sekunden */
@@ -50,7 +46,6 @@ class CTimeCheck:public CTimer
 private:
 	const char *text;
 public:
-	/* Konstruktor merkt sich nur nen Text */
 	CTimeCheck(const char* vtext):text(vtext) { }
 
 	/* Destruktor gibt Text und die exakte Lebensdauer des Objekts aus. */

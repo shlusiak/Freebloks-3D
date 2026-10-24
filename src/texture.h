@@ -12,16 +12,12 @@
 class CTexture
 {
 private:
-	/* GL Identifier der Textur */
 	GLuint m_texture;
 
-	/* Gibt Textur wieder frei */
 	void unload();
 public:
-	/* Erstellt eine leere Textur */
 	CTexture();
 
-	/* Erstellt eine Textur aus der angegebenen Datei  */
 	CTexture(const char *filename);
 
 	~CTexture();
@@ -29,7 +25,6 @@ public:
 	/* Laedt eine Datei als Textur. true bei Erfolg, sonst false */
 	bool load(const char *filename);
 	
-	/* Die Textur in OpenGL "aktiv" machen */
 	void activate()const;
 
 	/* Textur deaktivieren -> es ist vorerst keine Textur mehr aktiv */
@@ -46,9 +41,6 @@ inline void CTexture::activate()const
 	glBindTexture(GL_TEXTURE_2D,m_texture);
 }
 
-/**
- * Effektiv keine Textur aktivieren
- **/
 inline void CTexture::deactivate()const
 {
 	glDisable(GL_TEXTURE_2D);

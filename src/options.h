@@ -20,16 +20,13 @@ typedef enum {
 } OPTION;
 
 
-/* Und eine Struktur fuer Zugriff auf die obig bezeichneten Optionen */
 struct TOptions
 {
 private:
-	/* Jede Option hat einen int-Wert. */
 	int opt[OPTION_MAX];
 public:
 	/* Optionen auf Voreinstellung setzen. Alles auf 1 (an) */
 	TOptions() { for (int i=0;i<OPTION_MAX;i++) opt[i]=1; opt[OPTION_FPS]=35; }
-	/* Wert einer Option zurueck geben */
 	const int get(const OPTION what)const { return opt[what]; }
 	/* Wert einer Option setzen. */
 	void set(const OPTION what,const int value) { opt[what]=value; }
@@ -48,10 +45,8 @@ private:
 	CCheckBox *shadow,*animatestones,*animatearrows,*env,*autochat,*showfps,*hints,*limitfps;
 	CSpinBox *fps;
 public:
-	/* Konstruktor, braucht nur GUI */
 	COptionsDialog(CGUI* vgui);
 
-	/* Ereignis verarbeiten, also Klick auf eine Checkbox. */
 	virtual int processMouseEvent(TMouseEvent *event);
 };
 

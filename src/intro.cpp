@@ -19,25 +19,17 @@
 /* Waehrend der Animation soll das Feld 20x20 Felder betragen. */
 const int FIELD_SIZE_X=20,FIELD_SIZE_Y=20;
 
-/**
- * Alles vorbereiten
- **/
 CIntro::CIntro(CGUI *vgui)
 {
 	gui=vgui;
 	anim=0.0;
-	/* Leere verkettete Liste der Effekte erzeugen */
 	effects=new CStoneEffect();
 	phase=0;
 	field_up=false;
 	field_anim=0.0;
-	/* Alle Steine initialisieren. */
 	init();
 }
 
-/**
- * Destruktor: Verkettete Liste wieder frei geben
- **/
 CIntro::~CIntro()
 {
 	if (effects)delete effects;
@@ -223,7 +215,6 @@ void CIntro::add(int stone,int color,int dx,int dy)
 	double axe_y=sin(angy);
 	double axe_z=cos(angx)*cos(angy);
 
-	/* CPhysicalStone erstellen, aus stones[stone] */	
 	CStone *st=&stones[stone];
 	CPhysicalStone *s=new CPhysicalStone(gui,st,color);
 	/* Lokale dx/dy des Feldes in globale Welt-Koordinaten umrechnen. */
@@ -241,11 +232,9 @@ void CIntro::add(int stone,int color,int dx,int dy)
 	s->setPos(x+xoffs,y,z+zoffs);
 	/* x/z Geschwindigkeit setzen, y Geschw. ist 0 */
 	s->setSpeed(-xoffs/time,0,-zoffs/time);
-	/* Gewuenschtes Ziel in Stein speichern */
 	s->setDestination(x,bevel_height,z);
 	/* Stein dreht sich exakt um 360 Grad in <time> sek. */
 	s->setRotationSpeed(360.0/time,axe_x,axe_y,axe_z);
-	/* Effekt der verketteten Liste hinzufuegen. */
 	effects->add(s);
 }
 
@@ -259,7 +248,6 @@ const double wipe_ang=32.0;
  **/
 void CIntro::wipe()
 {
-	/* Zu Beginn das Feld hoch klappen */
 	field_up=true;
 	field_anim=0.0;
 	/* Komplette verkettete Liste durchgehen und fuer jeden enthaltenen CPhysicalStone...*/
@@ -282,7 +270,6 @@ void CIntro::wipe()
 		s->setSpeed((double)(rand()%100)/20.0,cos(ang)*v,-sin(ang)*v);
 		/* Stein soll kein Ziel mehr haben, d.h. er faellt unendlich tief */
 		s->unsetDestination();
-		/* Und naechsten Stein aus verketteter Liste schnappen */
 		s=(CPhysicalStone*)s->next;
 	}
 }
@@ -306,9 +293,7 @@ bool CIntro::execute(double elapsed)
 	{
 		if (field_up)
 		{
-			/* Feld rauf-animieren. */
 			field_anim+=elapsed*wipe_speed;
-			/* Wenn oben, Animation umkehren */
 			if (field_anim>1.0)
 			{
 				field_anim=1.0;
@@ -364,7 +349,6 @@ bool CIntro::execute(double elapsed)
 			if (phase==2)
 			{
 				anim=9.1;
-				/* Alle Steine entfernen */
 				effects->clear();
 				addChar('b',-1,6,9);
 				addChar('y',-1,10,9);
@@ -445,7 +429,6 @@ void CIntro::render()
 	/* Licht setzen der neuen Kameraposition anpassen*/
 	glLightfv(GL_LIGHT0,GL_POSITION,light0_pos);
 
-	/* Umgebung und Feld rendern. */
 	gui->renderGround();
 	glPushMatrix();
 	if (field_anim>0.0001)
@@ -456,7 +439,6 @@ void CIntro::render()
 	}
 	gui->renderField(false,FIELD_SIZE_X,FIELD_SIZE_Y);
 	glPopMatrix();
-	/* Alle Steine rendern. */
 	effects->render();
 }
 
@@ -465,6 +447,5 @@ void CIntro::render()
  **/
 void CIntro::renderShadow()
 {
-	/* Schatten der Steine rendern. */
 	effects->renderShadow();
 }

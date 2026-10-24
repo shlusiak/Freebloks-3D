@@ -73,9 +73,6 @@ CGameServer::~CGameServer()
 	}
 }
 
-/**
- * Gibt Anzahl der Verbundenen Clients zurueck
- **/
 int CGameServer::num_clients()const
 {
 	int n;
@@ -104,11 +101,9 @@ void CGameServer::add_client(int s)
 
 		/* Freien Platz gefunden, Client speichern */
 		clients[i]=s;
-		/* Und aktuellen Serverstatus verbreiten */
 		send_server_status();
 		return;
 	}
-	/* Sonst Verbindung schliessen */
 	closesocket(s);
 }
 
@@ -126,7 +121,6 @@ void CGameServer::delete_client(int index,bool notify)
 		free(names[index]);
 		names[index] = nullptr;
 	}
-	/* Socket zu dem Client schliessen */
 	if (closesocket(clients[index])==-1)perror("close: ");
 	clients[index]=0;
 	/* Aktuellen Serverstatus an restliche Clients verbreiten */
@@ -155,7 +149,6 @@ void CGameServer::run()
        irgendeines Clients */
     fd_set filedescriptors;
 
-    /* Fuer timeout bei select() */
     timeval tv;
     int retval;
     int max;
@@ -180,7 +173,6 @@ void CGameServer::run()
 
 		if (turn != nullptr)
 		{
-			/* Datenstruktur fuellen, die an die Clients geschickt werden soll. */
 			NET_SET_STONE data;
 
 			data.player=current_player();
@@ -199,13 +191,10 @@ void CGameServer::run()
 			}
 			/* sonst Spielzug an alle Clients uebermitteln */
 			send_all((NET_HEADER*)&data,sizeof(data),MSG_SET_STONE);
-			/* Sowie den Zug der History anhaengen */
 			addHistory(turn);
 		}
-		/* Naechsten Spieler ermitteln */
 		next_player();
 
-		/* Ausgewaehlten aktuellen Spieler an alle Clients schicken */
 		send_current_player();
 	} else
 		heartbeat++;
@@ -232,11 +221,9 @@ void CGameServer::run()
 		tv.tv_usec = 500*1000;
 	}
 
-	/* In Schleife alle anliegenden Nachrichten verarbeiten */
 	do
-	{	/* Leere Array der filedescriptors */
+	{
 		FD_ZERO(&filedescriptors);
-		/* Und fuelle es mit den sockets der Clients */
 		for (int i=max=0;i<CLIENTS_MAX;i++)if (clients[i]!=0)
 		{
 			FD_SET((unsigned int)clients[i],&filedescriptors);
@@ -276,20 +263,15 @@ void CGameServer::handle_client(int index)
 	/* -1 hiesse, es liegen keine Daten vor, was hier nicht auftreten darf
 	   (da lt. select() Daten anliegen) */
 	else {
-		/* Bei Fehler beende Verbindung zum Client */
 		delete_client(index,true);
 		return;
 	}
 }
 
-/**
- * Verarbeitet eine von einem Client empfangene Netzwerknachricht
- **/
 void CGameServer::process_message(int client,NET_HEADER* data)
 {
 	switch(data->msg_type)
 	{
-		/* Der Client fordert einen lokalen Spieler an */
 		case MSG_REQUEST_PLAYER: {
 			if (ntohs(data->data_length) < sizeof(NET_REQUEST_PLAYER))
 				return;
@@ -410,7 +392,6 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			break;
 		}
 
-		/* Ein Client moechte einen Stein setzen */
 		case MSG_SET_STONE:{
 			if (ntohs(data->data_length) < sizeof(NET_SET_STONE))
 				return;
@@ -452,16 +433,13 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			}
 			stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
 
-			/* Den Stein lokal setzen */
  			if ((is_valid_turn(stone, s->player, s->y, s->x)) &&
                 (set_stone(stone, s->player, s->y, s->x)))
 			{
 				/* Bei Erfolg wird die Nachricht direkt an alle Clients zurueck-
 				   geschickt */
 				send_all(data,ntohs(data->data_length),MSG_SET_STONE);
-				/* Zug an History anhaengen */
 				addHistory(s->player, stone, s->y, s->x);
-				/* Dann wird der naechste Spieler ermittelt*/
 				next_player();
 			}else{ // Spiel scheint nicht synchron zu sein
 				if (logger) {
@@ -470,12 +448,10 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				}
 			}
 
-			/* Aktuellen Spieler den Clients mitteilen */
 			send_current_player();
 			break;
 		}
 
-		/* Ein Client erbittet Spielstart. So sei es! */
 		case MSG_START_GAME:
 // 			printf("Request game start\n");
 			start_game();
@@ -501,7 +477,6 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			}
 			break;
 
-		/* Ein Client will eine Zugzuruecknahme */
 		case MSG_REQUEST_UNDO: {
 			/* Zugzuruecknahme ist nur bei einem Client oder einem Menschlichem
 			   Spieler zulaessig. */
@@ -519,20 +494,17 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			do
 			{
 				const CTurn *turn = history.get_last_turn();
-				if (turn==nullptr) break; // Kein Zug mehr in der History
+				if (turn==nullptr) break;
 				i++;
-				// "Zug zuruecknehmen" an Clients senden
 				send_all((NET_HEADER*)(&undo),sizeof(undo),MSG_UNDO_STONE);
 				// Spieler von zurueckgenommenen Stein ist wieder dran
 				m_current_player=turn->player;
-				// Und lokal den Zug zuruecknehmen
 				undo_turn(history, m_game_mode);
 				// Solange Zuege des Computers zurueckgenommen werden
 
 				timer.sleep(100);
 			}while (player[m_current_player] == PLAYER_COMPUTER);
 
-			// Aktuellen Spieler uebermitteln
 			send_current_player();
 
 // 			printf("Removed %d turns.\n",i);
@@ -640,9 +612,6 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 	}
 }
 
-/**
- * Schicke eine Nachricht an alle verbundenen Clients
- **/
 void CGameServer::send_all(NET_HEADER* data,uint16 data_length,uint8 msg_type)
 {
 	for (int i=0;i<CLIENTS_MAX;i++)if (clients[i]!=0)
@@ -653,9 +622,6 @@ void CGameServer::send_all(NET_HEADER* data,uint16 data_length,uint8 msg_type)
 	}
 }
 
-/**
- * Schicke aktuelle Spielernummer an alle Clients
- **/
 void CGameServer::send_current_player()
 {
 	NET_CURRENT_PLAYER data;
@@ -710,24 +676,17 @@ void CGameServer::send_server_status()
  **/
 void CGameServer::send_server_msg(const char *text)
 {
-	/* Speicher fuer NET_CHAT reservieren, wo text reinpasst. */
 	NET_CHAT *chat=(NET_CHAT*)malloc(sizeof(NET_CHAT)+strlen(text)+1);
 	/* Absender ist -1, der Server */
 	chat->client=-1;
-	/* Text in Nachricht kopieren */
 	strcpy((char*)(&chat->text[0]),text);
 	chat->length=strlen(text);
-	/* Chat-Nachricht an alle Clients. */
 	send_all((NET_HEADER*)chat,sizeof(NET_CHAT)+strlen(text)+1,MSG_CHAT);
 	free(chat);
 }
 
-/**
- * Starte das eigentliche Spiel
- **/
 void CGameServer::start_game()
 {
-	/* Wenn es bereits laeuft, mache nichts */
 	if (m_current_player!=-1)return;
 // 	printf("Starting game\n");
 
@@ -754,13 +713,9 @@ void CGameServer::start_game()
 	send_all((NET_HEADER*)&data,sizeof(data),MSG_START_GAME);
 	send_current_player();
 
-	/* Spiel wurde gestartet, timer auf 0 setzen */
 	timer.reset();
 }
 
-/**
- * Ermittle naechsten Spieler
- **/
 void CGameServer::next_player()
 {
 	int i;
@@ -824,7 +779,6 @@ DWORD WINAPI LocalServerThread(void* param)
 void* LocalServerThread(void* param)
 #endif
 {
-	/* Wir brauchen erst einen Listener */
 	CServerListener* listener=(CServerListener*)param;
 	/* Der Thread soll sterben, wenn sich ein Spieler verbunden und wieder getrennt hat,
 	   ohne dass das Spiel gestartet wurde */
@@ -847,7 +801,6 @@ void* LocalServerThread(void* param)
 	listener->close();
 	// Nur wenn ueberhaupt ein Client verbunden ist, soll das Spiel laufen
 	if (listener->get_game()->num_clients()>=1)listener->get_game()->run();
-	// Aufraeumen und raus
 	delete listener;
 // 	printf("Local server terminating.\n");
 	return 0;
@@ -860,23 +813,19 @@ void* LocalServerThread(void* param)
  **/
 int CGameServer::run_server(const char* interface_,int port,int maxhumans,int ai_mode,int width,int height,GAMEMODE gamemode,int8 stone_numbers[],int ai_threads)
 {
-	// Listener erstellen und einrichten
 	CServerListener *listener=new CServerListener();
 	int r=listener->init(interface_,port);
-	// Bei Fehler hier schon raus
 	if (r!=0)
 	{
 	    delete listener;
 	    return errno;
 	}
 
-	// Listener fuer neues Spiel vorbereiten
 	listener->new_game(maxhumans, ai_mode, gamemode, ai_threads, true);
 	listener->get_game()->set_field_size(width, height);
 	listener->get_game()->start_new_game(gamemode);
 	listener->get_game()->set_stone_numbers(stone_numbers);
 
-	// Einen Thread starten, der sich um das Spiel kuemmert
 #ifdef WIN32
 	DWORD id;
 	CloseHandle(CreateThread(nullptr,0,LocalServerThread,(void*)listener,0,&id));
@@ -931,7 +880,6 @@ CServerListener::CServerListener()
 
 CServerListener::~CServerListener()
 {
-	/* Socket schliessen, und CGameServer loeschen */
 	close();
 	delete server;
 }
@@ -1059,7 +1007,6 @@ int CServerListener::init(const char* interface_,int port)
 #endif
 			if (bind(listen_socket,res->ai_addr,res->ai_addrlen)==0)
 			{
-				/* Mit listen einkommende Verbindungen akzeptieren */
 				if (listen(listen_socket,5)==0)
 				{
 					listen_sockets[num_listen_sockets++] = listen_socket;
@@ -1091,7 +1038,6 @@ int CServerListener::init(const char* interface_,int port)
 	if (interface_)addr.sin_addr.s_addr=inet_addr(interface_);
 		else addr.sin_addr.s_addr=0;
 
-	/* Socket erstellen, bei Fehler raus. */
 	num_listen_sockets = 0;
 	listen_sockets[0]=socket(AF_INET,SOCK_STREAM,0);
 	if (listen_sockets[0]==-1)return errno;
@@ -1156,7 +1102,6 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 		for (i=0;i<CLIENTS_MAX;i++)
 			if (get_game()->clients[i]!=0 && FD_ISSET(get_game()->clients[i],&filedescriptors))
 		{
-			/* Wenn ja, lass den CGameServer die Daten verarbeiten. */
 			get_game()->handle_client(i);
 		}
 
@@ -1246,7 +1191,6 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 			}
 #endif
 
-			/* Fuege den neuen Socket dem CGameServer als Client hinzu */
 			get_game()->add_client(cl);
 		}
 	}

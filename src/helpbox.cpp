@@ -10,9 +10,6 @@
 #include "widgets.h"
 #include "helpbox.h"
 
-/**
- * HelpBox Constructor. Dialog mit Steuerelementen fuettern.
- **/
 CHelpBox::CHelpBox()
 :CDialog(450,350,"Help")
 {
@@ -26,7 +23,6 @@ CHelpBox::CHelpBox()
 
 	/* Ok Knopf hinzufuegen */
 	addChild(new CButton((w-80)/2.0,h-30,70,25,1,this,"Okay"));
-	/* Das Text-Widget hinzufuegen, das die Beschreibung erhalten soll */
 	addChild(text=new CStaticText(20,65,"",this));
 
 	/* Topic #1 setzen (Rules). */
@@ -77,7 +73,6 @@ void CHelpBox::setTopic(int topic)
 		" - Enter:  Open multiplayer chatbox\n"
 		" - F1:     Show this help\n";
 
-	/* Den Text setzen */	
 	if (topic==1)text->setText(topic1,true);
 	if (topic==2)text->setText(topic2,true);
 	if (topic==3)text->setText(topic3,true);
@@ -88,9 +83,6 @@ void CHelpBox::setTopic(int topic)
 	t3->setEnabled(topic!=3);
 }
 
-/** 
- * Mausereignis verarbeiten; auf Themawechsel reagieren
- **/
 int CHelpBox::processMouseEvent(TMouseEvent *e)
 {
 	int r=CDialog::processMouseEvent(e);

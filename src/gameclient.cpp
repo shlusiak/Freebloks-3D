@@ -32,9 +32,6 @@
 
 
 
-/**
- * Leeren SpielClient initialisieren
- **/
 CGameClient::CGameClient()
 {
 	start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
@@ -74,11 +71,9 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 			return "Socket path too long";
 		strcpy(addr.sun_path, host);
 	
-		/* Ein Socket erstellen */
 		client_socket=socket(PF_UNIX,SOCK_STREAM,0);
 
 		if (client_socket==-1)return strerror(errno);
-		/* Jetzt versuchen, eine Verbindung zum Server aufzubauen */
 		if (connect(client_socket,(sockaddr*)&addr,sizeof(addr))==-1)
 		{
 			/* Verbindungsaufbau Fehlgeschlagen */
@@ -120,7 +115,6 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 
 			addr->sin_port=htons(port);
 			addr_len=p->ai_addrlen;
-			/* Ein Socket erstellen */
 			client_socket=socket(p->ai_family,SOCK_STREAM,0);
 			if (connect(client_socket,(sockaddr*)addr,addr_len) == 0)
 			{
@@ -164,11 +158,9 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 	
 	/* Host Adresse speichern */
 	memcpy(&_addr.sin_addr,he->h_addr,he->h_length);
-	/* Ein Socket erstellen */
 	client_socket=socket(AF_INET,SOCK_STREAM,0);
 
 	if (client_socket==-1)return strerror(errno);
-	/* Jetzt versuchen, eine Verbindung zum Server aufzubauen */
 	if (connect(client_socket,(sockaddr*)addr,addr_len)==-1)
 	{
 		/* Verbindungsaufbau Fehlgeschlagen */
@@ -214,9 +206,6 @@ void CGameClient::Connect(int client_socket, int blocking)
 	}
 }
 
-/** 
- *Verbindung zum Server trennen
- */
 void CGameClient::Disconnect()
 {
 	if (client_socket)closesocket(client_socket);
@@ -231,7 +220,6 @@ void CGameClient::Disconnect()
 const char* CGameClient::poll()
 {
 	const char *err;
-	/* Puffer fuer eine Netzwerknachricht. */
 	static char buffer[512];
 	do
 	{
@@ -247,7 +235,6 @@ const char* CGameClient::poll()
 			Disconnect();
 			return err;
 		}
-		/* Solange wiederholen, wie erfolgreich Nachrichten gelesen wurden */
 	}while (err==nullptr);
 	return nullptr;
 }
@@ -268,9 +255,6 @@ void CGameClient::request_player(int wish_player, const char* name)const
 	send_message((NET_HEADER*)&data,sizeof(data),MSG_REQUEST_PLAYER);
 }
 
-/**
- * Verarbeitet eine einzelne Netzwerknachricht
- **/
 void CGameClient::process_message(NET_HEADER* data)
 {
 	int i;
@@ -281,7 +265,6 @@ void CGameClient::process_message(NET_HEADER* data)
 			if (ntohs(data->data_length) < sizeof(NET_GRANT_PLAYER))break;
 			i=((NET_GRANT_PLAYER*)data)->player;
 			if (i < 0 || i >= PLAYER_MAX)break;
-			/* Merken, dass es sich bei i um einen lokalen Spieler handelt */
 			player[i]=PLAYER_LOCAL;
 			break;
 
@@ -299,9 +282,7 @@ void CGameClient::process_message(NET_HEADER* data)
 			if (ntohs(data->data_length) < sizeof(NET_SET_STONE))break;
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
 			if (!network_check_set_stone(s))break;
-			/* Entsprechenden Stein des Spielers holen */
 			CStone &stone=get_player(s->player)->get_stone(s->stone);
-			/* Stein in richtige Position drehen */
 			stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
 			/* Stein aufs echte Spielfeld setzen */
 			if ((!is_valid_turn(stone, s->player, s->y, s->x)) ||
@@ -311,7 +292,6 @@ void CGameClient::process_message(NET_HEADER* data)
 				printf("Game not in sync!\n");
 				exit(1);
 			}
-			/* Zug der History anhaengen */
 			addHistory(s->player, stone, s->y, s->x);
 			stoneWasSet(s);
 			break;
@@ -404,7 +384,6 @@ void CGameClient::process_message(NET_HEADER* data)
 		}
 		break;
 
-		/* Server hat eine Chat-Nachricht geschickt. */
 		case MSG_CHAT: {
 			if (ntohs(data->data_length) < sizeof(NET_CHAT))break;
 			NET_CHAT* chat=(NET_CHAT*)data;
@@ -461,7 +440,6 @@ TSingleField CGameClient::request_set_stone(const CStone& stone, int y, int x)
 	NET_SET_STONE data;
 	if (m_current_player==-1)return FIELD_DENIED;
 
-	/* Datenstruktur mit Daten der Aktion fuellen */
 	data.player=m_current_player;
 	data.stone=stone.get_stone_shape();
 	data.mirror_count=stone.get_mirror_counter();
@@ -469,7 +447,6 @@ TSingleField CGameClient::request_set_stone(const CStone& stone, int y, int x)
 	data.x=x;
 	data.y=y;
 
-	/* Nachricht ueber den Stein an den Server schicken */
 	send_message((NET_HEADER*)&data,sizeof(data),MSG_SET_STONE);
 
 	/* Lokal keinen Spieler als aktiv setzen.
@@ -478,18 +455,12 @@ TSingleField CGameClient::request_set_stone(const CStone& stone, int y, int x)
 	return FIELD_ALLOWED;
 }
 
-/**
- * Erbittet den Spielstart beim Server
- **/
 void CGameClient::request_start()const
 {
 	NET_START_GAME data;
 	send_message((NET_HEADER*)&data,sizeof(data),MSG_START_GAME);
 }
 
-/**
- * Erbittet eine Zugzuruecknahme beim Server
- **/
 void CGameClient::request_undo()const
 {
 	NET_REQUEST_UNDO data;
@@ -502,19 +473,14 @@ void CGameClient::request_undo()const
  **/
 void CGameClient::chat(const char *text)
 {
-	/* Bei Textlaenge von 0 wird nix verschickt */
 	if (strlen(text)<1)return;
 	/* Berechne Platz der NET_CHAT Nachricht, dass der Text exakt ans Ende passt */
 	int len=sizeof(NET_CHAT)+sizeof(char)*strlen(text)+1;
 	/* Reserviere ordentlich Speicher */
 	NET_CHAT *chat=(NET_CHAT*)malloc(len);
-	/* Merke Laenge des Textes in der Nachricht */
 	chat->length=strlen(text);
-	/* text in die Nachricht kopieren. */
 	strcpy((char*)&chat->text[0],text);
-	/* Nachricht an den Server schicken */
 	send_message((NET_HEADER*)chat,len,MSG_CHAT);
-	/* Reservierten Speicher der Nachricht wieder freigeben */
 	free(chat);
 }
 

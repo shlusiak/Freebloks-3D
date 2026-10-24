@@ -23,7 +23,6 @@ class CStoneEffect
 protected:
 	/* Koordinate auf dem Spielfeld, wo der Stein hingelegt wurde */
 	int x,y;
-	/* GUI zum Rendern der Steine */
 	CGUI *gui;
 	/* Der eigentliche Stein, auf den sich die Animation bezieht. */
 	CStone stone;
@@ -43,13 +42,11 @@ public:
 
 	/* Alle Effekte unterhalb this in der Liste entfernen. */
 	void clear();
-	/* Rekursiv einen Effekt anhaengen. */
 	void add(CStoneEffect* eff) { if (next)next->add(eff); else next=eff; }
 	/* Effekt animieren. true zurueckgeben, wenn Effekt entfernt werden will */
 	virtual bool execute(double elapsed);
 	/* Effekt rendern. */
 	virtual void render() { if (next) next->render(); }
-	/* Schatten des Effekts rendern, wenn vorhanden. */
 	virtual void renderShadow() { if (next) next->renderShadow(); }
 	/* true, wenn x/y auf dem Spielfeld zu diesem Effekt gehoeren. Dann wird das Element
 	   auf dem Feld nicht angezeigt, da dies der Effekt hier tut. */
@@ -109,9 +106,7 @@ public:
 
 	/* Animieren. */
 	virtual bool execute(double elapsed);
-	/* Stein rendern. */
 	virtual void render();
-	/* Schatten des Steins rendern. */
 	virtual void renderShadow();
 
 	/* Ob der Effekt einen bestimmten Spielerstein behandelt. Kann vorkommen, bei reverse=true */

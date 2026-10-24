@@ -11,7 +11,6 @@
 
 #include "constants.h"
 
-/* Der Port, der per Default benutzen soll */
 const int TCP_PORT=59995;
 
 /* Pseudotypen fuer vorzeichenbehaftete/vorzeichenlose 8bit/16bit Zahlen */
@@ -55,7 +54,7 @@ typedef struct
 typedef struct
 {
 	NET_HEADER header;	/* Erstes Element ist stets NET_HEADER, damit gecastet werden kann */
-	int8 player;		/* Spielernummer */
+	int8 player;
 } NET_GRANT_PLAYER,NET_CURRENT_PLAYER,NET_REQUEST_HINT,NET_REVOKE_PLAYER;
 
 /**
@@ -114,7 +113,7 @@ typedef struct
 	NET_HEADER header;
 	int8 version;	/* Version dieser Nachricht, 1 */
 	int8 width, height;
-	int8 gamemode;	/* Spielmodus */
+	int8 gamemode;
 	int8 stone_numbers[STONE_COUNT_ALL_SHAPES]; /* Anzahl bestimmter Steine */
 } NET_REQUEST_GAME_MODE;
 
@@ -154,7 +153,6 @@ inline bool network_check_set_stone(const NET_SET_STONE *s)
 	return true;
 }
 
-/* Bereitet die Netzwerknachricht *header vor und schickt sie an target.*/
 int network_send(int target,NET_HEADER *header,uint16 data_length,uint8 msg_type);
 
 /* Testet eine empfangene Nachricht auf (Un-)Gueltigkeit */

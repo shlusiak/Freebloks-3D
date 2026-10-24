@@ -26,7 +26,6 @@ CChatBox::CChatBox(double x,double y,CGUI* vgui)
 	setColor(0.5,0.8,0.7);
 	setAlpha(0.65);
 	anim=time=0.0;
-	/* erstmal nicht sichtbar. */
 	visible=false;
 	/* und nicht sticky, d.h. verschwindet automatisch. */
 	sticky=false;
@@ -48,7 +47,6 @@ CChatBox::CChatBox(double x,double y,CGUI* vgui)
  **/
 CChatBox::~CChatBox()
 {
-	/* Wenn eine Zeile eine Zeichenkette beinhaltet, freigeben. */
 	for (int i=0;i<CHAT_LINES;i++)if (lines[i])free(lines[i]);
 }
 
@@ -61,15 +59,12 @@ void CChatBox::execute(double elapsed)
 	/* Wenn das Text-Edit mit Enter verlassen wurde, die Nachricht senden. */
 	if (text->committed())
 	{
-		/* Nachricht senden */
 		gui->game->chat(text->getText());
 		/* Text-Edit leeren, aber NICHT Fokus geben. */
 		text->setText("");
 	}
 
-	/* Wenn sichtbar, rein-animieren, sonst raus. */
 	if (visible)anim+=elapsed*2.0;else anim-=elapsed*3.0;
-	/* Animation auf gueltigen Bereich begrenzen */
 	if (anim>1.0)anim=1.0;
 	if (anim<0.0)anim=0.0;
 	/* Zeit zaehlen, wie lange das Edit-Feld NICHT den Fokus hat. */
@@ -85,12 +80,8 @@ void CChatBox::execute(double elapsed)
 	}
 }
 
-/**
- * Die Chat-Box rendern.
- **/
 void CChatBox::render(bool selection)
 {
-	/* Status merken und Chat-Box in Position bringen. */
 	glPushMatrix();
 	glLoadIdentity();
 	glTranslated(0,y,0);
@@ -99,10 +90,8 @@ void CChatBox::render(bool selection)
 	else glRotated(-180,0,1,0);
 
 	glTranslated(0,-y,0);
-	/* Frame rendern, mit Widgets. */
 	CFrame::render(selection);
 
-	/* Die Texte rendern, wenn sichtbar */
 	if (anim>0.0001)
 	{
 		/* Schriftart 6x11, weiss */
@@ -126,14 +115,10 @@ void CChatBox::render(bool selection)
 	glPopMatrix();
 }
 
-/**
- * Animation zum Anzeigen starten
- **/
 void CChatBox::show()
 {
 	/* Sichtbar */
 	visible=true;
-	/* Ist noch 0 sek offen. */
 	time=0.0;
 	/* Eingabefeld direkt Fokus geben */
 	text->setFocus();
@@ -146,15 +131,12 @@ bool CChatBox::processKey(unsigned short key)
 {
 	/* Wenn CFrame die Taste bearbeitet, hat sie wohl das Edit-Feld abgefangen */
 	if (CFrame::processKey(key))return true;
-	/* Wenn sichtbar, und Escape */
 	if (visible && key==VK_ESCAPE)
 	{
 		/* Dann setz visible auf false, was eine Animation zur Folge haben wird */
 		visible=false;
-		/* Taste wurde bearbeitet */
 		return true;
 	}
-	/* Taste wurde nicht bearbeitet */
 	return false;
 }
 
@@ -186,14 +168,10 @@ void CChatBox::addLine(const char *t,int len)
 {
 	/* Die oberste Zeile rutscht raus, also Speicher freigeben, wenn noetig. */
 	if (lines[0])free(lines[0]);
-	/* Alle Zeilen um eins nach oben schieben. */
 	for (int i=0;i<CHAT_LINES-1;i++)lines[i]=lines[i+1];
-	/* Speicher fuer unterste Zeile reservieren. */
 	char *l=(char*)malloc(strlen(t)+2);
-	/* wenn len==-1, kopiere kompletten String */
 	if (len==-1)strcpy(l,t);else 
 	{
-		/* Sonst nehme nur die ersten len Zeichen */
 		strncpy(l,t,len);
 		/* Zeichenkette terminieren. */
 		l[len]='\0';
@@ -212,7 +190,6 @@ void CChatBox::addChatMessage(int client,const char *text)
 	/* Maximale Anzahl Zeichen pro Zeile */
 	const int maxlen=(int)(w-10-3)/6;
 	
-	/* Unterste Zeile animieren, wenn vorhanden. */
 	if (lines[CHAT_LINES-1])lineanim=0.0; else lineanim=1.0;
 
 	/* Wir basteln uns eine neue Zeichenkette mit "Client %d: " davor. */

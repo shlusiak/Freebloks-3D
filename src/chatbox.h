@@ -25,7 +25,6 @@ class CChatBox:public CFrame
 private:
 	/* Status der Animation, von 0.0 bis 1.0 */
 	double anim;
-	/* Soll ChatBox sichtbar sein */
 	bool visible;
 	/* Zeit, wie lange die ChatBox gerade sichtbar ist */
 	double time;
@@ -34,15 +33,12 @@ private:
 
 	/* Zeichenketten des Chat-Verlaufs */
 	char* lines[CHAT_LINES];
-	/* Das TextEdit Widget */
 	CTextEdit *text;
-	/* GUI brauche ich auch noch */
 	CGUI* gui;
 	/* Wenn (!sticky) verschwindet die Chat-Box nach ein paar Sekunden, wenn keine 
 	   Eingabe geschieht. Ansonsten bleibt sie sichtbar, bis sie geschlossen wird. **/
 	bool sticky;
 public:
-	/* Konstruktor */
 	CChatBox(double x,double y,CGUI* vgui);
 	/* Muell wieder aufraeumen */
 	virtual ~CChatBox();
@@ -62,7 +58,6 @@ public:
 	void addLine(const char *t,int len=-1);
 	/* Eine ganze Nachricht von client anfuegen (-1 ist Server) */
 	void addChatMessage(int client,const char* text);
-	/* Chat-Box sticky setzen, oder auch nicht. */
 	void setSticky(bool vsticky) { sticky=vsticky; }
 };
 

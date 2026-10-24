@@ -28,10 +28,8 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpcmdline,
 	::hInstance=hInstance;
 	/* Zufallsgenerator starten */
 	srand((unsigned int)time(0));
-	/* GUI erstellen und starten */
 	CGUI *gui=new CGUI();
 	gui->run();
-	/* GUI wurde geschlossen, aufraeumen und Programm beenden. */
 	delete gui;
 	return 0;
 }
@@ -49,13 +47,11 @@ int main(int argc, char *argv[])
 #endif
     /* Zufallsgenerator starten */
     srand(time(0));
-    /* GUI erstellen und starten */
     CGUI *gui=new CGUI();
     if (gui->parseCmdLine(argc,argv))
     {
     	gui->run();
     }
-    /* GUI wurde geschlossen, aufraeumen und Programm beenden */
     delete gui;
     return EXIT_SUCCESS;
 }

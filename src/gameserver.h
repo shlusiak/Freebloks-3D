@@ -55,7 +55,6 @@ private:
     /* Anzahl der Spielsteine bestimmter Groesse */
     int8 stone_numbers[STONE_COUNT_ALL_SHAPES];
 
-    /* ggf. Logdatei */
     CLogger *logger;
 
 
@@ -63,22 +62,16 @@ private:
        Meldung ausgegeben. */
     void delete_client(int index, bool notify);
 
-    /* Verarbeite eine empfangene Netzwerknachricht eines Clients */
     void process_message(int client, NET_HEADER *data);
 
-    /* Sende eine Netzwerknachricht an alle bekannten Clients */
     void send_all(NET_HEADER *data, uint16 data_length, uint8 msg_type);
 
-    /* Verteile die aktuelle Spielernummer an alle Clients */
     void send_current_player();
 
-    /* Schicke Server-Status an alle Clients */
     void send_server_status();
 
-    /* Schicke eine Server-Chat-Nachricht an alle Clients */
     void send_server_msg(const char *text);
 
-    /* Ermittle naechsten Spieler */
     void next_player();
 
 public:
@@ -92,7 +85,6 @@ public:
     /* Gibt Anzahl der verbundenen Clients (nicht Spieler) zurueck */
     int num_clients() const;
 
-    /* Fuege einen neuen Client der Liste bekannter Clients hinzu */
     void add_client(int s);
 
     /* Hauptschleife, verwaltet ein Spiel bis zum bitteren Ende */
@@ -101,7 +93,6 @@ public:
     /* Setzt das Spiel auf gestartet, sofern es noch nicht laeuft. */
     void start_game();
 
-    /* Setzt die Anzahl der Spielsteine bestimmter Groessen */
     virtual void set_stone_numbers(int8 stone_numbers[]);
 
     /* Logdatei setzen */
@@ -126,11 +117,9 @@ public:
  **/
 class CServerListener {
 private:
-    /* Socket, das Verbindungen akzeptieren wird */
     int listen_sockets[LISTEN_SOCKETS_MAX];
     int num_listen_sockets;
 
-    /* Der CGameServer, den der Listener aufbaut */
     CGameServer *server = nullptr;
     /* logger */
     CLogger *logger = nullptr;
@@ -152,7 +141,6 @@ public:
     /* Richtet einen neuen CGameServer ein, mit max. max_humans menschlichen Spielern */
     void new_game(int max_humans, int ai_mode, GAMEMODE gamemode, int ai_threads, bool forceDelay);
 
-    /* Gibt aktuell erbautes Spiel zurueck */
     CGameServer *get_game() { return server; }
 
     /* Logdatei setzen */

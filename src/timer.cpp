@@ -29,7 +29,6 @@ CTimer::CTimer()
 	   Hier Frequenz davon anfordern und fuer spaeter merken. */
 	QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
 #endif
-	/* Dann Zeitzaehler zuruecksetzen */
 	reset();
 }
 
@@ -41,7 +40,6 @@ const double CTimer::getTick()const
 {
 #ifdef WIN32
 	__int64 tick;
-	/* Zaehler des PerformanceCounters holen */
 	QueryPerformanceCounter((LARGE_INTEGER*)&tick);
 	/* PerformanceCounter/PerformanceCounterFrequency=Zeitstempel in sek */
 	return (double)tick/(double)frequency;
@@ -55,9 +53,6 @@ const double CTimer::getTick()const
 #endif
 }
 
-/**
- * Den aktuellen Zeitstempel merken
- */
 void CTimer::reset()
 {
 	value=getTick();
@@ -77,7 +72,6 @@ const double CTimer::elapsed()const
 void CTimer::sleep(const int ms)
 {
 #ifdef WIN32
-	/* Windowseigene Funktion tut schon genau das */
 	Sleep(ms);
 #else
 	/* Linux Funktion erwartet Mikrosekunden */
