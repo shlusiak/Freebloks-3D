@@ -58,18 +58,23 @@ void CTexture::unload()
 	m_texture=0;
 }
 
-int freadnum(int size,FILE* file)
+/* Reads a little endian number of size bytes. Returns false if the file ends early. */
+static bool freadnum(int size,FILE* file,unsigned int *out)
 {
 	unsigned int x=0;
 	unsigned char b;
 	for (int i=0;i<size;i++)
 	{
-		fread(&b,1,1,file);
-		x|=(b<<(i*8));
+		if (fread(&b,1,1,file)!=1)return false;
+		x|=((unsigned int)b<<(i*8));
 	}
 
-	return x;
+	*out=x;
+	return true;
 }
+
+/* Largest edge length accepted for a texture */
+static const int TEXTURE_SIZE_MAX = 8192;
 
 
 /**
@@ -83,7 +88,6 @@ bool CTexture::load(const char *filename)
 
 	FILE * file=nullptr;
 	char temp;
-	long i;
 
 	MYBITMAPINFOHEADER infoheader;
 
@@ -103,44 +107,62 @@ bool CTexture::load(const char *filename)
 	fseek(file, 18, SEEK_CUR);  /* start reading width & height */
 
 	/* Breite und Hoehe des Bilds ermitteln */
-	infoheader.biWidth=freadnum(sizeof(int), file);
-	infoheader.biHeight=freadnum(sizeof(int), file);
+	unsigned int num;
+	if (!freadnum(sizeof(int), file, &num)) { fclose(file); return false; }
+	infoheader.biWidth=(int)num;
+	if (!freadnum(sizeof(int), file, &num)) { fclose(file); return false; }
+	infoheader.biHeight=(int)num;
 
+	/* The size comes from the file; it is used to allocate and to read the pixel data */
+	if (infoheader.biWidth <= 0 || infoheader.biHeight <= 0 ||
+	    infoheader.biWidth > TEXTURE_SIZE_MAX || infoheader.biHeight > TEXTURE_SIZE_MAX) {
+		printf("Invalid size of %s: %dx%d\n", filename, infoheader.biWidth, infoheader.biHeight);
+		fclose(file);
+		return false;
+	}
 
 	/* Anzahl planes lesen und pruefen */
-	infoheader.biPlanes=freadnum(sizeof(short int), file);
+	if (!freadnum(sizeof(short int), file, &num)) { fclose(file); return false; }
+	infoheader.biPlanes=(unsigned short)num;
 	if (infoheader.biPlanes != 1) {
 		printf("Planes from %s is not 1: %u\n", filename, infoheader.biPlanes);
+		fclose(file);
 		return false;
 	}
 
 	/* Farbtiefe lesen (bits per Pixel). Es werden nur 24bpp Bilder geladen */
-	infoheader.biBitCount=freadnum(sizeof(unsigned short int), file);
+	if (!freadnum(sizeof(unsigned short int), file, &num)) { fclose(file); return false; }
+	infoheader.biBitCount=(unsigned short)num;
 	if (infoheader.biBitCount != 24) {
 		printf("Bpp from %s is not 24: %d\n", filename, infoheader.biBitCount);
+		fclose(file);
 		return false;
 	}
 
 	fseek(file, 24, SEEK_CUR);
 
 	// Platz fuer Daten zu reservieren. Bei 24bpp (=3byte per Pixel) sind das 3*w*h Byte */
-	infoheader.data = (char *) malloc(infoheader.biWidth * infoheader.biHeight * 3);
+	const size_t data_size = (size_t)infoheader.biWidth * (size_t)infoheader.biHeight * 3;
+	infoheader.data = (char *) malloc(data_size);
 	if (infoheader.data == nullptr) {
 		printf("Error allocating memory for color-corrected image data\n");
+		fclose(file);
 		return false;
 	}
 
 	/* Einlesen der Bilddaten in den Puffer */
-	if ((i = fread(infoheader.data, infoheader.biWidth * infoheader.biHeight * 3, 1, file)) != 1) {
+	if (fread(infoheader.data, data_size, 1, file) != 1) {
 		printf("Error reading image data from %s.\n", filename);
-		return 0;
+		free(infoheader.data);
+		fclose(file);
+		return false;
 	}
 
 	/* Farben umkehren ( BGR -> RGB ) */
-	for (i=0; i<(infoheader.biWidth * infoheader.biHeight * 3); i+=3) { 
-		temp = infoheader.data[i];
-		infoheader.data[i] = infoheader.data[i+2];
-		infoheader.data[i+2] = temp;
+	for (size_t k=0; k<data_size; k+=3) {
+		temp = infoheader.data[k];
+		infoheader.data[k] = infoheader.data[k+2];
+		infoheader.data[k+2] = temp;
 	}
 
 	/* Datei schliessen */
