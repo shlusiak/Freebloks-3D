@@ -49,9 +49,13 @@ static CStdoutWriter logWriter;
 static CServerListener* listener = nullptr; /* the primary listener for new games */
 static const char* stats_socket_file = "/tmp/freebloks_stats";
 
+/* Shared with the stats thread, protected by mutex. clients and players describe the game that
+   is currently waiting for players and are only written by the main thread; the stats thread
+   must never touch the CGameServer itself, it is deleted by its game thread. */
 static struct {
 	time_t time_started;
 	int connections_v4, connections_v6;
+	int clients, players;
 } stats;
 
 
@@ -133,20 +137,26 @@ static int dump_stats(const char *file) {
 
 /* dump stats to given file descriptor */
 static void print_stats(int fd) {
-	CGameServer *game = nullptr;
-	if (listener)
-		game = listener->get_game();
+	lock_mutex();
+	const time_t time_started = stats.time_started;
+	const int clients = stats.clients;
+	const int players = stats.players;
+	const int running = games_running;
+	const int ran = games_ran;
+	const int connections_v4 = stats.connections_v4;
+	const int connections_v6 = stats.connections_v6;
+	unlock_mutex();
 
 	dprintf(fd, "##### STATS BEGIN #####\n");
-	dprintf(fd, "server_started %d\n", (int)stats.time_started);
+	dprintf(fd, "server_started %d\n", (int)time_started);
 	dprintf(fd, "server_now %d\n", (int)time(nullptr));
-	dprintf(fd, "server_running %d\n", (int)(time(nullptr) - stats.time_started));
-	dprintf(fd, "clients %d\n", game ? game->num_clients() : 0);
-	dprintf(fd, "players %d\n", game ? game->num_players() : 0);
-	dprintf(fd, "running %d\n", games_running);
-	dprintf(fd, "ran %d\n", games_ran);
-	dprintf(fd, "connections_v4 %d\n", stats.connections_v4);
-	dprintf(fd, "connections_v6 %d\n", stats.connections_v6);
+	dprintf(fd, "server_running %d\n", (int)(time(nullptr) - time_started));
+	dprintf(fd, "clients %d\n", clients);
+	dprintf(fd, "players %d\n", players);
+	dprintf(fd, "running %d\n", running);
+	dprintf(fd, "ran %d\n", ran);
+	dprintf(fd, "connections_v4 %d\n", connections_v4);
+	dprintf(fd, "connections_v6 %d\n", connections_v6);
 	dprintf(fd, "##### STATS END #####\n");
 }
 
@@ -155,9 +165,9 @@ static void print_stats(int fd) {
 static void* stat_thread(void* param) {
 	char *file = (char*)param;
 
+	lock_mutex();
 	stats.time_started = time(nullptr);
-	stats.connections_v4 = 0;
-	stats.connections_v6 = 0;
+	unlock_mutex();
 
 	struct sockaddr_un addr;
 	char buf[100];
@@ -474,11 +484,16 @@ static int establish_game()
 			return -1;
 		}
 
+		lock_mutex();
 		if (client.ss_family == AF_INET6)
 			stats.connections_v6++;
 
 		if (client.ss_family == AF_INET)
 			stats.connections_v4++;
+
+		stats.clients = listener->get_game()->num_clients();
+		stats.players = listener->get_game()->num_players();
+		unlock_mutex();
 
 	} while (listener->get_game()->current_player()==-1);
 
@@ -610,6 +625,9 @@ int main(int argc,char ** argv)
 		lock_mutex();
 		games_ran++;
 		games_running++;
+		/* The game is no longer waiting for players */
+		stats.clients = 0;
+		stats.players = 0;
 
 #ifdef WIN32
 		DWORD threadid;
