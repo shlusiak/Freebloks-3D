@@ -17,6 +17,7 @@
 #include <winsock2.h>
 #else
 #include <unistd.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -73,6 +74,48 @@ bool network_check_message(NET_HEADER *data)
 	return true;
 }
 
+/* How long to wait for the rest of a message after its first bytes arrived */
+#define RECV_TIMEOUT_MS 3000
+
+/**
+ * Reads exactly len bytes from sock into buf. A message may arrive split over several TCP
+ * segments, so keep reading, but wait at most RECV_TIMEOUT_MS for each further chunk: a peer
+ * that announces data and never sends it must not block the (single threaded) server forever.
+ *
+ * Returns len on success, -1 on error, timeout or when the peer closed the connection.
+ **/
+static int recv_exact(int sock, char *buf, int len)
+{
+	int got = 0;
+	while (got < len)
+	{
+#ifdef WIN32
+		int r = recv(sock, buf + got, len - got, 0);
+		if (r <= 0)return -1;
+#else
+		/* Never block in recv(), wait in poll() with a timeout instead */
+		int r = recv(sock, buf + got, len - got, MSG_DONTWAIT);
+		if (r == 0)return -1;
+		if (r < 0)
+		{
+			if (errno == EINTR)continue;
+			if (errno != EAGAIN && errno != EWOULDBLOCK)return -1;
+
+			struct pollfd pfd;
+			pfd.fd = sock;
+			pfd.events = POLLIN;
+			pfd.revents = 0;
+			int pr = poll(&pfd, 1, RECV_TIMEOUT_MS);
+			if (pr < 0 && errno == EINTR)continue;
+			if (pr <= 0)return -1;
+			continue;
+		}
+#endif
+		got += r;
+	}
+	return got;
+}
+
 /**
  * Liest eine komplette Nachricht aus sock aus, und speichert sie in data
  *
@@ -107,10 +150,11 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 // 		printf("Connection lost.\n");
 		return "Connection reset by peer";
 	}
-	/* Wenn weniger Daten als ein NET_HEADER gelesen wurden, liegt ebenfalls ein Fehler vor */
+	/* Wenn weniger Daten als ein NET_HEADER gelesen wurden, kam der Header in mehreren
+	   Segmenten an. Den Rest nachlesen, sonst liegt ein Fehler vor */
 	if ((unsigned int)r!=sizeof(NET_HEADER)){
-// 		printf("Received too small package!\n");
-		return S_INVALID_PACKAGE;
+		if (recv_exact(sock,&((char*)(data))[r],sizeof(NET_HEADER)-r)==-1)
+			return S_INVALID_PACKAGE;
 	}
 	/* Nachricht auf halbwegs plausibel pruefen */
 	if (!network_check_message(data)){
@@ -131,7 +175,7 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 	}
 
 	/* Sonst Restdaten einlesen und an Position hinter NET_HEADER in data schreiben */
-	r=recv(sock,&((char*)(data))[sizeof(NET_HEADER)],remaining,0);
+	r=recv_exact(sock,&((char*)(data))[sizeof(NET_HEADER)],remaining);
 	/* Wenn nicht genau so viele Daten gelesen werden konnten, wie in NET_HEADER suggeriert,
 	   lag ein Paketfehler vor. */
 	if (r!=remaining)
