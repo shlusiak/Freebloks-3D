@@ -14,7 +14,7 @@ configure options: --without-gui, --without-dedicated, --without-client, --witho
 
 Binaries: freebloks (OpenGL/X11 GUI), freebloks_dedicated (headless server), freebloks_client (console client), freebloks_benchmark (AI benchmark; spins up server + clients). There is no test suite or make check; the benchmark is the closest thing.
 
-Docker: Dockerfile builds --without-gui on Alpine and runs freebloks_dedicated. Container config via env LOGFILE, LIMIT.
+Docker: Dockerfile builds only freebloks_dedicated (--without-gui --without-client --without-benchmark) on pinned Alpine and runs it as uid/gid 10001 (user freebloks) with a HEALTHCHECK on --stats. Config via env LIMIT (default 15) and optional PORT, LISTEN, MODE, AI, WIDTH, HEIGHT, MAX_HUMANS, THREADS, LOGFILE (see docker-entrypoint.sh). Logs go to stdout for the Docker log driver; --log is only passed when LOGFILE is set. docker-compose.yml uses host networking (required), read-only rootfs with tmpfs /tmp for the stats socket, dropped capabilities.
 
 Windows (.sln/.vcproj/.dsp, config-win32.h), debian/, build/, *.ebuild and .deb files are legacy and not maintained alongside src/Makefile.am.
 
@@ -39,6 +39,6 @@ Language policy: all documentation, comments, identifiers and file names are Eng
 - Clients: CGameClient (network), CGUIGameClient (GUI hooks), client.cpp (console).
 - GUI (freebloks binary only): freebloks.cpp, window.cpp (X11/GLX), gui.cpp, widgets/dialogs; textures installed to $(datadir)/freebloks, DATA_PREFIX set via freebloks_CXXFLAGS.
 - Dedicated server (dedicated.cpp): establish_game() accepts clients, gameRunThread runs each game on a detached thread, --limit caps concurrent games (listener closes at limit, re-opens when below). A stats thread serves counters on the Unix socket file /tmp/freebloks_stats; --stats connects to it, prints them and exits.
-- Logger (logger.cpp): emits one logfmt line per call (docs/logging.md), serialized by a process-wide mutex. Use logEvent() with a LogLevel and a LogFields (event name plus key=value fields; every line needs an event); never pass untrusted strings as the format (use "%s"). LogFields keys and tok() values must be trusted constants. Server-side code logs through CLogger only, not printf/perror. dedicated takes --log <file> (Docker: LOGFILE env is passed as --log).
+- Logger (logger.cpp): emits one logfmt line per call (docs/logging.md), serialized by a process-wide mutex. Use logEvent() with a LogLevel and a LogFields (event name plus key=value fields; every line needs an event); never pass untrusted strings as the format (use "%s"). LogFields keys and tok() values must be trusted constants. Server-side code logs through CLogger only, not printf/perror. dedicated takes --log <file> (Docker: optional LOGFILE env is passed as --log).
 
 Documentation is in docs/ (English). docs/protocol.md is the wire-format reference; update it whenever network.h or message handling changes.

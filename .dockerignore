@@ -1,2 +1,17 @@
 Dockerfile
 .git/
+.claude
+.DS_Store
+autom4te.cache
+config.h
+config.log
+config.status
+stamp-h1
+Makefile
+Makefile.in
+*~
+*.deb
+*.ebuild
+debian
+build
+docs

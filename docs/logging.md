@@ -110,6 +110,15 @@ Socket and thread errors append the platform's error text to `msg`.
   (`^ts=(?P<ts>\S+) level=(?P<level>\S+)`) plus `timestamp` and `severity` parsers. See the
   [filelog receiver docs](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelogreceiver).
 
+## Containers
+
+The Docker image logs to stdout only; no log file or volume is configured.
+Collect the stream with the Docker log driver and bound its size, as in
+docker-compose.yml (`json-file` with `max-size`/`max-file`), or use a driver
+such as `journald` or `loki`. Set the `LOGFILE` environment variable only if a
+file is wanted in addition. The server never reopens its log file, so external
+rotation requires `copytruncate`.
+
 ## API (src/logger.h)
 
     logger->logEvent(LOGLEVEL_WARN,
