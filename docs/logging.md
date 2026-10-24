@@ -19,7 +19,8 @@ contract: filter and alert on `event`, not on the text of `msg`.
 |---|---|---|
 | ts | always | UTC, ISO 8601, millisecond precision, e.g. `2026-10-24T05:48:51.830Z` |
 | level | always | `info`, `warn` or `error`. Informational only, there is no filtering. |
-| game | in a game | Game number of the dedicated server (1, 2, ...). Absent for listener/startup lines. |
+| game_id | in a game | Random 64 bit id of the game as 16 hex digits, unique across restarts and instances. Assigned when the game is created, so connections, joins and chat in the lobby (before the start) carry it too. Absent for listener/startup lines. Use this to select one game. |
+| game | after the start | Running number of the game within this server process (1, 2, ...). Resets on restart; for humans only, not unique. |
 | event | always | Stable snake_case event name (catalog below) |
 | client | per client | Client slot index inside the game |
 | reason | some events | Machine-readable cause token (see per-event values below) |
@@ -72,10 +73,10 @@ part of the stdout/file stream.
 
 | Level | Event | Fields | When it is emitted |
 |---|---|---|---|
-| info | `game_started` | `clients players games_running mode width height ai_strength` | A game thread begins running. |
-| info | `game_finished` | `duration_s turns` | The final player has finished. |
+| info | `game_started` | `clients players games_running mode width height ai_strength` | A game thread begins running. `players` is the number of colours held by humans (a client holds two in the 2-player/4-colour mode). |
+| info | `game_finished` | `duration_s turns clients players mode` | The final player has finished. |
 | info | `player_result` | `player stones_left points computer` (0/1) | Once per player at game completion. Player indices are colour slots. |
-| info | `game_terminating` | `reason=all_clients_left games_running` | The game thread is ending. |
+| info | `game_terminating` | `reason=all_clients_left games_running` | The game thread is ending. A game is finished if it has a `game_finished` event and aborted if it has only `game_terminating`. |
 | info | `client_joined` | `client clients` | A client is added to the game; `clients` is the count including it. |
 | info | `client_left` | `client reason clients` | A client is removed. `reason`: `peer_closed`, `invalid_package`, `recv_failed`, `send_failed`, `protocol_violation`. |
 | error | `client_close_failed` | `client errno` | Closing a client's socket fails. |
@@ -118,6 +119,33 @@ docker-compose.yml (`json-file` with `max-size`/`max-file`), or use a driver
 such as `journald` or `loki`. Set the `LOGFILE` environment variable only if a
 file is wanted in addition. The server never reopens its log file, so external
 rotation requires `copytruncate`.
+
+### Loki
+
+deploy/loki/ contains an example stack (Loki, Alloy, Grafana with a provisioned
+dashboard): `docker compose -f deploy/loki/docker-compose.loki.yml up -d`, then
+open http://localhost:3000. Alloy reads the logs of the container named
+`freebloks` from the Docker API, takes `ts` as the timestamp and keeps only
+`container` and `level` as labels. `event`, `game_id` and `client` are
+high-cardinality or numerous, so they are parsed at query time with `| logfmt`
+(see [Loki labels](https://grafana.com/docs/loki/latest/get-started/labels/)).
+Retention is 30 days and applies to chat text as well.
+
+Queries (LogQL):
+
+    # games started per hour
+    sum(count_over_time({container="freebloks"} | logfmt | event="game_started" [1h]))
+    # players in started games per hour
+    sum(sum_over_time({container="freebloks"} | logfmt | event="game_started" | unwrap players [1h]))
+    # games finished per hour
+    sum(count_over_time({container="freebloks"} | logfmt | event="game_finished" [1h]))
+    # all chat of one game
+    {container="freebloks"} | logfmt | event="chat" | game_id="<id>" | line_format "#{{.client}}: {{.msg}}"
+    # warnings and errors by event
+    sum by (event) (count_over_time({container="freebloks"} | logfmt | level=~"warn|error" [1h]))
+
+Chat identifies the sender only by `client` slot, which is unique within a game
+while connected but reused after a client leaves.
 
 ## API (src/logger.h)
 

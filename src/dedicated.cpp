@@ -530,20 +530,23 @@ static int establish_game()
 	return 0;
 }
 
+/* A running game and its logger, handed to the game thread which owns both */
+struct RunningGame
+{
+	CGameServer* game;
+	CGameLogger* logger;
+};
+
 #ifdef WIN32
 unsigned long WINAPI gameRunThread(void* param)
 #else
 void* gameRunThread(void* param)
 #endif
 {
-	CGameServer* game=(CGameServer*) param;
-	lock_mutex();
-	const int game_number = games_ran;
-	unlock_mutex();
-	CGameLogger logger(logWriter, game_number);
-	
-	game->setLogger(&logger);
-	
+	RunningGame* running = (RunningGame*) param;
+	CGameServer* game = running->game;
+	CGameLogger& logger = *running->logger;
+
 	lock_mutex();
 	/* The game is running now */
 	logger.logEvent(LOGLEVEL_INFO, LogFields("game_started").num("clients", game->num_clients()).num("players", game->num_players()).num("games_running", games_running).num("mode", gamemode).num("width", width).num("height", height).num("ai_strength", ai_strength), "Game started with %d clients / %d players. (%d games running)",game->num_clients(), game->num_players(),games_running);
@@ -558,6 +561,8 @@ void* gameRunThread(void* param)
 
 	unlock_mutex();
 	delete game;
+	delete running->logger;
+	delete running;
 
 	return 0;
 }
@@ -671,8 +676,13 @@ int main(int argc,char ** argv)
 		/* Set the size */
 		listener->get_game()->set_field_size(width, height);
 		listener->get_game()->start_new_game(gamemode);
+		/* The game logs with its own id from the lobby on, so connections and chat
+		   before the start can be attributed to it */
+		char game_id[CGameLogger::GAME_ID_SIZE];
+		CGameLogger::generateGameId(game_id);
+		CGameLogger* game_logger = new CGameLogger(logWriter, 0, game_id);
 		lock_mutex();
-		listener->get_game()->setLogger((CLogger*)&logger);
+		listener->get_game()->setLogger(game_logger);
 		unlock_mutex();
 
 		/* A game was created and the listener is listening. Now let the game fill up
@@ -680,28 +690,36 @@ int main(int argc,char ** argv)
 		if (establish_game()==-1)return -1;
 #ifndef WIN32
 		if (shutdown_requested)
+		{
+			listener->get_game()->setLogger(nullptr);
+			delete game_logger;
 			break;
+		}
 #endif
 
 		/* Move the current game to a secondary thread */
 		lock_mutex();
 		games_ran++;
 		games_running++;
+		game_logger->setGameNumber(games_ran);
+		RunningGame* running = new RunningGame{listener->get_game(), game_logger};
 		/* The game is no longer waiting for players */
 		stats.clients = 0;
 		stats.players = 0;
 
 #ifdef WIN32
 		DWORD threadid;
-		CloseHandle(CreateThread(nullptr,0,gameRunThread,(void*)listener->get_game(),0,&threadid));
+		CloseHandle(CreateThread(nullptr,0,gameRunThread,(void*)running,0,&threadid));
 #else
-		if (pthread_create(&pt, nullptr, gameRunThread, (void*)listener->get_game()))
+		if (pthread_create(&pt, nullptr, gameRunThread, (void*)running))
 		{
 			logger.logEvent(LOGLEVEL_ERROR, LogFields("thread_failed").tok("operation", "create").err(errno), "pthread_create failed: %s", strerror(errno));
 			/* Nobody will run this game: undo the bookkeeping, disconnect its clients
 			   and do not detach a thread that was never created. */
 			games_running--;
 			delete listener->get_game();
+			delete game_logger;
+			delete running;
 		}
 		else if (pthread_detach(pt))
 			logger.logEvent(LOGLEVEL_ERROR, LogFields("thread_failed").tok("operation", "detach").err(errno), "pthread_detach failed: %s", strerror(errno));

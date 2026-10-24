@@ -1,0 +1,57 @@
+// Reads the logs of the container named "freebloks" through the Docker API.
+discovery.docker "freebloks" {
+  host = "unix:///var/run/docker.sock"
+
+  filter {
+    name   = "name"
+    values = ["freebloks"]
+  }
+}
+
+discovery.relabel "freebloks" {
+  targets = discovery.docker.freebloks.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+loki.source.docker "freebloks" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.freebloks.output
+  forward_to = [loki.process.freebloks.receiver]
+}
+
+loki.process "freebloks" {
+  // Use the server's own timestamp. Lines without ts (the signal handler line)
+  // keep the ingestion time.
+  stage.logfmt {
+    mapping = {
+      ts    = "",
+      level = "",
+    }
+  }
+
+  stage.timestamp {
+    source = "ts"
+    format = "RFC3339Nano"
+  }
+
+  // Labels must stay low-cardinality. event, game_id and client are parsed at
+  // query time with `| logfmt`.
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

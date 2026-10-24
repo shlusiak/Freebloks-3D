@@ -17,6 +17,7 @@
 #include <stdarg.h>
 #include <chrono>
 #include <mutex>
+#include <random>
 #include <string>
 #include "logger.h"
 
@@ -197,6 +198,11 @@ void CLogger::vlog(LogLevel level, const char* fields, const char* fmt, va_list 
 	appendTimestamp(line);
 	line += " level=";
 	line += levelName(level);
+	const char* gid = gameId();
+	if (gid) {
+		line += " game_id=";
+		line += gid;
+	}
 	int game = gameNumber();
 	if (game != 0) {
 		char buf[32];
@@ -266,8 +272,18 @@ void CLogger::logEvent(LogLevel level, const LogFields& f, const char* fmt, ...)
 }
 
 
-CGameLogger::CGameLogger(CLogWriter& _writer, int _game_number)
+CGameLogger::CGameLogger(CLogWriter& _writer, int _game_number, const char* _game_id)
 :CLogger(_writer)
 {
 	game_number=_game_number;
+	game_id[0]='\0';
+	if (_game_id)
+		snprintf(game_id, sizeof(game_id), "%s", _game_id);
+}
+
+void CGameLogger::generateGameId(char out[GAME_ID_SIZE])
+{
+	std::random_device rd;
+	std::mt19937_64 gen(((unsigned long long)rd() << 32) ^ rd());
+	snprintf(out, GAME_ID_SIZE, "%016llx", (unsigned long long)gen());
 }

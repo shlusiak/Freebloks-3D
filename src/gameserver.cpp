@@ -756,7 +756,7 @@ void CGameServer::next_player()
 
 	/* Print status messages to the console (e.g. for the dedicated server) */
 	if (logger){
-		logger->logEvent(LOGLEVEL_INFO, LogFields("game_finished").dec("duration_s", timer.elapsed()).num("turns", history.size()), "Game finished after %.2f seconds", timer.elapsed());
+		logger->logEvent(LOGLEVEL_INFO, LogFields("game_finished").dec("duration_s", timer.elapsed()).num("turns", history.size()).num("clients", num_clients()).num("players", num_players()).num("mode", m_game_mode), "Game finished after %.2f seconds", timer.elapsed());
 	}
 	for (i=0;i<PLAYER_MAX;i++)
 	{
@@ -1188,10 +1188,12 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 				d=(i>>0)&0xFF;
 				snprintf(clienthost, sizeof(clienthost), "%u.%u.%u.%u", a, b, c, d);
 #endif
-				if (logger)
+				/* Log through the game's logger, so the connection carries its game_id */
+				CLogger* connection_logger = get_game()->getLogger() ? get_game()->getLogger() : logger;
+				if (connection_logger)
 				{
 					/* clienthost is numeric (getnameinfo NI_NUMERICHOST), so it is a safe token */
-					logger->logEvent(LOGLEVEL_INFO, LogFields("connection").tok("addr", clienthost).tok("family", client->ss_family == AF_INET6 ? "ipv6" : (client->ss_family == AF_INET ? "ipv4" : "other")), "Connection accepted");
+					connection_logger->logEvent(LOGLEVEL_INFO, LogFields("connection").tok("addr", clienthost).tok("family", client->ss_family == AF_INET6 ? "ipv6" : (client->ss_family == AF_INET ? "ipv4" : "other")), "Connection accepted");
 				}
 			}
 

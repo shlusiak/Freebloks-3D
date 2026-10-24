@@ -97,6 +97,7 @@ public:
 
     /* Set the log file */
     void setLogger(CLogger *l) { logger = l; }
+    CLogger *getLogger() const { return logger; }
 
     /* Starts a server locally in a thread */
     static int

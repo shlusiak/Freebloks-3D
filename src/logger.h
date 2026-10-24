@@ -94,6 +94,8 @@ private:
 protected:
 	/* Game number added as game=N to every line; 0 omits the field */
 	virtual int gameNumber() const { return 0; }
+	/* Unique game id added as game_id=...; nullptr omits the field */
+	virtual const char* gameId() const { return nullptr; }
 public:
 	CLogger(CLogWriter& _writer): writer(_writer) { }
 	virtual ~CLogger() { }
@@ -105,12 +107,24 @@ public:
 
 class CGameLogger:public CLogger
 {
+public:
+	/* 16 hex digits plus terminator */
+	static const int GAME_ID_SIZE = 17;
 private:
 	int game_number;
+	char game_id[GAME_ID_SIZE];
 protected:
 	virtual int gameNumber() const { return game_number; }
+	virtual const char* gameId() const { return game_id[0] ? game_id : nullptr; }
 public:
-	CGameLogger(CLogWriter& _writer, int _game_number);
+	/* _game_id may be nullptr for none. The game number can be set later,
+	   once the game has started. */
+	CGameLogger(CLogWriter& _writer, int _game_number, const char* _game_id = nullptr);
+
+	void setGameNumber(int n) { game_number = n; }
+
+	/* Writes a random 64 bit id as 16 lowercase hex digits into out */
+	static void generateGameId(char out[GAME_ID_SIZE]);
 };
 
 
