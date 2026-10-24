@@ -24,8 +24,8 @@
 
 #include "gui.h"
 #include "constants.h"
-#include "spielserver.h"
-#include "guispielclient.h"
+#include "gameserver.h"
+#include "guigameclient.h"
 #include "player.h"
 #include "dialogs.h"
 #include "intro.h"

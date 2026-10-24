@@ -97,7 +97,7 @@ SOURCE=.\dedicated.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\ki.cpp
+SOURCE=.\ai.cpp
 # End Source File
 # Begin Source File
 
@@ -121,7 +121,7 @@ SOURCE=.\spielleiter.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\spielserver.cpp
+SOURCE=.\gameserver.cpp
 # End Source File
 # Begin Source File
 
@@ -145,7 +145,7 @@ SOURCE=.\turnpool.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\ki.h
+SOURCE=.\ai.h
 # End Source File
 # Begin Source File
 
@@ -165,7 +165,7 @@ SOURCE=.\spielleiter.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\spielserver.h
+SOURCE=.\gameserver.h
 # End Source File
 # Begin Source File
 

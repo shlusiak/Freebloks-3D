@@ -10,7 +10,7 @@
 #include "gamedialogs.h"
 #include "widgets.h"
 #include "gui.h"
-#include "spielclient.h"
+#include "gameclient.h"
 
 
 /**

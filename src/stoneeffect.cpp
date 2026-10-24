@@ -13,7 +13,7 @@
 #include "timer.h"
 #include "stoneeffect.h"
 #include "gui.h"
-#include "spielclient.h"
+#include "gameclient.h"
 #include "constants.h"
 #include "turn.h"
 

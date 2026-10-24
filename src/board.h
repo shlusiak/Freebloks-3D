@@ -9,7 +9,7 @@
 #include "player.h"
 #include "turn.h"
 #include "constants.h"
-#include "ki.h"
+#include "ai.h"
 #include "turnpool.h"
 #include "network.h"
 

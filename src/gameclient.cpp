@@ -27,7 +27,7 @@
 #include <fcntl.h>
 #endif
 
-#include "spielclient.h"
+#include "gameclient.h"
 
 
 

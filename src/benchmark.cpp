@@ -19,8 +19,8 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include "spielserver.h"
-#include "spielclient.h"
+#include "gameserver.h"
+#include "gameclient.h"
 
 
 static int width=20;

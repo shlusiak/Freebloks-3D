@@ -18,7 +18,7 @@
 #include "window.h"
 #include "glfont.h"
 #include "constants.h"
-#include "spielclient.h"
+#include "gameclient.h"
 #include "gui.h"
 #include "options.h"
 

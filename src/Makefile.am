@@ -19,14 +19,14 @@ endif
 freebloks_dedicated_SOURCES = \
 	dedicated.cpp \
 	game.cpp game.h \
-	spielserver.cpp spielserver.h \
+	gameserver.cpp gameserver.h \
 	stone.cpp stone.h \
 	board.cpp board.h \
 	player.cpp player.h \
 	network.cpp network.h \
 	turn.h \
 	turnpool.cpp turnpool.h \
-	ki.cpp ki.h \
+	ai.cpp ai.h \
 	timer.cpp timer.h \
 	constants.cpp constants.h \
 	logger.cpp logger.h
@@ -34,15 +34,15 @@ freebloks_dedicated_SOURCES = \
 freebloks_benchmark_SOURCES = \
 	benchmark.cpp \
 	game.cpp game.h \
-	spielserver.cpp spielserver.h \
-	spielclient.cpp spielclient.h \
+	gameserver.cpp gameserver.h \
+	gameclient.cpp gameclient.h \
 	stone.cpp stone.h \
 	board.cpp board.h \
 	player.cpp player.h \
 	network.cpp network.h \
 	turn.h \
 	turnpool.cpp turnpool.h \
-	ki.cpp ki.h \
+	ai.cpp ai.h \
 	timer.cpp timer.h \
 	constants.cpp constants.h \
 	logger.cpp logger.h
@@ -56,13 +56,13 @@ freebloks_SOURCES = \
 	board.cpp board.h \
 	stone.cpp stone.h \
 	game.cpp game.h \
-	spielserver.cpp spielserver.h \
-	spielclient.cpp spielclient.h \
-	guispielclient.cpp guispielclient.h \
+	gameserver.cpp gameserver.h \
+	gameclient.cpp gameclient.h \
+	guigameclient.cpp guigameclient.h \
 	network.cpp network.h \
 	turnpool.cpp turnpool.h \
 	turn.h \
-	ki.cpp ki.h \
+	ai.cpp ai.h \
 	stoneeffect.cpp stoneeffect.h \
 	widgets.cpp widgets.h \
 	texture.cpp texture.h \
@@ -80,7 +80,7 @@ freebloks_SOURCES = \
 
 freebloks_client_SOURCES = \
 	client.cpp \
-	spielclient.cpp spielclient.h \
+	gameclient.cpp gameclient.h \
 	game.cpp game.h \
 	stone.cpp stone.h \
 	board.cpp board.h \
@@ -88,7 +88,7 @@ freebloks_client_SOURCES = \
 	network.cpp network.h \
 	turn.h \
 	turnpool.cpp turnpool.h \
-	ki.cpp ki.h \
+	ai.cpp ai.h \
 	timer.cpp timer.h \
 	constants.cpp constants.h
 

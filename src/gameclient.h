@@ -3,8 +3,8 @@
  * Autor: Sascha Hlusiak
  **/
 
-#ifndef __SPIELCLIENT_H_INCLUDED_
-#define __SPIELCLIENT_H_INCLUDED_
+#ifndef __GAMECLIENT_H_INCLUDED_
+#define __GAMECLIENT_H_INCLUDED_
 
 #include "game.h"
 #include "network.h"

@@ -138,7 +138,7 @@ SOURCE=.\intro.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\ki.cpp
+SOURCE=.\ai.cpp
 # End Source File
 # Begin Source File
 
@@ -162,7 +162,7 @@ SOURCE=.\spiel.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\spielclient.cpp
+SOURCE=.\gameclient.cpp
 # End Source File
 # Begin Source File
 
@@ -170,7 +170,7 @@ SOURCE=.\spielleiter.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\spielserver.cpp
+SOURCE=.\gameserver.cpp
 # End Source File
 # Begin Source File
 
@@ -246,7 +246,7 @@ SOURCE=.\intro.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\ki.h
+SOURCE=.\ai.h
 # End Source File
 # Begin Source File
 
@@ -278,7 +278,7 @@ SOURCE=.\spiel.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\spielclient.h
+SOURCE=.\gameclient.h
 # End Source File
 # Begin Source File
 
@@ -286,7 +286,7 @@ SOURCE=.\spielleiter.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\spielserver.h
+SOURCE=.\gameserver.h
 # End Source File
 # Begin Source File
 

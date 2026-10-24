@@ -13,7 +13,7 @@
 
 #include "gui.h"
 #include "stoneeffect.h"
-#include "spielclient.h"
+#include "gameclient.h"
 #include "gamedialogs.h"
 
 

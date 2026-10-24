@@ -33,7 +33,7 @@
 #include "game.h"
 #include "constants.h"
 #include "network.h"
-#include "spielserver.h"
+#include "gameserver.h"
 #include "timer.h"
 
 

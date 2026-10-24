@@ -22,7 +22,7 @@
 
 #include <string.h>
 #include <errno.h>
-#include "spielserver.h"
+#include "gameserver.h"
 #include "logger.h"
 
 

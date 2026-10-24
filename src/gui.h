@@ -14,7 +14,7 @@
 #include "stoneeffect.h"
 #include "widgets.h"
 #include "glfont.h"
-#include "guispielclient.h"
+#include "guigameclient.h"
 #include "options.h"
 
 class CStone;

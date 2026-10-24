@@ -6,8 +6,8 @@
  * und eines Listeners, der neue Spiele errichtet
  **/
 
-#ifndef __SPIELSERVER_H_INCLUDED_
-#define __SPIELSERVER_H_INCLUDED_
+#ifndef __GAMESERVER_H_INCLUDED_
+#define __GAMESERVER_H_INCLUDED_
 
 #ifdef HAVE_SYS_SOCKET_H
 

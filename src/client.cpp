@@ -11,9 +11,9 @@
   #include "config.h"
 #endif
 
-#include "spielclient.h"
+#include "gameclient.h"
 #include "turn.h"
-#include "ki.h"
+#include "ai.h"
 #include "timer.h"
 
 

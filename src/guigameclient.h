@@ -3,10 +3,10 @@
  * Autor: Sascha Hlusiak
  **/
 
-#ifndef __GUISPIELCLIENT_H_INCLUDED_
-#define __GUISPIELCLIENT_H_INCLUDED_
+#ifndef __GUIGAMECLIENT_H_INCLUDED_
+#define __GUIGAMECLIENT_H_INCLUDED_
 
-#include "spielclient.h"
+#include "gameclient.h"
 
 /**
  * Die Klasse erweitert den Spielclient um Callbacks fuer die GUI

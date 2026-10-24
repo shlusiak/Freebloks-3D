@@ -14,7 +14,7 @@
 #include "gui.h"
 #include "intro.h"
 #include "stoneeffect.h"
-#include "spielclient.h"
+#include "gameclient.h"
 
 /* Waehrend der Animation soll das Feld 20x20 Felder betragen. */
 const int FIELD_SIZE_X=20,FIELD_SIZE_Y=20;

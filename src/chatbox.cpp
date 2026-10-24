@@ -12,7 +12,7 @@
 #include <string.h>
 #include "chatbox.h"
 #include "gui.h"
-#include "spielclient.h"
+#include "gameclient.h"
 #include "glfont.h"
 #include "constants.h"
 

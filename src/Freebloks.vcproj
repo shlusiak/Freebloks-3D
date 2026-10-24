@@ -437,7 +437,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="ki.cpp"
+				RelativePath="ai.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -557,7 +557,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="spielclient.cpp"
+				RelativePath="gameclient.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -597,7 +597,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="spielserver.cpp"
+				RelativePath="gameserver.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -818,7 +818,7 @@
 				>
 			</File>
 			<File
-				RelativePath="ki.h"
+				RelativePath="ai.h"
 				>
 			</File>
 			<File
@@ -850,7 +850,7 @@
 				>
 			</File>
 			<File
-				RelativePath="spielclient.h"
+				RelativePath="gameclient.h"
 				>
 			</File>
 			<File
@@ -858,7 +858,7 @@
 				>
 			</File>
 			<File
-				RelativePath="spielserver.h"
+				RelativePath="gameserver.h"
 				>
 			</File>
 			<File

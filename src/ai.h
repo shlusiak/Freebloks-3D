@@ -1,5 +1,5 @@
-#ifndef ________KI_H_
-#define ________KI_H_
+#ifndef ________AI_H_
+#define ________AI_H_
 
 #include <stdlib.h>
 #include "player.h"

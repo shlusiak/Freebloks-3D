@@ -8,7 +8,7 @@
 #ifdef HAVE_LIBPTHREAD
 #include <pthread.h>
 #endif
-#include "ki.h"
+#include "ai.h"
 
 #include "board.h"
 #include "timer.h"
