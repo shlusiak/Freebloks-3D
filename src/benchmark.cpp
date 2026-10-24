@@ -180,8 +180,6 @@ static void* clientThread(void* param) {
 
 int main(int argc,char ** argv)
 {
-	int ret;
-
 #ifndef WIN32
 	/* A write to a closed socket must fail with EPIPE instead of killing the process */
 	signal(SIGPIPE, SIG_IGN);

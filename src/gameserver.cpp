@@ -43,7 +43,7 @@
  * Constructor: create an empty game server with default settings
  **/
 CGameServer::CGameServer(const int v_max_humans, const int v_ai_mode, const GAMEMODE v_gamemode, bool v_forceDelay)
-:ai_mode(v_ai_mode), max_humans(v_max_humans), forceDelay(v_forceDelay)
+:max_humans(v_max_humans), ai_mode(v_ai_mode), forceDelay(v_forceDelay)
 {
 	int i;
 	start_new_game(v_gamemode);
@@ -494,7 +494,6 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			}
 // 			printf("Client %d requesting undo. ",client);
 			NET_UNDO_STONE undo{};
-			int i=0;
 
 			/* Keep taking back stones until there are none left in the history,
 			   or a human player is to move again. */
@@ -502,7 +501,6 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			{
 				const CTurn *turn = history.get_last_turn();
 				if (turn==nullptr) break;
-				i++;
 				send_all((NET_HEADER*)(&undo),sizeof(undo),MSG_UNDO_STONE);
 				// The player of the undone stone is to move again
 				m_current_player=turn->player;

@@ -77,7 +77,6 @@ private:
 	CSpinBox* portField;
 	CCheckBox *blue,*red,*yellow,*green;
 	CTextEdit* serverField, *nameField;
-	int max_local;
 public:
 	CConnectToMPlayer(CGUI* gui);
 	virtual int processMouseEvent(TMouseEvent *event);

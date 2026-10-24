@@ -171,8 +171,7 @@ static void* stat_thread(void* param) {
 	unlock_mutex();
 
 	struct sockaddr_un addr;
-	char buf[100];
-	int fd,cl,rc;
+	int fd,cl;
 
 	unlink(file);
 	if ( (fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
