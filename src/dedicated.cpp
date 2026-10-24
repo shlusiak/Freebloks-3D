@@ -521,8 +521,7 @@ void* gameRunThread(void* param)
 	
 	lock_mutex();
 	/* The game is running now */
-	logger.logTime();
-	logger.logLine("Game started with %d clients / %d players. (%d games running)",game->num_clients(), game->num_players(),games_running);
+	logger.logFields(LOGLEVEL_INFO, "event=game_started", "Game started with %d clients / %d players. (%d games running)",game->num_clients(), game->num_players(),games_running);
 	unlock_mutex();
 
 	game->run();
@@ -530,8 +529,7 @@ void* gameRunThread(void* param)
 	lock_mutex();
 	games_running--;
 
-	logger.logTime();
-	logger.logLine("Game terminating. (%d games running)",games_running);
+	logger.logFields(LOGLEVEL_INFO, "event=game_terminating", "Game terminating. (%d games running)",games_running);
 
 	unlock_mutex();
 	delete game;
@@ -571,9 +569,6 @@ int main(int argc,char ** argv)
 #else
 	pthread_t pt;
 #endif
-	printf("This is the almighty Dedicated Freebloks Server. Have a nice day!\n");
-	printf("Show help with `dedicated --help`\n");
-	printf("Waiting for Clients for connect...\n\n");
 
 #ifndef _WIN32
 	if (gid != 0)
@@ -581,7 +576,7 @@ int main(int argc,char ** argv)
 		if (setregid(gid,gid))
 		{
 			/* Never keep running with more privileges than requested */
-			perror("setregid: ");
+			logger.log(LOGLEVEL_ERROR, "setregid failed: %s", strerror(errno));
 			exit(1);
 		}
 	}
@@ -589,7 +584,7 @@ int main(int argc,char ** argv)
 	{
 		if (setreuid(uid,uid))
 		{
-			perror("setreuid: ");
+			logger.log(LOGLEVEL_ERROR, "setreuid failed: %s", strerror(errno));
 			exit(1);
 		}
 	}
@@ -605,17 +600,16 @@ int main(int argc,char ** argv)
 			return 1;
 		}
 		logWriter.addLogWriter(fw);
-		printf("Logging to: %s\n",logfile);
+		logger.log(LOGLEVEL_INFO, "Logging to: %s", logfile);
 	}
 
 
-	logger.logTime();
-	logger.logLine("Server starting\n");
+	logger.logFields(LOGLEVEL_INFO, "event=server_starting", "Server starting");
 
 	ret = listener->init(_interface,port);
 	if (ret!=0)
 	{
-	    printf("Error calling listen: %s\n", strerror(errno));
+	    logger.log(LOGLEVEL_ERROR, "Error calling listen: %s", strerror(errno));
 	    return -1;
 	}
 	init_mutex();
@@ -657,22 +651,21 @@ int main(int argc,char ** argv)
 #else
 		if (pthread_create(&pt, nullptr, gameRunThread, (void*)listener->get_game()))
 		{
-			perror("pthread_create");
+			logger.log(LOGLEVEL_ERROR, "pthread_create failed: %s", strerror(errno));
 			/* Nobody will run this game: undo the bookkeeping, disconnect its clients
 			   and do not detach a thread that was never created. */
 			games_running--;
 			delete listener->get_game();
 		}
 		else if (pthread_detach(pt))
-			perror("pthread_detach");
+			logger.log(LOGLEVEL_ERROR, "pthread_detach failed: %s", strerror(errno));
 #endif
 
 		if (games_running>=max_running_games)
 		{
 			listener->close();
 			
-			logger.logTime();
-			logger.logLine("!! Stopping accepting new connections due to too many running games");
+			logger.logFields(LOGLEVEL_WARN, "event=listener_closed", "Stopping accepting new connections due to too many running games");
 
 			while (games_running>=max_running_games)
 			{
@@ -680,14 +673,13 @@ int main(int argc,char ** argv)
 				CTimer::sleep(2000);
 				lock_mutex();
 			}
-			logger.logTime();
-			logger.logLine("!! Resuming accepting new connections");
+			logger.logFields(LOGLEVEL_INFO, "event=listener_reopened", "Resuming accepting new connections");
 
 			ret=listener->init(_interface,port);
 			if (ret!=0)
 			{
 				/* Could not "listen", maybe the port is used by another application? */
-				printf("Error calling listen: %s\n",strerror(errno));
+				logger.log(LOGLEVEL_ERROR, "Error calling listen: %s", strerror(errno));
 				return -1;
 			}
 		}

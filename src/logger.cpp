@@ -15,6 +15,9 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <chrono>
+#include <mutex>
+#include <string>
 #include "logger.h"
 
 
@@ -46,6 +49,8 @@ void CStdoutWriter::log(const char* fmt, va_list va) {
 	CLogWriter::log(fmt, va);
 
 	vprintf(fmt,va);
+	/* Stdout is block buffered when piped, which would delay lines in a log collector */
+	fflush(stdout);
 }
 
 
@@ -100,55 +105,140 @@ void CLogFileWriter::log(const char* fmt, va_list va)
 
 
 
-void CLogger::logva(const char* fmt, va_list va)
-{
-	writer.log(fmt, va);
-}
-
-void CLogger::log(const char* fmt, ...)
-{
-	va_list va;
-	va_start(va,fmt);
-	logva(fmt, va);
-	va_end(va);
-}
-
-void CLogger::logLine(const char* fmt, ...)
+static void writeLine(CLogWriter& writer, const char* fmt, ...)
 {
 	va_list va;
 	va_start(va, fmt);
-	logHeader();
-	logva(fmt, va);
-	if (fmt[0] == '\0' || fmt[strlen(fmt) - 1] !=  '\n')
-		log("\n");
+	writer.log(fmt, va);
 	va_end(va);
 }
 
+/* Serializes whole lines over all loggers, so concurrent games cannot interleave */
+static std::mutex logMutex;
 
-void CLogger::logTime()
+static const char* levelName(LogLevel level)
 {
-	char time_string[256];
-	time_t now;
-	char *c;
-	now=time(nullptr);
-#ifdef WIN32
-	/* The MS runtime keeps this buffer per thread */
-	c=ctime(&now);
-#else
-	/* Game threads log concurrently, ctime() would share one static buffer */
-	char time_buffer[64];
-	c=ctime_r(&now, time_buffer);
-#endif
-	if (c == nullptr)
-		return;
-	strncpy(time_string,c,sizeof(time_string)-1);
-	time_string[sizeof(time_string)-1]='\0';
-	if (time_string[0] != '\0')
-		time_string[strlen(time_string)-1]='\0';
-	log("         %s\n", time_string);
+	switch (level) {
+	case LOGLEVEL_WARN: return "warn";
+	case LOGLEVEL_ERROR: return "error";
+	default: return "info";
+	}
 }
 
+static bool isBareValue(const char* v)
+{
+	if (v[0] == '\0')
+		return false;
+	for (; *v; v++) {
+		char c = *v;
+		if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+			c == '.' || c == '_' || c == '-' || c == ':' || c == '/' || c == '+'))
+			return false;
+	}
+	return true;
+}
 
+/* Appends key=value, quoting and escaping the value when necessary */
+static void appendValue(std::string& out, const char* v)
+{
+	if (isBareValue(v)) {
+		out += v;
+		return;
+	}
+	out += '"';
+	for (; *v; v++) {
+		unsigned char c = (unsigned char)*v;
+		if (c == '"' || c == '\\') {
+			out += '\\';
+			out += (char)c;
+		} else if (c == '\n') {
+			out += "\\n";
+		} else if (c == '\r') {
+			out += "\\r";
+		} else if (c == '\t') {
+			out += "\\t";
+		} else if (c < 0x20 || c == 0x7f) {
+			char esc[8];
+			snprintf(esc, sizeof(esc), "\\x%02x", c);
+			out += esc;
+		} else {
+			out += (char)c;
+		}
+	}
+	out += '"';
+}
+
+static void appendTimestamp(std::string& out)
+{
+	using namespace std::chrono;
+	system_clock::time_point now = system_clock::now();
+	time_t secs = system_clock::to_time_t(now);
+	int ms = (int)(duration_cast<milliseconds>(now.time_since_epoch()).count() % 1000);
+	struct tm tm;
+#ifdef WIN32
+	gmtime_s(&tm, &secs);
+#else
+	gmtime_r(&secs, &tm);
+#endif
+	char buf[40];
+	snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
+		tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
+	out += buf;
+}
+
+void CLogger::vlog(LogLevel level, const char* fields, const char* fmt, va_list va)
+{
+	char msg[1024];
+	vsnprintf(msg, sizeof(msg), fmt, va);
+
+	std::string line;
+	line.reserve(256);
+	line += "ts=";
+	appendTimestamp(line);
+	line += " level=";
+	line += levelName(level);
+	int game = gameNumber();
+	if (game != 0) {
+		char buf[32];
+		snprintf(buf, sizeof(buf), " game=%d", game);
+		line += buf;
+	}
+	if (fields && fields[0] != '\0') {
+		line += ' ';
+		line += fields;
+	}
+	line += " msg=";
+	appendValue(line, msg);
+
+	std::lock_guard<std::mutex> lock(logMutex);
+	writeLine(writer, "%s\n", line.c_str());
+}
+
+void CLogger::log(LogLevel level, const char* fmt, ...)
+{
+	va_list va;
+	va_start(va, fmt);
+	vlog(level, nullptr, fmt, va);
+	va_end(va);
+}
+
+void CLogger::logClient(LogLevel level, int client, const char* fmt, ...)
+{
+	char fields[32];
+	snprintf(fields, sizeof(fields), "client=%d", client);
+	va_list va;
+	va_start(va, fmt);
+	vlog(level, fields, fmt, va);
+	va_end(va);
+}
+
+void CLogger::logFields(LogLevel level, const char* fields, const char* fmt, ...)
+{
+	va_list va;
+	va_start(va, fmt);
+	vlog(level, fields, fmt, va);
+	va_end(va);
+}
 
 
 CGameLogger::CGameLogger(CLogWriter& _writer, int _game_number)
@@ -156,14 +246,3 @@ CGameLogger::CGameLogger(CLogWriter& _writer, int _game_number)
 {
 	game_number=_game_number;
 }
-
-void CGameLogger::logHeader()
-{
-	if (game_number == 0) {
-		log("[-]: ", game_number);
-	} else {
-		log("[%d]: ", game_number);
-	}
-}
-
-

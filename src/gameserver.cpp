@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 
 #ifdef WIN32
 #include <winsock2.h>
@@ -96,7 +97,7 @@ void CGameServer::add_client(int s)
 		snprintf(c, sizeof(c), "Client %d joined", i);
 		if (logger)
 		{
-			logger->logLine(c);
+			logger->logClient(LOGLEVEL_INFO, i, "Client joined");
 		}
 		send_server_msg(c);
 
@@ -122,7 +123,8 @@ void CGameServer::delete_client(int index,bool notify)
 		free(names[index]);
 		names[index] = nullptr;
 	}
-	if (closesocket(clients[index])==-1)perror("close: ");
+	if (closesocket(clients[index])==-1 && logger)
+		logger->logClient(LOGLEVEL_ERROR, index, "close failed: %s", strerror(errno));
 	clients[index]=0;
 	/* Send the current server status to the remaining clients */
 	send_server_status();
@@ -132,7 +134,7 @@ void CGameServer::delete_client(int index,bool notify)
 		snprintf(c, sizeof(c), "Client %d left\n", index);
 		if (logger)
 		{
-			logger->logLine(c);
+			logger->logClient(LOGLEVEL_INFO, index, "Client left");
 		}
 		send_server_msg(c);
 	}
@@ -187,7 +189,8 @@ void CGameServer::run()
 			if ((!CBoard::is_valid_turn(*turn)) ||
                 (!CBoard::set_stone(*turn)))
 			{
-				printf("Game not in sync (2)\n");
+				if (logger)
+					logger->log(LOGLEVEL_ERROR, "Game not in sync, local turn rejected. Exiting.");
 				exit(2);
 			}
 			/* otherwise send the turn to all clients */
@@ -329,7 +332,8 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				n=(n+2)%PLAYER_MAX;
 				if (player[n] != PLAYER_COMPUTER)
 				{
-					printf("ERROR: player already assigned (2 colors per player)\n");
+					if (logger)
+						logger->logClient(LOGLEVEL_ERROR, client, "Player already assigned (2 colors per player)");
 					delete_client(client,false);
 					return;
 				}
@@ -401,26 +405,26 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			/* Without a running game there is no current player, never index player[] with -1 */
 			if (m_current_player < 0) {
 				if (logger)
-					logger->logLine("WARNING: Ignoring move, no game running.\n");
+					logger->logClient(LOGLEVEL_WARN, client, "Ignoring move, no game running.");
 				return;
 			}
 			/* Assemble the corresponding stone from the data */
 			if (s->player != m_current_player) {
 				if (logger)
-					logger->logLine("WARNING: Ignoring move from non-current player.\n");
+					logger->logClient(LOGLEVEL_WARN, client, "Ignoring move from non-current player.");
 				send_current_player();
 				return;
 			}
 			if (clients[client] != player[s->player]) {
 				if (logger)
-					logger->logLine("WARNING: Client does not own player! Ignoring move.\n");
+					logger->logClient(LOGLEVEL_WARN, client, "Client does not own player, ignoring move.");
 				send_current_player();
 				return;
 			}
 
 			if (!network_check_set_stone(s)) {
 				if (logger)
-					logger->logLine("WARNING: Ignoring move with invalid stone or orientation.\n");
+					logger->logClient(LOGLEVEL_WARN, client, "Ignoring move with invalid stone or orientation.");
 				send_current_player();
 				return;
 			}
@@ -428,7 +432,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			CStone &stone = get_player(s->player)->get_stone(s->stone);
 			if (stone.get_available() <= 0) {
 				if (logger)
-					logger->logLine("WARNING: Ignoring move with a stone that is not available.\n");
+					logger->logClient(LOGLEVEL_WARN, client, "Ignoring move with a stone that is not available.");
 				send_current_player();
 				return;
 			}
@@ -444,7 +448,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				next_player();
 			}else{ // The game seems to be out of sync
 				if (logger) {
-					logger->logLine("WARNING: Game seems to be out of sync, ignoring move.\n");
+					logger->logClient(LOGLEVEL_WARN, client, "Game seems to be out of sync, ignoring move.");
 //					delete_client(client, true);
 				}
 			}
@@ -474,7 +478,9 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 
 			if (logger)
 			{
-				logger->logLine("Client %d: %s\n",client,((NET_CHAT*)data)->text);
+				char fields[48];
+				snprintf(fields, sizeof(fields), "event=chat client=%d", client);
+				logger->logFields(LOGLEVEL_INFO, fields, "%s", (const char*)((NET_CHAT*)data)->text);
 			}
 			break;
 
@@ -610,7 +616,9 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			break;
 		}
 
-		default: printf("ERROR: unhandled network message: #%d\n",data->msg_type);
+		default:
+			if (logger)
+				logger->logClient(LOGLEVEL_ERROR, client, "Unhandled network message: #%d", data->msg_type);
 			break;
 	}
 }
@@ -749,13 +757,15 @@ void CGameServer::next_player()
 
 	/* Print status messages to the console (e.g. for the dedicated server) */
 	if (logger){
-		logger->logLine("-- Game finished! -- Took %.2f sek. --\n",timer.elapsed());
+		logger->logFields(LOGLEVEL_INFO, "event=game_finished", "Game finished after %.2f seconds", timer.elapsed());
 	}
 	for (i=0;i<PLAYER_MAX;i++)
 	{
 		CPlayer * player=get_player(i);
 		if (logger) {
-			logger->logLine("Player %d has %d stones left and %d points.\n",i,get_stone_count(i),-player->get_stone_points_left());
+			char fields[48];
+			snprintf(fields, sizeof(fields), "event=player_result player=%d", i);
+			logger->logFields(LOGLEVEL_INFO, fields, "Player %d has %d stones left and %d points", i, get_stone_count(i), -player->get_stone_points_left());
 		}
 	}
 }
@@ -1014,7 +1024,8 @@ int CServerListener::init(const char* interface_,int port)
 			if (res->ai_family == AF_INET6) {
 				i = 1;
 				if (setsockopt(listen_socket, IPPROTO_IPV6, IPV6_V6ONLY, &i, sizeof(i)) < 0) {
-					perror("setsockopt");
+					if (logger)
+						logger->log(LOGLEVEL_WARN, "setsockopt IPV6_V6ONLY failed: %s", strerror(errno));
 				}
 			}
 
@@ -1117,7 +1128,8 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 		if (errno == EINTR) return 0;
 #endif
 		/* Persistent failure (e.g. closed listen socket); retrying would only spin */
-		perror("select");
+		if (logger)
+			logger->log(LOGLEVEL_ERROR, "select failed: %s", strerror(errno));
 		return -1;
 	}
 
@@ -1140,7 +1152,8 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 			if (cl==-1)
 			{
 				int err = errno;
-				perror("accept: ");
+				if (logger)
+					logger->log(LOGLEVEL_ERROR, "accept failed: %s", strerror(err));
 				/* Transient failures (aborted connection, out of file descriptors, ...) must
 				   not take down the whole server. Back off briefly, as the pending connection
 				   keeps the listen socket readable. */
@@ -1155,42 +1168,33 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 
 			if (verbose)
 			{
-#if (defined HAVE_GETADDRINFO) || (defined WIN32)
-				char clienthost[NI_MAXHOST];
+				char clienthost[64];
 				clienthost[0]='\0';
-
-				if (logger) {
-					logger->logTime();
-					logger->logHeader();
-					logger->log("Connection from: ");
-				}
-
-
+#if (defined HAVE_GETADDRINFO) || (defined WIN32)
 				/* Log the numeric address only. A reverse DNS lookup would block
 				   this thread, which also accepts all other connections. */
+				char hostbuf[NI_MAXHOST];
+				hostbuf[0]='\0';
 				getnameinfo((sockaddr*)client,l,
-					clienthost,sizeof(clienthost),
+					hostbuf,sizeof(hostbuf),
 					nullptr,0,
 					NI_NUMERICHOST);
-
-				if (logger)
-					logger->log("%s\n",clienthost);
+				snprintf(clienthost, sizeof(clienthost), "%s", hostbuf);
 #else
 				unsigned int a,b,c,d,i;
-				i=ntohl(client->sin_addr.s_addr);
+				i=ntohl(((sockaddr_in*)client)->sin_addr.s_addr);
 				a=(i>>24)&0xFF;
 				b=(i>>16)&0xFF;
 				c=(i>>8)&0xFF;
 				d=(i>>0)&0xFF;
-				printf("Connection from: ");
-				printf("%d.%d.%d.%d\n",a,b,c,d);
-				if (CLogger::logfile)
-				{
-					fprintf(CLogger::logfile,"Connection from: ");
-					fprintf(CLogger::logfile,"%d.%d.%d.%d\n",a,b,c,d);
-					CLogger::flush();
-				}
+				snprintf(clienthost, sizeof(clienthost), "%u.%u.%u.%u", a, b, c, d);
 #endif
+				if (logger)
+				{
+					char fields[96];
+					snprintf(fields, sizeof(fields), "event=connection addr=%s", clienthost);
+					logger->logFields(LOGLEVEL_INFO, fields, "Connection accepted");
+				}
 			}
 
 #ifndef WIN32
@@ -1198,7 +1202,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 			if (cl >= FD_SETSIZE)
 			{
 				if (logger)
-					logger->logLine("WARNING: Too many open file descriptors, rejecting connection.");
+					logger->log(LOGLEVEL_WARN, "Too many open file descriptors, rejecting connection.");
 				closesocket(cl);
 				continue;
 			}

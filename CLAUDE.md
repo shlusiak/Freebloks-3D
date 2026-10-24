@@ -39,6 +39,6 @@ Language policy: all documentation, comments, identifiers and file names are Eng
 - Clients: CGameClient (network), CGUIGameClient (GUI hooks), client.cpp (console).
 - GUI (freebloks binary only): freebloks.cpp, window.cpp (X11/GLX), gui.cpp, widgets/dialogs; textures installed to $(datadir)/freebloks, DATA_PREFIX set via freebloks_CXXFLAGS.
 - Dedicated server (dedicated.cpp): establish_game() accepts clients, gameRunThread runs each game on a detached thread, --limit caps concurrent games (listener closes at limit, re-opens when below). A stats thread serves counters on the Unix socket file /tmp/freebloks_stats; --stats connects to it, prints them and exits.
-- Logger (logger.cpp): process-wide recursive mutex; always call logLine("%s", s), never pass untrusted strings as the format.
+- Logger (logger.cpp): emits one logfmt line per call (docs/logging.md), serialized by a process-wide mutex. Use log()/logClient()/logFields() with a LogLevel; never pass untrusted strings as the format (use "%s"). The fields argument of logFields() is copied verbatim and must be trusted. Server-side code logs through CLogger only, not printf/perror. dedicated takes --log <file> (Docker: LOGFILE env is passed as --log).
 
 Documentation is in docs/ (English). docs/protocol.md is the wire-format reference; update it whenever network.h or message handling changes.
