@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void error_exit(const char* fehlertext, int fehlernummer){
-	printf("Fehler %d: %s\n", fehlernummer, fehlertext);
+void error_exit(const char* message, int code){
+	printf("Fehler %d: %s\n", code, message);
 	getchar();
-	exit (fehlernummer);
+	exit (code);
 }

@@ -20,7 +20,7 @@ private:
 	// Wir brauchen Zeiger auf GUI, um Rueckwaerts Zugriff auf bestimmte Fkt. zu haben
 	CGUI* gui;
 	// Sowie den SpielClients, mit dem wir interagieren sollen
-	CSpielClient *client;
+	CGameClient *client;
 	// Der Text des aktuellen Server-Status. 
 	CStaticText *statustext;
 	// Ein Zeitzaehler, um periodisch das Fenster zu aktualisieren
@@ -34,7 +34,7 @@ private:
 	void sendChat();
 public:
 	// Constructor des StartGameDialog, servername ist zum Anzeigen des Servers
-	CStartGameDialog(CSpielClient *vclient,CGUI* vgui,const char *servername);
+	CStartGameDialog(CGameClient *vclient,CGUI* vgui,const char *servername);
 	// Maustaste verarbeiten
 	virtual int processMouseEvent(TMouseEvent *event);
 	// Animieren, periodisch aktualisieren
@@ -59,8 +59,8 @@ private:
 	void sendChat();
 
 public:
-	// Constructor. Er saugt sich alle Daten aus dem CSpielClient*
-	CGameFinishDialog(CGUI *vgui,CSpielClient *vclient);
+	// Constructor. Er saugt sich alle Daten aus dem CGameClient*
+	CGameFinishDialog(CGUI *vgui,CGameClient *vclient);
 	// Maustaste verarbeiten
 	virtual int processMouseEvent(TMouseEvent *event);
 	// Taste verarbeiten

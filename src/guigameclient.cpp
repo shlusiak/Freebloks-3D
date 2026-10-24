@@ -21,18 +21,18 @@
 /**
  * Leeren SpielClient initialisieren
  **/
-CGUISpielClient::CGUISpielClient(CGUI* vgui)
-:CSpielClient()
+CGUIGameClient::CGUIGameClient(CGUI* vgui)
+:CGameClient()
 {
 	gui=vgui;
 }
 
-void CGUISpielClient::newCurrentPlayer(const int player)
+void CGUIGameClient::newCurrentPlayer(const int player)
 {
 	if (gui)gui->newCurrentPlayer(player);
 }
 
-void CGUISpielClient::stoneWasSet(NET_SET_STONE *s)
+void CGUIGameClient::stoneWasSet(NET_SET_STONE *s)
 {
 	/* Wenn kein lokaler Spieler, zeige eine Blink-Animation an */
 	if (gui && !is_local_player(s->player) && gui->getOptions()->get(OPTION_ANIMATE_STONES))
@@ -40,7 +40,7 @@ void CGUISpielClient::stoneWasSet(NET_SET_STONE *s)
 			gui,&get_player(s->player)->get_stone(s->stone),s->stone,s->player,s->x,s->y,false));
 }
 
-void CGUISpielClient::hintReceived(NET_SET_STONE *s)
+void CGUIGameClient::hintReceived(NET_SET_STONE *s)
 {
 	/* Entsprechenden Stein des Spielers holen */
 	CStone &stone=get_player(s->player)->get_stone(s->stone);
@@ -56,17 +56,17 @@ void CGUISpielClient::hintReceived(NET_SET_STONE *s)
 	}
 }
 
-void CGUISpielClient::gameFinished()
+void CGUIGameClient::gameFinished()
 {
 	gui->addSubChild(new CGameFinishDialog(gui,this),false);
 }
 
-void CGUISpielClient::chatReceived(NET_CHAT* chat)
+void CGUIGameClient::chatReceived(NET_CHAT* chat)
 {
 	if (gui)gui->addChatMessage(chat->client,(char*)&chat->text[0]);
 }
 
-void CGUISpielClient::gameStarted()
+void CGUIGameClient::gameStarted()
 {
 	// Den ersten lokalen Spieler ermitteln, und Ansicht der GUI genau
 	// dorthin rotieren
@@ -83,7 +83,7 @@ void CGUISpielClient::gameStarted()
 		else gui->setZoom(30.0);
 }
 
-void CGUISpielClient::stoneUndone(const CStone &stone, const CTurn *t)
+void CGUIGameClient::stoneUndone(const CStone &stone, const CTurn *t)
 {
 	if (gui && gui->getOptions()->get(OPTION_ANIMATE_STONES))
 		gui->addEffect(new CStoneRollEffect(

@@ -37,7 +37,7 @@ static const int maxNumberStones=10;
 static int numberOfStones[5]={1,1,1,1,1};
 
 /* Multithreading in der KI verwenden, oder nicht */
-static int ki_multithreading=2;
+static int ai_multithreading=2;
 
 /* Ausgewaehlter Server */
 static char* mp_oldserver=nullptr;
@@ -181,7 +181,7 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 	for (i=0;i<sizeof(numberOfStones)/sizeof(numberOfStones[0]);i++)
 		this->numberOfStones[i]=::numberOfStones[i];
 	addChild(new CStaticText(30,h-70,"Use Threads",this));
-	multithreading=new CSpinBox(150,h-73,40,20,5011,1,8,::ki_multithreading,this);
+	multithreading=new CSpinBox(150,h-73,40,20,5011,1,8,::ai_multithreading,this);
 	addChild(multithreading);
 
 	addChild(new CButton(10,h-35,90,25,2000,this,"Advanced"));
@@ -192,7 +192,7 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 	this->size_y=::size_y;
 
 	playermode = 4;
-	kindOfDiff = KI_MEDIUM;
+	kindOfDiff = AI_MEDIUM;
 
 	GUI = gui;
 }
@@ -206,11 +206,11 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 		addSubChild(advanced=new CNewGameAdvancedDialog(size_x,size_y,numberOfStones));
 		break;
 	case 2001:
-		this->numberOfStones[0]=advanced->einer->getValue();
-		this->numberOfStones[1]=advanced->zweier->getValue();
-		if (advanced->dreier)this->numberOfStones[2]=advanced->dreier->getValue();
-		if (advanced->vierer)this->numberOfStones[3]=advanced->vierer->getValue();
-		if (advanced->fuenfer)this->numberOfStones[4]=advanced->fuenfer->getValue();
+		this->numberOfStones[0]=advanced->monominoes->getValue();
+		this->numberOfStones[1]=advanced->dominoes->getValue();
+		if (advanced->trominoes)this->numberOfStones[2]=advanced->trominoes->getValue();
+		if (advanced->tetrominoes)this->numberOfStones[3]=advanced->tetrominoes->getValue();
+		if (advanced->pentominoes)this->numberOfStones[4]=advanced->pentominoes->getValue();
 		size_x=advanced->size_x->getValue();
 		size_y=advanced->size_y->getValue();
 		break;
@@ -265,13 +265,13 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 	case 5015:
 		break;
 	case 5020:
-		kindOfDiff = KI_EASY;
+		kindOfDiff = AI_EASY;
 		break;
 	case 5021:
-		kindOfDiff = KI_MEDIUM;
+		kindOfDiff = AI_MEDIUM;
 		break;
 	case 5022:
-		kindOfDiff = KI_HARD;
+		kindOfDiff = AI_HARD;
 		break;
 	case 1009:{
 		GAMEMODE m=GAMEMODE_4_COLORS_4_PLAYERS;
@@ -298,7 +298,7 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 			::numberOfStones[2]=this->numberOfStones[2];
 			::numberOfStones[3]=this->numberOfStones[3];
 			::numberOfStones[4]=this->numberOfStones[4];
-			::ki_multithreading=multithreading->getValue();
+			::ai_multithreading=multithreading->getValue();
 
 			::size_x=this->size_x;
 			::size_y=this->size_y;
@@ -319,17 +319,17 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 			if (red->getCheck()) players |= 0x04;
 			if (green->getCheck()) players |= 0x08;
 
-			int8 einer = numberOfStones[0];
-			int8 zweier = numberOfStones[1];
-			int8 dreier = numberOfStones[2];
-			int8 vierer = numberOfStones[3];
-			int8 fuenfer = numberOfStones[4];
+			int8 monominoes = numberOfStones[0];
+			int8 dominoes = numberOfStones[1];
+			int8 trominoes = numberOfStones[2];
+			int8 tetrominoes = numberOfStones[3];
+			int8 pentominoes = numberOfStones[4];
 			int8 a_default[STONE_COUNT_ALL_SHAPES] = {
-					einer,
-					zweier,
-					dreier, dreier,
-					vierer, vierer, vierer, vierer, vierer,
-					fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer,
+					monominoes,
+					dominoes,
+					trominoes, trominoes,
+					tetrominoes, tetrominoes, tetrominoes, tetrominoes, tetrominoes,
+					pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes,
 			};
 			int8 a_junior[STONE_COUNT_ALL_SHAPES] = {
 					2,
@@ -346,9 +346,9 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 				a = a_default;
 
 			if (!multiplayer)
-				GUI->startSingleplayerGame(m, players, kindOfDiff, size_x, size_y,a,::ki_multithreading);
+				GUI->startSingleplayerGame(m, players, kindOfDiff, size_x, size_y,a,::ai_multithreading);
 			else {
-				GUI->startMultiplayerGame(m, players, kindOfDiff, size_x, size_y,a,::ki_multithreading, name);
+				GUI->startMultiplayerGame(m, players, kindOfDiff, size_x, size_y,a,::ai_multithreading, name);
 				oldname = strdup(nameField->getText());
 			}
 			return 1;
@@ -384,31 +384,31 @@ CNewGameAdvancedDialog::CNewGameAdvancedDialog(int sizex,int sizey,int numberOfS
 	addChild(size_y);
 
 	addChild(new CStaticText(30,70,"Stones with one squares",this));
-	einer=new CSpinBox(260,70,45,20,5100,0,maxNumberStones,numberOfStones[0],this);
-	addChild(einer);
+	monominoes=new CSpinBox(260,70,45,20,5100,0,maxNumberStones,numberOfStones[0],this);
+	addChild(monominoes);
 
 	addChild(new CStaticText(30,100,"Stones with two squares",this));
-	zweier=new CSpinBox(260,100,45,20,5102,0,maxNumberStones,numberOfStones[1],this);
-	addChild(zweier);
+	dominoes=new CSpinBox(260,100,45,20,5102,0,maxNumberStones,numberOfStones[1],this);
+	addChild(dominoes);
 
-	i_dreier=numberOfStones[2];
-	i_vierer=numberOfStones[3];
-	i_fuenfer=numberOfStones[4];
+	i_trominoes=numberOfStones[2];
+	i_tetrominoes=numberOfStones[3];
+	i_pentominoes=numberOfStones[4];
 
 	addChild(new CStaticText(30,130,"Stones with three squares",this));
 	if (min>3)
-		addDreier(numberOfStones[2]);
-	else dreier=nullptr;
+		addTrominoes(numberOfStones[2]);
+	else trominoes=nullptr;
 
 	addChild(new CStaticText(30,160,"Stones with four squares",this));
 	if (min>4)
-		addVierer(numberOfStones[3]);
-	else vierer=nullptr;
+		addTetrominoes(numberOfStones[3]);
+	else tetrominoes=nullptr;
 
 	addChild(new CStaticText(30,190,"Stones with five squares",this));
 	if (min>5)
-		addFuenfer(numberOfStones[4]);
-	else fuenfer=nullptr;
+		addPentominoes(numberOfStones[4]);
+	else pentominoes=nullptr;
 }
 
 int CNewGameAdvancedDialog::processMouseEvent(TMouseEvent *event)
@@ -450,60 +450,60 @@ void CNewGameAdvancedDialog::checkCheckBoxes()
 	
 	if (min<=3)
 	{
-		if (dreier)
+		if (trominoes)
 		{
-			i_dreier=dreier->getValue();
-			dreier->remove();
-			dreier=nullptr;
+			i_trominoes=trominoes->getValue();
+			trominoes->remove();
+			trominoes=nullptr;
 		}
-	}else if (!dreier)addDreier(i_dreier);
+	}else if (!trominoes)addTrominoes(i_trominoes);
 	if (min<=4)
 	{
-		if (vierer)
+		if (tetrominoes)
 		{
-			i_vierer=vierer->getValue();
-			vierer->remove();
-			vierer=nullptr;
+			i_tetrominoes=tetrominoes->getValue();
+			tetrominoes->remove();
+			tetrominoes=nullptr;
 		}
-	}else if (!vierer)addVierer(i_vierer);
+	}else if (!tetrominoes)addTetrominoes(i_tetrominoes);
 	if (min<=5)
 	{
-		if (fuenfer)
+		if (pentominoes)
 		{
-			i_fuenfer=fuenfer->getValue();
-			fuenfer->remove();
-			fuenfer=nullptr;
+			i_pentominoes=pentominoes->getValue();
+			pentominoes->remove();
+			pentominoes=nullptr;
 		}
-	}else if (!fuenfer)addFuenfer(i_fuenfer);
+	}else if (!pentominoes)addPentominoes(i_pentominoes);
 }
 
 bool CNewGameAdvancedDialog::checkConsistency()
 {
-	if(!einer->getValue() && !zweier->getValue() && 
-		(!dreier || !dreier->getValue()) && 
-		(!vierer || !vierer->getValue()) && 
-		(!fuenfer || !fuenfer->getValue()) )
+	if(!monominoes->getValue() && !dominoes->getValue() && 
+		(!trominoes || !trominoes->getValue()) && 
+		(!tetrominoes || !tetrominoes->getValue()) && 
+		(!pentominoes || !pentominoes->getValue()) )
 		addSubChild(new CMessageBox(300,100,"Dumb user","Please choose at least one stone!!!"));
 	else return true;
 	return false;
 }
 
-void CNewGameAdvancedDialog::addDreier(int value)
+void CNewGameAdvancedDialog::addTrominoes(int value)
 {
-	dreier=new CSpinBox(260,130,45,20,5104,0,maxNumberStones,value,this);
-	addChild(dreier);
+	trominoes=new CSpinBox(260,130,45,20,5104,0,maxNumberStones,value,this);
+	addChild(trominoes);
 }
 
-void CNewGameAdvancedDialog::addVierer(int value)
+void CNewGameAdvancedDialog::addTetrominoes(int value)
 {
-	vierer=new CSpinBox(260,160,45,20,5106,0,maxNumberStones,value,this);
-	addChild(vierer);
+	tetrominoes=new CSpinBox(260,160,45,20,5106,0,maxNumberStones,value,this);
+	addChild(tetrominoes);
 }
 
-void CNewGameAdvancedDialog::addFuenfer(int value)
+void CNewGameAdvancedDialog::addPentominoes(int value)
 {
-	fuenfer=new CSpinBox(260,190,45,20,5108,0,maxNumberStones,value,this);
-	addChild(fuenfer);
+	pentominoes=new CSpinBox(260,190,45,20,5108,0,maxNumberStones,value,this);
+	addChild(pentominoes);
 }	
 
 void CNewGameAdvancedDialog::execute(double elapsed)

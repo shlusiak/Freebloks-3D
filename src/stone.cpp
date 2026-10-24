@@ -49,7 +49,7 @@ void CStone::init(const int shape_no){
 	m_available = 1;
 }
 
-int CStone::calculate_possible_turns_in_position(const CBoard& spiel, const int playernumber, const int fieldY, const int fieldX) const {
+int CStone::calculate_possible_turns_in_position(const CBoard& board, const int playernumber, const int fieldY, const int fieldX) const {
 	int mirror_max;
 	int count = 0;
 
@@ -64,7 +64,7 @@ int CStone::calculate_possible_turns_in_position(const CBoard& spiel, const int 
 			for (int x = 0; x < shape.size; x++){
 				for (int y = 0; y < shape.size; y++){
 					if (shape.get_field(y, x, mirror, rotate) == STONE_FIELD_ALLOWED) {
-						if (spiel.is_valid_turn(shape, playernumber, fieldY-y, fieldX-x, mirror, rotate)) {
+						if (board.is_valid_turn(shape, playernumber, fieldY-y, fieldX-x, mirror, rotate)) {
 							count++;
 						}
 					}

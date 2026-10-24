@@ -184,9 +184,9 @@ CStoneRollEffect::CStoneRollEffect(CGUI *vgui, const CStone *vstone,int stone_nu
 	gui->getPlayerStonePos(vplayer,stone_number,&cx,&cy,&cz);
 	
 	/* Die Zielposition auf dem Feld in Welt-Koordinaten berechnen. */
-	dx=-(gui->spiel->get_field_size_x()-1)*stone_size+((double)x+(double)stone.get_stone_size()/2.0)*stone_size*2.0-stone_size;
+	dx=-(gui->game->get_field_size_x()-1)*stone_size+((double)x+(double)stone.get_stone_size()/2.0)*stone_size*2.0-stone_size;
 	dy=bevel_height;
-	dz=-(gui->spiel->get_field_size_y()-1)*stone_size+((double)y+(double)stone.get_stone_size()/2.0)*stone_size*2.0-stone_size;
+	dz=-(gui->game->get_field_size_y()-1)*stone_size+((double)y+(double)stone.get_stone_size()/2.0)*stone_size*2.0-stone_size;
 
 	{
 		/* Eine zufaellige Rotationsachse berechnen. */
@@ -197,9 +197,9 @@ CStoneRollEffect::CStoneRollEffect(CGUI *vgui, const CStone *vstone,int stone_nu
 		axe_z=cos(angx)*cos(angy);
 	}
 	/* Gravitation ist -1/2*80 */
-	parabel_a=-40.0;
+	parabola_a=-40.0;
 	/* Daraus das b der Parabel berechnen, dass die Parabel genau durch Start und Ziel geht */
-	parabel_b=-parabel_a+dy-cy;
+	parabola_b=-parabola_a+dy-cy;
 }
 
 /**
@@ -234,7 +234,7 @@ void CStoneRollEffect::render()
 
 	/* Aktuelle Position entlang der Parabel aus der Zeit errechnen. */
 	const double x=cx+time*(dx-cx);
-	const double y=parabel_a*time*time+parabel_b*time+cy;
+	const double y=parabola_a*time*time+parabola_b*time+cy;
 	const double z=cz+time*(dz-cz);
 	
 	CStoneEffect::render();
@@ -271,7 +271,7 @@ void CStoneRollEffect::renderShadow()
 	if (s>1.0)s=1.0;
 	/* Aktuelle Position des Steins errechnen. */
 	const double x=cx+time*(dx-cx);
-	const double y=parabel_a*time*time+parabel_b*time+cy;
+	const double y=parabola_a*time*time+parabola_b*time+cy;
 	const double z=cz+time*(dz-cz);
 	
 	CStoneEffect::renderShadow();

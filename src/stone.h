@@ -349,7 +349,7 @@ class CStone {
 			return shape.get_field(y, x, orientation.mirrored, orientation.rotation);
 		}
 
-		int calculate_possible_turns_in_position(const CBoard& spiel, const int playernumber, const int fieldY, const int fieldX) const;
+		int calculate_possible_turns_in_position(const CBoard& board, const int playernumber, const int fieldY, const int fieldX) const;
 
 		inline const int get_stone_size() const {
 			return shape.size;

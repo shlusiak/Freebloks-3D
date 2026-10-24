@@ -10,7 +10,7 @@
 #include "window.h"
 #include "network.h"
 
-class CSpielClient;
+class CGameClient;
 struct TOptions;
 
 

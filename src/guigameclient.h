@@ -12,13 +12,13 @@
  * Die Klasse erweitert den Spielclient um Callbacks fuer die GUI
  **/
 
-class CGUISpielClient:public CSpielClient
+class CGUIGameClient:public CGameClient
 {
 private:
 	/* Manchmal muss der SpielClient Funktionen der GUI aufrufen */
 	CGUI *gui;
 public:
-	CGUISpielClient(CGUI* vgui);
+	CGUIGameClient(CGUI* vgui);
 
 private:
 	virtual void newCurrentPlayer(const int player);

@@ -25,19 +25,19 @@
 
 static int width=20;
 static int height=20;
-static int ki_threads=1;
-static int ki_strength=KI_PERFECT;
+static int ai_threads=1;
+static int ai_strength=AI_PERFECT;
 
 
 static void help()
 {
 	printf("Usuage: benchmark [OPTIONS]\n\n");
 	printf("  -k  --ki          Strength of AI. Lower number means stronger.\n"
-	       "                    Default: %d\n", ki_strength);
+	       "                    Default: %d\n", ai_strength);
 	printf("      --width       Width of the field. Default: 20\n"
 	       "      --height      Height of the field. Default: 20\n"
 	       "  -t, --threads     Define number of threads to use for calculating moves\n"
-	       "                    Default: %d\n", ki_threads);
+	       "                    Default: %d\n", ai_threads);
 	printf("      --help        Display this help and exit\n");
 	exit(0);
 }
@@ -56,10 +56,10 @@ static void parseParams(int argc,char **argv)
 				printf("%s: Expecting parameter\n",argv[i-1]);
 				exit(1);
 			}
-			ki_strength=atoi(argv[i]);
-			if (ki_strength<0 || ki_strength>2000)
+			ai_strength=atoi(argv[i]);
+			if (ai_strength<0 || ai_strength>2000)
 			{
-				printf("%s: Invalid strength number (%d)\n",argv[i-1],ki_strength);
+				printf("%s: Invalid strength number (%d)\n",argv[i-1],ai_strength);
 				exit(1);
 			}
 			i++;
@@ -113,7 +113,7 @@ static void parseParams(int argc,char **argv)
 				printf("%s: Invalid (%d). Please specify number between 1 and 8.\n",argv[i-1],t);
 				exit(1);
 			}
-			ki_threads=t;
+			ai_threads=t;
 			i++;
 			continue;
 		}
@@ -126,7 +126,7 @@ static void parseParams(int argc,char **argv)
 /**
  * An observer of a game, does not play but records game start and end events and prints time elapsed.
  */
-class CBenchmarkClient:public CSpielClient
+class CBenchmarkClient:public CGameClient
 {
 private:
 	CTimer timer;
@@ -194,11 +194,11 @@ int main(int argc,char ** argv)
 		return 1;
 	}
 
-    CSpielServer spiel(0, ki_strength, GAMEMODE_4_COLORS_4_PLAYERS, false);
-	spiel.set_ki_threads(ki_threads);
-	spiel.set_field_size(width, height);
-	spiel.start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
-	spiel.add_client(s[1]);
+    CGameServer server(0, ai_strength, GAMEMODE_4_COLORS_4_PLAYERS, false);
+	server.set_ai_threads(ai_threads);
+	server.set_field_size(width, height);
+	server.start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
+	server.add_client(s[1]);
 
 	if (pthread_create(&pt, nullptr, clientThread, (void*)&s[0])) {
         perror("pthread_create");
@@ -208,7 +208,7 @@ int main(int argc,char ** argv)
         perror("pthread_detach");
     }
 
-	spiel.run();
+	server.run();
 
 	return 0;
 }

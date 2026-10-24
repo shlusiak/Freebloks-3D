@@ -27,8 +27,8 @@ class CPlayer{
 	public:
 		CPlayer():m_nemesis(-1), m_teammate(-1) {}
 
-		void init(const CBoard& spiel, const int playernumber);
-		void refresh_data(const CBoard& spiel);
+		void init(const CBoard& board, const int playernumber);
+		void refresh_data(const CBoard& board);
 
 		const int get_number() const; //liefert jetzt einen wert von 0 bis 3!
 		const int get_stone_points_left() const;

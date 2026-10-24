@@ -28,11 +28,11 @@
  * Zentraler SpielServer, zu dem sich die SpielClients verbinden.
  * Wird vom SpielListener errichtet
  **/
-class CSpielServer : public CGame {
+class CGameServer : public CGame {
 private:
     friend class CServerListener;
 
-    CKi m_ki;
+    CAI m_ai;
 
     /* Die sockets der verbundenen Clients */
     int clients[CLIENTS_MAX];
@@ -44,7 +44,7 @@ private:
     const int max_humans;
 
     /* Art der KI / Schwierigkeitsgrad */
-    const int ki_mode;
+    const int ai_mode;
 
     /* Ein Zeitzaehler, um die Dauer eines Spiels rauszukriegen */
     CTimer timer;
@@ -82,9 +82,9 @@ private:
     void next_player();
 
 public:
-    CSpielServer(int v_max_humans, int v_ki_mode, GAMEMODE v_gamemode, bool v_forceDelay);
+    CGameServer(int v_max_humans, int v_ai_mode, GAMEMODE v_gamemode, bool v_forceDelay);
 
-    virtual ~CSpielServer();
+    virtual ~CGameServer();
 
     /* Verarbeite alle Netzwerknachrichten des angegebenen Clients */
     void handle_client(int index);
@@ -109,11 +109,11 @@ public:
 
     /* Startet einen Server lokal in einem Thread */
     static int
-    run_server(const char *interface_, int port, int maxhumans, int ki_mode, int width, int height, GAMEMODE gamemode,
-               int8 stone_numbers[], int ki_threads);
+    run_server(const char *interface_, int port, int maxhumans, int ai_mode, int width, int height, GAMEMODE gamemode,
+               int8 stone_numbers[], int ai_threads);
 
-    void set_ki_threads(int ki_threads) {
-        m_ki.set_num_threads(ki_threads);
+    void set_ai_threads(int ai_threads) {
+        m_ai.set_num_threads(ai_threads);
     }
 
     /* assigns all PLAYER_LOCAL player to the first connected client */
@@ -122,7 +122,7 @@ public:
 
 
 /**
- * Lauscht an einem Socket und fuegt die verbindenden Clients einem CSpielServer hinzu
+ * Lauscht an einem Socket und fuegt die verbindenden Clients einem CGameServer hinzu
  **/
 class CServerListener {
 private:
@@ -130,8 +130,8 @@ private:
     int listen_sockets[LISTEN_SOCKETS_MAX];
     int num_listen_sockets;
 
-    /* Der CSpielServer, den der Listener aufbaut */
-    CSpielServer *server = nullptr;
+    /* Der CGameServer, den der Listener aufbaut */
+    CGameServer *server = nullptr;
     /* logger */
     CLogger *logger = nullptr;
 public:
@@ -149,11 +149,11 @@ public:
     /* Schliesst das listen_socket, sodass keine Verbindungen mehr akzeptiert werden */
     void close();
 
-    /* Richtet einen neuen CSpielServer ein, mit max. max_humans menschlichen Spielern */
-    void new_game(int max_humans, int ki_mode, GAMEMODE gamemode, int ki_threads, bool forceDelay);
+    /* Richtet einen neuen CGameServer ein, mit max. max_humans menschlichen Spielern */
+    void new_game(int max_humans, int ai_mode, GAMEMODE gamemode, int ai_threads, bool forceDelay);
 
     /* Gibt aktuell erbautes Spiel zurueck */
-    CSpielServer *get_game() { return server; }
+    CGameServer *get_game() { return server; }
 
     /* Logdatei setzen */
     void setLogger(CLogger *l) { logger = l; }

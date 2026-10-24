@@ -18,7 +18,7 @@
  * sowie ein Chat angeboten. Dies ist quasi eine Lobby, ueber die das Spiel endgueltig gestartet wird.
  * Es muessen der aktuelle SpielClient, die GUI und der Servername als Zeichenkette uebergeben werden.
  **/
-CStartGameDialog::CStartGameDialog(CSpielClient *vclient,CGUI* vgui,const char* servername)
+CStartGameDialog::CStartGameDialog(CGameClient *vclient,CGUI* vgui,const char* servername)
 :CDialog(300,260,"Waiting for players")
 {
 	gui=vgui;
@@ -161,7 +161,7 @@ bool CStartGameDialog::processKey(unsigned short key)
 /**
  * Der Dialog, der ueber Ausgang einer Partie berichtet, mit Chat-Feld.
  **/
-CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CSpielClient *client)
+CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 :CDialog(390,220,"Game finished")
 {
 	/* Welcher Spieler auf dem entsprechenden Platz ist. Wird noch sortiert. */
@@ -317,13 +317,13 @@ int CGameFinishDialog::processMouseEvent(TMouseEvent *event)
 	else if (r==17)
 	/* Neue Runde starten und Dialog schliessen. */
 	{
-		gui->spiel->request_start();
+		gui->game->request_start();
 		close();
 	}else if (r==18)
 	{
 		/* Verbindung zum Server trennen und Dialog schliessen. */
 		close();
-		gui->spiel->Disconnect();
+		gui->game->Disconnect();
 	}else return r;
 	return 0;
 }
@@ -334,7 +334,7 @@ int CGameFinishDialog::processMouseEvent(TMouseEvent *event)
 void CGameFinishDialog::sendChat()
 {
 	/* Nachricht senden. */
-	gui->spiel->chat(chat->getText());
+	gui->game->chat(chat->getText());
 	/* Eingabefeld leeren. */
 	chat->setText("");
 	/* Und Fokus geben. */
@@ -350,7 +350,7 @@ bool CGameFinishDialog::processKey(unsigned short key)
 	if (key==VK_ESCAPE)
 	{
 		/* Verbindung zum Server kappen. */
-		gui->spiel->Disconnect();
+		gui->game->Disconnect();
 		/* Dialog schliessen. */
 		close();
 		return true;

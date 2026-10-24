@@ -14,7 +14,7 @@
  * Die GUI kommuniziert direkt mit dem Spielclient
  **/
 
-class CSpielClient:public CGame
+class CGameClient:public CGame
 {
 private:
 	/* Socket Verbindung des Clients zum Spielserver */
@@ -23,8 +23,8 @@ private:
 	/* Letztes empfangene Status Pakets des Spielservers */
 	NET_SERVER_STATUS status;
 public:
-	CSpielClient();
-	virtual ~CSpielClient();
+	CGameClient();
+	virtual ~CGameClient();
 
 	/* Spielclient mit angegebenen Server an port verbinden
 	   Gibt Fehlerstring zurueck, oder nullptr bei Erfolg */

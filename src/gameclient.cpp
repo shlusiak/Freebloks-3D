@@ -34,7 +34,7 @@
 /**
  * Leeren SpielClient initialisieren
  **/
-CSpielClient::CSpielClient()
+CGameClient::CGameClient()
 {
 	start_new_game(GAMEMODE_4_COLORS_4_PLAYERS);
 	client_socket=0;
@@ -45,7 +45,7 @@ CSpielClient::CSpielClient()
 		status.stone_numbers[i]=0;
 }
 
-CSpielClient::~CSpielClient()
+CGameClient::~CGameClient()
 {
 	/* Verbindung trennen */
 	Disconnect();
@@ -59,7 +59,7 @@ CSpielClient::~CSpielClient()
  * Rueckgabe: nullptr bei Erfolg, sonst Zeiger auf Zeichenkette mit der Fehlermeldung
  **/
 
-const char* CSpielClient::Connect(const char* host,int port, int blocking)
+const char* CGameClient::Connect(const char* host,int port, int blocking)
 {
 #ifndef WIN32
 	if (port == 0)
@@ -196,7 +196,7 @@ const char* CSpielClient::Connect(const char* host,int port, int blocking)
 }
 
 
-void CSpielClient::Connect(int client_socket, int blocking)
+void CGameClient::Connect(int client_socket, int blocking)
 {
 	this->client_socket = client_socket;
 	if (blocking == 0)
@@ -213,7 +213,7 @@ void CSpielClient::Connect(int client_socket, int blocking)
 /** 
  *Verbindung zum Server trennen
  */
-void CSpielClient::Disconnect()
+void CGameClient::Disconnect()
 {
 	if (client_socket)closesocket(client_socket);
 	client_socket=0;
@@ -224,7 +224,7 @@ void CSpielClient::Disconnect()
  * Gibt nullptr bei Erfolg zurueck, sonst Zeiger auf Fehlermeldung, die anzeigt
  * dass die Verbindung zum Server verloren wurde
  **/
-const char* CSpielClient::poll()
+const char* CGameClient::poll()
 {
 	const char *err;
 	/* Puffer fuer eine Netzwerknachricht. */
@@ -252,7 +252,7 @@ const char* CSpielClient::poll()
  * Erbitte Spielserver um einen lokalen Spieler.
  * Server schickt eine Spielernummer an den Client zurueck.
  **/
-void CSpielClient::request_player(int wish_player, const char* name)const
+void CGameClient::request_player(int wish_player, const char* name)const
 {
 	NET_REQUEST_PLAYER data;
 	data.player = wish_player;
@@ -267,7 +267,7 @@ void CSpielClient::request_player(int wish_player, const char* name)const
 /**
  * Verarbeitet eine einzelne Netzwerknachricht
  **/
-void CSpielClient::process_message(NET_HEADER* data)
+void CGameClient::process_message(NET_HEADER* data)
 {
 	int i;
 	switch(data->msg_type)
@@ -375,7 +375,7 @@ void CSpielClient::process_message(NET_HEADER* data)
 				int i;
 				memcpy(status.client_names, s->client_names, sizeof(s->client_names));
 				for (i = 0; i < PLAYER_MAX; i++) {
-					status.spieler[i] = s->spieler[i];
+					status.player_owner[i] = s->player_owner[i];
 				}
 			}
 		}
@@ -428,7 +428,7 @@ void CSpielClient::process_message(NET_HEADER* data)
  * Wird von der GUI aufgerufen, wenn ein Spieler einen Stein setzen will
  * Die Aktion wird nur an den Server geschickt, der Stein wird NICHT lokal gesetzt
  **/
-TSingleField CSpielClient::request_set_stone(const CStone& stone, int y, int x)
+TSingleField CGameClient::request_set_stone(const CStone& stone, int y, int x)
 {
 	NET_SET_STONE data;
 	if (m_current_player==-1)return FIELD_DENIED;
@@ -453,7 +453,7 @@ TSingleField CSpielClient::request_set_stone(const CStone& stone, int y, int x)
 /**
  * Erbittet den Spielstart beim Server
  **/
-void CSpielClient::request_start()const
+void CGameClient::request_start()const
 {
 	NET_START_GAME data;
 	send_message((NET_HEADER*)&data,sizeof(data),MSG_START_GAME);
@@ -462,7 +462,7 @@ void CSpielClient::request_start()const
 /**
  * Erbittet eine Zugzuruecknahme beim Server
  **/
-void CSpielClient::request_undo()const
+void CGameClient::request_undo()const
 {
 	NET_REQUEST_UNDO data;
 	send_message((NET_HEADER*)&data,sizeof(data),MSG_REQUEST_UNDO);
@@ -472,7 +472,7 @@ void CSpielClient::request_undo()const
  * Schickt eine Chat-Nachricht an den Server. Dieser wird sie schnellstmoeglich
  * an alle Clients weiterleiten (darunter auch dieser Client selbst).
  **/
-void CSpielClient::chat(const char *text)
+void CGameClient::chat(const char *text)
 {
 	/* Bei Textlaenge von 0 wird nix verschickt */
 	if (strlen(text)<1)return;
@@ -493,7 +493,7 @@ void CSpielClient::chat(const char *text)
 /**
  * Gibt true zurueck, wenn der Spieler kein Computerspieler ist
  **/
-const bool CSpielClient::is_local_player(const int player_number)const
+const bool CGameClient::is_local_player(const int player_number)const
 {
 	if (player_number == -1) return false;
 	return (player[player_number] != PLAYER_COMPUTER);

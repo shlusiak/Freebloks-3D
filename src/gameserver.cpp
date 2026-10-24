@@ -2,8 +2,8 @@
  * spielserver.cpp
  * Autor: Sascha Hlusiak
  *
- * CSpielServer: Server fuer ein Spiel
- * CSpielListener: Akzeptiert Verbindungen an einem Netzwerksocket und errichtet einen CSpielServer
+ * CGameServer: Server fuer ein Spiel
+ * CSpielListener: Akzeptiert Verbindungen an einem Netzwerksocket und errichtet einen CGameServer
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -40,8 +40,8 @@
 /**
  * Construktor: Leeren SpielServer erstellen, alles auf Standardeinstellung
  **/
-CSpielServer::CSpielServer(const int v_max_humans, const int v_ki_mode, const GAMEMODE v_gamemode, bool v_forceDelay)
-:ki_mode(v_ki_mode), max_humans(v_max_humans), forceDelay(v_forceDelay)
+CGameServer::CGameServer(const int v_max_humans, const int v_ai_mode, const GAMEMODE v_gamemode, bool v_forceDelay)
+:ai_mode(v_ai_mode), max_humans(v_max_humans), forceDelay(v_forceDelay)
 {
 	int i;
 	start_new_game(v_gamemode);
@@ -61,7 +61,7 @@ CSpielServer::CSpielServer(const int v_max_humans, const int v_ki_mode, const GA
 /**
  * Destruktor: Verbindung zu allen Clients beenden
  **/
-CSpielServer::~CSpielServer()
+CGameServer::~CGameServer()
 {
 	int i;
 	for (i=0;i<CLIENTS_MAX;i++) {
@@ -76,7 +76,7 @@ CSpielServer::~CSpielServer()
 /**
  * Gibt Anzahl der Verbundenen Clients zurueck
  **/
-int CSpielServer::num_clients()const
+int CGameServer::num_clients()const
 {
 	int n;
 	n=0;
@@ -89,7 +89,7 @@ int CSpielServer::num_clients()const
  * Ist kein Platz mehr frei (sind CLIENTS_MAX Clients verbunden),
  * wird die Verbindung einfach getrennt
  **/
-void CSpielServer::add_client(int s)
+void CGameServer::add_client(int s)
 {
 	for (int i=0;i<CLIENTS_MAX;i++)if (clients[i]==0)
 	{
@@ -116,7 +116,7 @@ void CSpielServer::add_client(int s)
  * Entfernt den client[index], schliesst seine TCP Verbindung und ersetzt ihn durch einen COMPUTER
  **/
 
-void CSpielServer::delete_client(int index,bool notify)
+void CGameServer::delete_client(int index,bool notify)
 {
 	/* Alle Spieler, die der Client belegt hat, werden durch einen PLAYER_COMPUTER ersetzt */
 	for (int i=0;i<PLAYER_MAX;i++)if (player[i] == clients[index]) {
@@ -149,7 +149,7 @@ void CSpielServer::delete_client(int index,bool notify)
  * Es werden abwechselnd Netzwerknachrichten der Clients verarbeitet, sowie die Zuege der KI
  * berechnet.
  **/
-void CSpielServer::run()
+void CGameServer::run()
 {
     /* filedescriptors erhaelt alle sockets, und ein select() wartet dann auf eine Netzwerknachricht
        irgendeines Clients */
@@ -172,7 +172,7 @@ void CSpielServer::run()
 	{
 		/* Ermittle CTurn, den die KI jetzt setzen wuerde */
 		timer.reset();
-		const CTurn *turn = m_ki.get_ki_turn(*this, current_player(),ki_mode);
+		const CTurn *turn = m_ai.get_ai_turn(*this, current_player(),ai_mode);
 
 		if (forceDelay && timer.elapsed() < 800) {
 			timer.sleep(800 - timer.elapsed());
@@ -265,7 +265,7 @@ void CSpielServer::run()
 /**
  * Verarbeitet eine einzige Nachricht eines bestimmten Clients, von dem Daten anliegen
  */
-void CSpielServer::handle_client(int index)
+void CGameServer::handle_client(int index)
 {
 	const char *err;
 	char buffer[512];
@@ -285,7 +285,7 @@ void CSpielServer::handle_client(int index)
 /**
  * Verarbeitet eine von einem Client empfangene Netzwerknachricht
  **/
-void CSpielServer::process_message(int client,NET_HEADER* data)
+void CGameServer::process_message(int client,NET_HEADER* data)
 {
 	switch(data->msg_type)
 	{
@@ -524,7 +524,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 			if (ntohs(data->data_length) < sizeof(NET_REQUEST_HINT))
 				return;
 
-			const CTurn *turn = m_ki.get_ki_turn(*this, ((NET_REQUEST_HINT*)data)->player,KI_HARD);
+			const CTurn *turn = m_ai.get_ai_turn(*this, ((NET_REQUEST_HINT*)data)->player,AI_HARD);
 			if (turn == nullptr)
 				return;
 
@@ -619,7 +619,7 @@ void CSpielServer::process_message(int client,NET_HEADER* data)
 /**
  * Schicke eine Nachricht an alle verbundenen Clients
  **/
-void CSpielServer::send_all(NET_HEADER* data,uint16 data_length,uint8 msg_type)
+void CGameServer::send_all(NET_HEADER* data,uint16 data_length,uint8 msg_type)
 {
 	for (int i=0;i<CLIENTS_MAX;i++)if (clients[i]!=0)
 		if (network_send(clients[i],data,data_length,msg_type)==-1)
@@ -632,7 +632,7 @@ void CSpielServer::send_all(NET_HEADER* data,uint16 data_length,uint8 msg_type)
 /**
  * Schicke aktuelle Spielernummer an alle Clients
  **/
-void CSpielServer::send_current_player()
+void CGameServer::send_current_player()
 {
 	NET_CURRENT_PLAYER data;
 	data.player=current_player();
@@ -643,7 +643,7 @@ void CSpielServer::send_current_player()
  * Schicke Serverstatus an alle Clients
  * (Anzahl Spieler, Anzahl Computerspieler, Anzahl verbundener Clients, Breite und Hoehe)
  **/
-void CSpielServer::send_server_status()
+void CGameServer::send_server_status()
 {
 	NET_SERVER_STATUS status;
 	int i;
@@ -658,12 +658,12 @@ void CSpielServer::send_server_status()
 	status.gamemode=m_game_mode;
 	for (i = 0; i < PLAYER_MAX; i++) {
 		if (player[i] == PLAYER_COMPUTER || player[i] == PLAYER_LOCAL)
-			status.spieler[i] = player[i];
+			status.player_owner[i] = player[i];
 		else {
 			int j;
 			for (j = 0; j < CLIENTS_MAX; j++)
 				if (clients[j] == player[i])
-					status.spieler[i] = j;
+					status.player_owner[i] = j;
 		}
 	}
 	for (i = 0; i < CLIENTS_MAX; i++) {
@@ -684,7 +684,7 @@ void CSpielServer::send_server_status()
 /**
  * Schickt eine Chat-Nachricht an alle Clients, dessen Absender der Server ist
  **/
-void CSpielServer::send_server_msg(const char *text)
+void CGameServer::send_server_msg(const char *text)
 {
 	/* Speicher fuer NET_CHAT reservieren, wo text reinpasst. */
 	NET_CHAT *chat=(NET_CHAT*)malloc(sizeof(NET_CHAT)+strlen(text)+1);
@@ -701,7 +701,7 @@ void CSpielServer::send_server_msg(const char *text)
 /**
  * Starte das eigentliche Spiel
  **/
-void CSpielServer::start_game()
+void CGameServer::start_game()
 {
 	/* Wenn es bereits laeuft, mache nichts */
 	if (m_current_player!=-1)return;
@@ -737,7 +737,7 @@ void CSpielServer::start_game()
 /**
  * Ermittle naechsten Spieler
  **/
-void CSpielServer::next_player()
+void CGameServer::next_player()
 {
 	int i;
 	for (i=0;i<PLAYER_MAX;i++)
@@ -776,7 +776,7 @@ void CSpielServer::next_player()
  * Setzt die Anzahl der Steine des Spiels. Die Zahlen werden lokal gemerkt,
  * damit sie an die Clients geschickt werden koennen.
  **/
-void CSpielServer::set_stone_numbers(int8 stone_numbers[])
+void CGameServer::set_stone_numbers(int8 stone_numbers[])
 {
 	if (stone_numbers == nullptr) {
 		for (int i = 0; i < STONE_COUNT_ALL_SHAPES; i++)
@@ -792,7 +792,7 @@ void CSpielServer::set_stone_numbers(int8 stone_numbers[])
 
 /** 
  * Der Server-Thread, der das Spiel parallel hosten soll 
- * Wird von CSpielServer::run_server(...) aufgerufen
+ * Wird von CGameServer::run_server(...) aufgerufen
  **/
 #ifdef WIN32
 DWORD WINAPI LocalServerThread(void* param)
@@ -834,7 +834,7 @@ void* LocalServerThread(void* param)
  * return 0, bei Erfolg
  * Wird von der GUI aufgerufen, um einen lokalen Server zu starten, fuer single- oder multiplayer
  **/
-int CSpielServer::run_server(const char* interface_,int port,int maxhumans,int ki_mode,int width,int height,GAMEMODE gamemode,int8 stone_numbers[],int ki_threads)
+int CGameServer::run_server(const char* interface_,int port,int maxhumans,int ai_mode,int width,int height,GAMEMODE gamemode,int8 stone_numbers[],int ai_threads)
 {
 	// Listener erstellen und einrichten
 	CServerListener *listener=new CServerListener();
@@ -847,7 +847,7 @@ int CSpielServer::run_server(const char* interface_,int port,int maxhumans,int k
 	}
 
 	// Listener fuer neues Spiel vorbereiten
-	listener->new_game(maxhumans, ki_mode, gamemode, ki_threads, true);
+	listener->new_game(maxhumans, ai_mode, gamemode, ai_threads, true);
 	listener->get_game()->set_field_size(width, height);
 	listener->get_game()->start_new_game(gamemode);
 	listener->get_game()->set_stone_numbers(stone_numbers);
@@ -869,7 +869,7 @@ int CSpielServer::run_server(const char* interface_,int port,int maxhumans,int k
  * This is for the server, which does not have local players to support "resume", where local players
  * can only be assigned to clients after they have joined.
  */
-void CSpielServer::assign_local_players()
+void CGameServer::assign_local_players()
 {
 	int s = -1;
 	int i;
@@ -884,7 +884,7 @@ void CSpielServer::assign_local_players()
 
 	for (i = 0; i < PLAYER_MAX; i++) {
 		if (player[i] == PLAYER_LOCAL) {
-			setSpieler(i, s);
+			setPlayer(i, s);
 		}
 	}
 }
@@ -893,7 +893,7 @@ void CSpielServer::assign_local_players()
 
 
 /**
- * Leeren CServerListener erstellen, ohne socket und ohne CSpielServer
+ * Leeren CServerListener erstellen, ohne socket und ohne CGameServer
  **/
 CServerListener::CServerListener()
 {
@@ -907,7 +907,7 @@ CServerListener::CServerListener()
 
 CServerListener::~CServerListener()
 {
-	/* Socket schliessen, und CSpielServer loeschen */
+	/* Socket schliessen, und CGameServer loeschen */
 	close();
 	delete server;
 }
@@ -1127,7 +1127,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 		for (i=0;i<CLIENTS_MAX;i++)
 			if (get_game()->clients[i]!=0 && FD_ISSET(get_game()->clients[i],&filedescriptors))
 		{
-			/* Wenn ja, lass den CSpielServer die Daten verarbeiten. */
+			/* Wenn ja, lass den CGameServer die Daten verarbeiten. */
 			get_game()->handle_client(i);
 		}
 
@@ -1192,7 +1192,7 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 #endif
 			}
 
-			/* Fuege den neuen Socket dem CSpielServer als Client hinzu */
+			/* Fuege den neuen Socket dem CGameServer als Client hinzu */
 			get_game()->add_client(cl);
 		}
 	}
@@ -1205,9 +1205,9 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
  * Erstellt ein neues Spiel mit max_humans menschlichen Spielern, der Rest ist fuer Computer
  * reserviert
  **/
-void CServerListener::new_game(int max_humans, int ki_mode, GAMEMODE gamemode, int ki_threads, bool forceDelay)
+void CServerListener::new_game(int max_humans, int ai_mode, GAMEMODE gamemode, int ai_threads, bool forceDelay)
 {
-	server = new CSpielServer(max_humans, ki_mode, gamemode, forceDelay);
-	server->set_ki_threads(ki_threads);
+	server = new CGameServer(max_humans, ai_mode, gamemode, forceDelay);
+	server->set_ai_threads(ai_threads);
 }
 

@@ -101,7 +101,7 @@ private:
 	   dem Spieler. */
 	double scale;
 	/* Stein fliegt entlang der Parabel a*(time)^2+b*time */
-	double parabel_a,parabel_b;
+	double parabola_a,parabola_b;
 	/* vorwaerts aufs Feld, oder vom Feld zum Spieler zurueck? */
 	bool reverse;
 public:

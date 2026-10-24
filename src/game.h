@@ -35,7 +35,7 @@ protected:
 public:
     CGame();
 
-    void setSpieler(int i, int s) { player[i] = s; }
+    void setPlayer(int i, int s) { player[i] = s; }
 
     void setCurrentPlayer(int c) { m_current_player = c; }
 

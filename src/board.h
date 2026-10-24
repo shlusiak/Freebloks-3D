@@ -87,7 +87,7 @@ public:
 
     virtual void set_stone_numbers(int8 stone_numbers[]);
 
-    void set_stone_numbers(int8 einer, int8 zweier, int8 dreier, int8 vierer, int8 fuenfer);
+    void set_stone_numbers(int8 monominoes, int8 dominoes, int8 trominoes, int8 tetrominoes, int8 pentominoes);
 
     CPlayer *get_player(const int player_number);
 
@@ -136,9 +136,9 @@ const TSingleField CBoard::get_game_field(const int playernumber, const int y, c
 
 inline
 const TSingleField CBoard::get_game_field(const int y, const int x) const {
-    const TSingleField wert = CBoard::get_game_field_value(y, x);
-    if (wert < PLAYER_BIT_HAVE_MIN) return FIELD_FREE;
-    return wert & 3;
+    const TSingleField value = CBoard::get_game_field_value(y, x);
+    if (value < PLAYER_BIT_HAVE_MIN) return FIELD_FREE;
+    return value & 3;
 }
 
 inline

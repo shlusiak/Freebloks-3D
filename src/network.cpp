@@ -118,10 +118,10 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 		return S_INVALID_PACKAGE;
 	}
 	/* Nachricht scheint ok zu sein. Ermittele restliche Datenmenge */
-	int restdaten=ntohs(data->data_length)-sizeof(NET_HEADER);
+	int remaining=ntohs(data->data_length)-sizeof(NET_HEADER);
 
 	/* Wenn keine Restdaten vorliegen, besteht die Nachricht nur aus einem NET_HEADER. Erfolg! */
-	if (restdaten==0)return nullptr;
+	if (remaining==0)return nullptr;
 
 	/* Wenn Datenpaket insgesamt die Groesse des Puffers ueberschreitet: Maechtig grosser FEHLER */
 	if (ntohs(data->data_length)>size)
@@ -131,10 +131,10 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 	}
 
 	/* Sonst Restdaten einlesen und an Position hinter NET_HEADER in data schreiben */
-	r=recv(sock,&((char*)(data))[sizeof(NET_HEADER)],restdaten,0);
+	r=recv(sock,&((char*)(data))[sizeof(NET_HEADER)],remaining,0);
 	/* Wenn nicht genau so viele Daten gelesen werden konnten, wie in NET_HEADER suggeriert,
 	   lag ein Paketfehler vor. */
-	if (r!=restdaten)
+	if (r!=remaining)
 	{
 // 		printf("Package size mismatch!\n");
 		return S_INVALID_PACKAGE;

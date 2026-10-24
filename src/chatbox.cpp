@@ -62,7 +62,7 @@ void CChatBox::execute(double elapsed)
 	if (text->committed())
 	{
 		/* Nachricht senden */
-		gui->spiel->chat(text->getText());
+		gui->game->chat(text->getText());
 		/* Text-Edit leeren, aber NICHT Fokus geben. */
 		text->setText("");
 	}
@@ -168,7 +168,7 @@ int CChatBox::processMouseEvent(TMouseEvent* event)
 	{
 		/* Bei Klick auf Chat-Button, den Text versenden, und Edit-Feld leeren.
 		   Es behaelt dabei den Fokus, stoert ja auch nicht. */
-		case 101:gui->spiel->chat(text->getText());
+		case 101:gui->game->chat(text->getText());
 			text->setText("");
 			break;
 		/* Kommando weiter durch reichen */

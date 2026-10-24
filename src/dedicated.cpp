@@ -32,8 +32,8 @@ static const char* _interface = nullptr;
 static int max_humans = 4;
 static GAMEMODE gamemode = GAMEMODE_4_COLORS_4_PLAYERS;
 static int width=20,height=20;
-static int ki_threads=2;
-static int ki_strength=KI_HARD;
+static int ai_threads=2;
+static int ai_strength=AI_HARD;
 static int games_ran=0;
 static int games_running=0;
 static int max_running_games=5;
@@ -132,7 +132,7 @@ static int dump_stats(const char *file) {
 
 /* dump stats to given file descriptor */
 static void print_stats(int fd) {
-	CSpielServer *game = nullptr;
+	CGameServer *game = nullptr;
 	if (listener)
 		game = listener->get_game();
 
@@ -208,7 +208,7 @@ static void help()
 	printf("  -h, --maxhumans   Define the maximum of human players per game (0-4)\n"
                "                    Default: %d\n",max_humans);
 	printf("  -k  --ki          Strength of AI. Lower number means stronger.\n"
-	       "                    Default: %d\n", ki_strength);
+	       "                    Default: %d\n", ai_strength);
 	printf("  -m, --mode        The game mode for the hosted game. Valid modes:\n"
 	       "                    2: 2 colors, 2 players\n"
 		   "                    3: 2 colors, 4 players\n"
@@ -217,7 +217,7 @@ static void help()
 	       "      --width       Width of the field. Default: 20\n"
 	       "      --height      Height of the field. Default: 20\n"
 	       "  -t, --threads     Define number of threads to use for calculating moves\n"
-	       "                    Default: %d\n",ki_threads);
+	       "                    Default: %d\n",ai_threads);
 	printf("      --no-delay    Default is to force computer moves to last at least 800ms.\n"
 		   "                    Use this flag to turn this off.\n");
 	printf("  -l, --limit       Maximum number of concurrent running games\n"
@@ -290,10 +290,10 @@ static void parse_params(int argc,char **argv)
 				printf("%s: Expecting parameter\n",argv[i-1]);
 				exit(1);
 			}
-			ki_strength=atoi(argv[i]);
-			if (ki_strength<0 || ki_strength>2000)
+			ai_strength=atoi(argv[i]);
+			if (ai_strength<0 || ai_strength>2000)
 			{
-				printf("%s: Invalid strength number (%d)\n",argv[i-1],ki_strength);
+				printf("%s: Invalid strength number (%d)\n",argv[i-1],ai_strength);
 				exit(1);
 			}
 			i++;
@@ -368,7 +368,7 @@ static void parse_params(int argc,char **argv)
 				printf("%s: Invalid (%d). Please specify number between 1 and 8.\n",argv[i-1],t);
 				exit(1);
 			}
-			ki_threads=t;
+			ai_threads=t;
 			i++;
 			continue;
 		}
@@ -490,7 +490,7 @@ unsigned long WINAPI gameRunThread(void* param)
 void* gameRunThread(void* param)
 #endif
 {
-	CSpielServer* game=(CSpielServer*) param;
+	CGameServer* game=(CGameServer*) param;
 	CGameLogger logger(logWriter, games_ran);
 	
 	game->setLogger(&logger);
@@ -583,7 +583,7 @@ int main(int argc,char ** argv)
 	{
 		/* Ein neues Spiel soll erstellt werden.
 		   KI-Stufe ist schwer*/
-		listener->new_game(max_humans,ki_strength,gamemode,ki_threads,force_delay);
+		listener->new_game(max_humans,ai_strength,gamemode,ai_threads,force_delay);
 		/* Groesse setzen */
 		listener->get_game()->set_field_size(width, height);
 		listener->get_game()->start_new_game(gamemode);

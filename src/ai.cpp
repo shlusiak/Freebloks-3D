@@ -44,7 +44,7 @@ static int get_ultimate_points(CBoard& follow_situation, const int playernumber,
 /**
  * For the given stone, calculate all possible turns on the entire board.
  */
-void CKi::calculate_possible_turns(const CBoard& board, const Shape& shape, const int playernumber) {
+void CAI::calculate_possible_turns(const CBoard& board, const Shape& shape, const int playernumber) {
 	for (int x = 0; x < board.get_field_size_x(); x++) {
 		for (int y = 0; y < board.get_field_size_y(); y++) {
 			if (board.get_game_field(playernumber, y, x) == FIELD_ALLOWED){
@@ -57,7 +57,7 @@ void CKi::calculate_possible_turns(const CBoard& board, const Shape& shape, cons
 /**
  * For the given stone and position, try all positions and calculate possible turns.
  */
-void CKi::calculate_possible_turns_in_position(const CBoard& board, const Shape& shape, const int player, const int fieldY, const int fieldX) {
+void CAI::calculate_possible_turns_in_position(const CBoard& board, const Shape& shape, const int player, const int fieldY, const int fieldX) {
 	int mirror;
 
 	if (shape.mirrorable == MIRRORABLE_IMPORTANT)
@@ -81,7 +81,7 @@ void CKi::calculate_possible_turns_in_position(const CBoard& board, const Shape&
 }
 
 struct THREADDATA {
-	CKi *ki;
+	CAI *ai;
 	int from, to;
 	int best_points;
 	int current_player;
@@ -91,13 +91,13 @@ struct THREADDATA {
 };
 
 #ifdef WIN32
-DWORD WINAPI kiThread(LPVOID p)
+DWORD WINAPI aiThread(LPVOID p)
 #else
-void* kiThread(void* p)
+void* aiThread(void* p)
 #endif
 {
     auto data = (THREADDATA*)p;
-    auto ki = data->ki;
+    auto ai = data->ai;
     const CBoard* original = data->board;
 	CBoard board(original->get_field_size_x(), original->get_field_size_y());
 
@@ -110,12 +110,12 @@ void* kiThread(void* p)
 	    return nullptr;
 #endif
 
-	board.follow_situation(*original, *ki->m_turnpool.get_turn(data->from));
-	data->best_points = get_ultimate_points(board, data->current_player, data->ai_error, *data->ki->m_turnpool.get_turn(data->from));
-	data->best = ki->m_turnpool.get_turn(data->from);
+	board.follow_situation(*original, *ai->m_turnpool.get_turn(data->from));
+	data->best_points = get_ultimate_points(board, data->current_player, data->ai_error, *data->ai->m_turnpool.get_turn(data->from));
+	data->best = ai->m_turnpool.get_turn(data->from);
 
 	for (int n = data->from + 1; n <= data->to; n++){
-	    const CTurn* turn = data->ki->m_turnpool.get_turn(n);
+	    const CTurn* turn = data->ai->m_turnpool.get_turn(n);
 
 		board.follow_situation(*original, *turn);
 		new_points = get_ultimate_points(board, data->current_player, data->ai_error, *turn);
@@ -132,7 +132,7 @@ void* kiThread(void* p)
 	return nullptr;
 }
 
-const CTurn* CKi::get_ultimate_turn(CBoard& board, const int current_player, const int ai_error) {
+const CTurn* CAI::get_ultimate_turn(CBoard& board, const int current_player, const int ai_error) {
 	build_up_turnpool_biggest_x_stones(board, current_player, BIGGEST_X_STONES);
 
 	const CTurn* best;
@@ -150,7 +150,7 @@ const CTurn* CKi::get_ultimate_turn(CBoard& board, const int current_player, con
 // 	printf("AI using %d threads\n",num_threads);
 	for (i = 0; i < num_threads; i++)
 	{
-		data[i].ki = this;
+		data[i].ai = this;
 		data[i].best = nullptr;
 		data[i].best_points = 0;
 		data[i].current_player = current_player;
@@ -164,11 +164,11 @@ const CTurn* CKi::get_ultimate_turn(CBoard& board, const int current_player, con
 
 #ifdef WIN32
 		DWORD tid;
-		threads[i]=CreateThread(nullptr,0,kiThread,(void*)&data[i],0,&tid);
+		threads[i]=CreateThread(nullptr,0,aiThread,(void*)&data[i],0,&tid);
 #elif defined HAVE_PTHREAD_CREATE
-		pthread_create(&threads[i],nullptr,kiThread,(void*)&data[i]);
+		pthread_create(&threads[i],nullptr,aiThread,(void*)&data[i]);
 #else
-		kiThread((void*)&data[i]);
+		aiThread((void*)&data[i]);
 #endif
 	}
 
@@ -196,17 +196,17 @@ const CTurn* CKi::get_ultimate_turn(CBoard& board, const int current_player, con
 	return best;
 }
 
-void CKi::build_up_turnpool_biggest_x_stones(CBoard& spiel, const int playernumber, const int max_stored_stones) {
+void CAI::build_up_turnpool_biggest_x_stones(CBoard& board, const int playernumber, const int max_stored_stones) {
 	m_turnpool.delete_all_turns();
 
 	int stored_stones = 0;
 	int stored_turns = 0;
 
 	for (int n = STONE_COUNT_ALL_SHAPES - 1; n >= 0; n--) {
-		const CStone& stone = spiel.get_player(playernumber)->get_stone(n);
+		const CStone& stone = board.get_player(playernumber)->get_stone(n);
 
 		if (stone.get_available()) {
-			calculate_possible_turns(spiel, stone.get_shape(), playernumber);
+			calculate_possible_turns(board, stone.get_shape(), playernumber);
 
 			// If this stone has any possible turns, we increment the stored_stones counter
 			if (m_turnpool.size() > stored_turns) {
@@ -221,7 +221,7 @@ void CKi::build_up_turnpool_biggest_x_stones(CBoard& spiel, const int playernumb
 	}
 }
 
-const CTurn* CKi::get_ki_turn(CBoard& spiel, const int player, int ai_error) {
-	if (spiel.get_number_of_possible_turns(player) == 0) return nullptr;
-	return CKi::get_ultimate_turn(spiel, player, ai_error);
+const CTurn* CAI::get_ai_turn(CBoard& board, const int player, int ai_error) {
+	if (board.get_number_of_possible_turns(player) == 0) return nullptr;
+	return CAI::get_ultimate_turn(board, player, ai_error);
 }

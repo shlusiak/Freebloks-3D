@@ -22,16 +22,16 @@ Windows (.sln/.vcproj/.dsp, config-win32.h), debian/, build/, *.ebuild and .deb 
 
 Flat C++ code base in src/, C-prefixed classes. Some files are Latin-1 encoded; do not re-encode.
 
-Language policy: all documentation, comments, identifiers and file names are English. German is legacy and is being removed. Write new code, comments, docs and file names in English only, and translate or rename German ones when touching them. Legacy glossary for existing names: Spiel=game, Spieler=player, Stein=stone, Zug=turn, KI=AI (e.g. CSpielServer, spielserver.cpp, CSpielClient, spielclient.cpp, CKi, ki.cpp, the KI_* constants, NET_SERVER_STATUS.spieler). Renaming a NET_* field does not change the wire format; renaming files requires updating src/Makefile.am.
+Language policy: all documentation, comments, identifiers and file names are English. German is legacy and is being removed. Write new code, comments, docs and file names in English only, and translate or rename German ones when touching them. File names and identifiers are already English; comments are still largely German. Glossary for reading them: Spiel=game, Spieler=player, Stein=stone, Zug=turn, KI=AI. Renaming a NET_* field does not change the wire format; renaming files requires updating src/Makefile.am.
 
 - Core: CBoard (grid + rules) -> CGame (state, current player, game mode, turn history). player[] holds a socket fd or PLAYER_COMPUTER (-2) / PLAYER_LOCAL (-1). Game modes in constants.h.
-- AI: CKi (ki.cpp), strength KI_* and thread count configurable.
+- AI: CAI (ai.cpp), strength AI_* and thread count configurable.
 - Protocol (network.h): TCP port 59995, #pragma pack(1) structs cast directly onto the buffer. Every message starts with NET_HEADER {check1, data_length (network byte order), msg_type, check2}. data_length must be validated on receive. Changing a NET_* struct needs version handling (NET_SERVER_STATUS_VERSION, NET_REQUEST_GAME_MODE_VERSION).
-- Server: CSpielServer (spielserver.cpp) is authoritative; process_message() is the central message switch. CServerListener handles up to 8 listen sockets.
-- Clients: CSpielClient (network), CGuiSpielClient (GUI hooks), client.cpp (console).
+- Server: CGameServer (gameserver.cpp) is authoritative; process_message() is the central message switch. CServerListener handles up to 8 listen sockets.
+- Clients: CGameClient (network), CGUIGameClient (GUI hooks), client.cpp (console).
 - GUI (freebloks binary only): freebloks.cpp, window.cpp (X11/GLX), gui.cpp, widgets/dialogs; textures installed to $(datadir)/freebloks, DATA_PREFIX set via freebloks_CXXFLAGS.
 - Dedicated server (dedicated.cpp): establish_game() accepts clients, gameRunThread runs each game on a detached thread, --limit caps concurrent games (listener closes at limit, re-opens when below). --stats reads an abstract unix socket (/tmp/freebloks_stats).
-- Telemetry (telemetry.cpp/.h, namespace telemetry): lock-free atomic counters/gauges/histograms exposed as Prometheus text on GET /metrics and /healthz by a detached HTTP thread. Off unless --metrics-port is non-zero; binds 127.0.0.1 by default. Hooks live in spielserver.cpp and dedicated.cpp. Linked into dedicated, benchmark and GUI sources, not freebloks_client. POSIX-only.
+- Telemetry (telemetry.cpp/.h, namespace telemetry): lock-free atomic counters/gauges/histograms exposed as Prometheus text on GET /metrics and /healthz by a detached HTTP thread. Off unless --metrics-port is non-zero; binds 127.0.0.1 by default. Hooks live in gameserver.cpp and dedicated.cpp. Linked into dedicated, benchmark and GUI sources, not freebloks_client. POSIX-only.
 - Logger (logger.cpp): process-wide recursive mutex; always call logLine("%s", s), never pass untrusted strings as the format.
 
 Documentation is in docs/ (English). docs/protocol.md is the wire-format reference; update it whenever network.h or message handling changes.

@@ -51,17 +51,17 @@ class CNewGameAdvancedDialog:public CDialog
 public:
 	CSpinBox* size_x;
 	CSpinBox* size_y;
-	CSpinBox* einer;
-	CSpinBox* zweier;
-	CSpinBox* dreier;
-	CSpinBox* vierer;
-	CSpinBox* fuenfer;
+	CSpinBox* monominoes;
+	CSpinBox* dominoes;
+	CSpinBox* trominoes;
+	CSpinBox* tetrominoes;
+	CSpinBox* pentominoes;
 
-	int i_dreier,i_vierer,i_fuenfer;
+	int i_trominoes,i_tetrominoes,i_pentominoes;
 
-	void addDreier(int value);
-	void addVierer(int value);
-	void addFuenfer(int value);
+	void addTrominoes(int value);
+	void addTetrominoes(int value);
+	void addPentominoes(int value);
 	void checkCheckBoxes();
 public:
 	CNewGameAdvancedDialog(int sizex,int sizey,int numberOfStones[]);
@@ -77,7 +77,7 @@ private:
 	CSpinBox* portField;
 	CCheckBox *blue,*red,*yellow,*green;
 	CTextEdit* serverField, *nameField;
-	int maxlokal;
+	int max_local;
 public:
 	CConnectToMPlayer(CGUI* gui);
 	virtual int processMouseEvent(TMouseEvent *event);

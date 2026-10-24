@@ -21,9 +21,9 @@
 static int port=TCP_PORT;
 static char* server = nullptr;
 static int max_players=1;
-static int ki_threads=2;
+static int ai_threads=2;
 static int auto_start=0;
-static int ki_strength=KI_HARD;
+static int ai_strength=AI_HARD;
 
 
 
@@ -35,11 +35,11 @@ static void help()
 	printf("  -n, --maxplayers  Define the maximum of players to play by client\n"
                "                    Default: %d\n",max_players);
 	printf("  -k  --ki          Strength of AI. Lower number means stronger.\n"
-	       "                    Default: %d\n", ki_strength);
+	       "                    Default: %d\n", ai_strength);
 	printf("  -s, --autostart   Start the game after connecting to server\n"
 	       "                    Default: not set\n");
 	printf("  -t, --threads     Define number of threads to use for calculating moves\n"
-	       "                    Default: %d\n",ki_threads);
+	       "                    Default: %d\n",ai_threads);
 	printf("      --help        Display this help and exit\n");
 	exit(0);
 }
@@ -92,10 +92,10 @@ static void parseParams(int argc,char **argv)
 				printf("%s: Expecting parameter\n",argv[i-1]);
 				exit(1);
 			}
-			ki_strength=atoi(argv[i]);
-			if (ki_strength<0 || ki_strength>2000)
+			ai_strength=atoi(argv[i]);
+			if (ai_strength<0 || ai_strength>2000)
 			{
-				printf("%s: Invalid strength number (%d)\n",argv[i-1],ki_strength);
+				printf("%s: Invalid strength number (%d)\n",argv[i-1],ai_strength);
 				exit(1);
 			}
 			i++;
@@ -115,7 +115,7 @@ static void parseParams(int argc,char **argv)
 				printf("%s: Invalid (%d). Please specify number between 1 and 8.\n",argv[i-1],t);
 				exit(1);
 			}
-			ki_threads=t;
+			ai_threads=t;
 			i++;
 			continue;
 		}
@@ -140,11 +140,11 @@ static void parseParams(int argc,char **argv)
 }
 
 
-class CKISpielClient:public CSpielClient
+class CAIGameClient:public CGameClient
 {
 private:
 	CTimer timer;
-	CKi ki;
+	CAI ai;
 
 	virtual void gameStarted();
 	virtual void newCurrentPlayer(const int player);
@@ -152,11 +152,11 @@ private:
 	virtual void gameFinished();
 
 public:
-	CKISpielClient(int threads): ki{threads} {}
+	CAIGameClient(int threads): ai{threads} {}
 };
 
 
-void CKISpielClient::gameStarted()
+void CAIGameClient::gameStarted()
 {
 	int i;
 	printf("Game started. Local player(s): ");
@@ -165,12 +165,12 @@ void CKISpielClient::gameStarted()
 	timer.reset();
 }
 
-void CKISpielClient::newCurrentPlayer(const int player)
+void CAIGameClient::newCurrentPlayer(const int player)
 {
 	if (!is_local_player())return;
 
 	/* Ermittle CTurn, den die KI jetzt setzen wuerde */
-	const CTurn *turn=ki.get_ki_turn(*this, current_player(),ki_strength);
+	const CTurn *turn=ai.get_ai_turn(*this, current_player(),ai_strength);
 	if (turn == nullptr)
 	{
 		printf("Player %d: Did not find a valid move\n", player);
@@ -181,7 +181,7 @@ void CKISpielClient::newCurrentPlayer(const int player)
 	request_set_stone(stone, turn->y, turn->x);
 }
 
-void CKISpielClient::chatReceived(NET_CHAT* c)
+void CAIGameClient::chatReceived(NET_CHAT* c)
 {
 	if (c->client == -1)
 		printf("  *  ");
@@ -189,7 +189,7 @@ void CKISpielClient::chatReceived(NET_CHAT* c)
 	printf("%s\n",c->text);
 }
 
-void CKISpielClient::gameFinished()
+void CAIGameClient::gameFinished()
 {
 	int i;
 	printf("-- Game finished! -- Took %.2f sek. --\n",timer.elapsed());
@@ -203,7 +203,7 @@ void CKISpielClient::gameFinished()
 }
 
 
-void runGame(CSpielClient* client)
+void runGame(CGameClient* client)
 {
 	const char *s;
 	int i;
@@ -235,7 +235,7 @@ int main(int argc,char ** argv)
 
 	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
 	   und Clients connecten laesst */
-	CSpielClient* client=nullptr;
+	CGameClient* client=nullptr;
 
 	/* Kommandozeilenparameter verarbeiten */
 	parseParams(argc,argv);
@@ -255,7 +255,7 @@ int main(int argc,char ** argv)
 	printf("Show help with `client --help`\n");
 	printf("Connecting to %s... ", server);
 
-	client = new CKISpielClient(ki_threads);
+	client = new CAIGameClient(ai_threads);
 	runGame(client);
 	delete client;
 

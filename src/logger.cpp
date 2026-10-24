@@ -128,14 +128,14 @@ void CLogger::logLine(const char* fmt, ...)
  **/
 void CLogger::logTime()
 {
-	char zeitstring[256];
-	time_t zeit;
+	char time_string[256];
+	time_t now;
 	char *c;
-	zeit=time(nullptr);
-	c=ctime(&zeit);
-	strcpy(zeitstring,c);
-	zeitstring[strlen(zeitstring)-1]='\0';
-	log("         %s\n", zeitstring);
+	now=time(nullptr);
+	c=ctime(&now);
+	strcpy(time_string,c);
+	time_string[strlen(time_string)-1]='\0';
+	log("         %s\n", time_string);
 }
 
 

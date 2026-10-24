@@ -6,10 +6,10 @@
 #endif
 
 
-const int KI_PERFECT = 0;
-const int KI_HARD = 5;
-const int KI_MEDIUM = 50;
-const int KI_EASY = 120;
+const int AI_PERFECT = 0;
+const int AI_HARD = 5;
+const int AI_MEDIUM = 50;
+const int AI_EASY = 120;
 
 typedef char TSingleStone;
 typedef unsigned char TSingleField;
@@ -74,7 +74,7 @@ enum GAMEMODE {
 
 
 
-void error_exit(const char* fehlertext, int fehlernummer);
+void error_exit(const char* message, int code);
 
 
 #endif

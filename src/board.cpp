@@ -64,13 +64,13 @@ void CBoard::set_stone_numbers(int8 stone_numbers[]){
 	CBoard::refresh_player_data();
 }
 
-void CBoard::set_stone_numbers(int8 einer, int8 zweier, int8 dreier, int8 vierer, int8 fuenfer) {
+void CBoard::set_stone_numbers(int8 monominoes, int8 dominoes, int8 trominoes, int8 tetrominoes, int8 pentominoes) {
 	int8 a[STONE_COUNT_ALL_SHAPES] = {
-			einer,
-			zweier,
-			dreier, dreier,
-			vierer, vierer, vierer, vierer, vierer,
-			fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer, fuenfer,
+			monominoes,
+			dominoes,
+			trominoes, trominoes,
+			tetrominoes, tetrominoes, tetrominoes, tetrominoes, tetrominoes,
+			pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes, pentominoes,
 	};
 	set_stone_numbers(a);
 }

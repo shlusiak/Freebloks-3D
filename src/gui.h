@@ -138,7 +138,7 @@ public:
 	// CWindow teilt uns hier einen Tastendruck mit
 	void processKeyEvent(unsigned short key);
 
-	// CSpielClient teilt hier mit, dass ein Spielerwechsel stattgefunden hat
+	// CGameClient teilt hier mit, dass ein Spielerwechsel stattgefunden hat
 	void newCurrentPlayer(int player);
 
 	// Setze Rotation um Y-Achse
@@ -193,7 +193,7 @@ private:
 	void showHint();
 public:
 	// Das eigentliche Spiel (der Client), connected oder nicht
-	CGUISpielClient * spiel;
+	CGUIGameClient * game;
 
 	// Rendert einen einzelnen Stein nach x/y in Feldkoordinaten, mit Farbe, alpha
 	void renderStone(int x,int y,int color,float alpha,bool doublesided)const;
@@ -211,7 +211,7 @@ public:
 	void renderField(bool withgame=true)const;
 	void renderField(bool withgame,int w,int h)const;
 
-	// Fuegt einen CStoneEffect der verketteten Liste hinzu. Wird vom CSpielClient aufgerufen, nachdem ein Computer einen Zug gemacht hat. 
+	// Fuegt einen CStoneEffect der verketteten Liste hinzu. Wird vom CGameClient aufgerufen, nachdem ein Computer einen Zug gemacht hat. 
 	void addEffect(CStoneEffect *effect) { effects->add(effect); }
 
 	// Fuegt ein (vollstaendig modales) Unterfenster den widgets hinzu!
@@ -222,9 +222,9 @@ public:
 	void getPlayerStonePos(int player,int stone,double *dx,double *dy,double *dz)const;
 
 	// Startet ein Einzelspielerspiel
-	bool startSingleplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ki_threads);
+	bool startSingleplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ai_threads);
 	// Hostet und startet ein Mehrspielerspiel
-	bool startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ki_threads, const char* name);
+	bool startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ai_threads, const char* name);
 	// Tritt einem Mehrspielerspiel bei
 	bool joinMultiplayerGame(const char *host,int port,int localplayers, const char* name);
 

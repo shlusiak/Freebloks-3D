@@ -81,7 +81,7 @@ typedef struct
 	int8 stone_numbers_obsolete[STONE_SIZE_MAX]; /* Anzahl der Steine bestimmter Groessen, OBSOLETE */
 	int8 gamemode;
 	/* added in 1.5, version 2 */
-	int8 spieler[PLAYER_MAX];
+	int8 player_owner[PLAYER_MAX];
 	uint8 client_names[CLIENTS_MAX][16]; /* names for each client */
 	/* added in 1.6, version 3 */
 	int8 version;

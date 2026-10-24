@@ -60,7 +60,7 @@ CGUI::CGUI()
 	window=new CWindow(this);
 
 	/* Variablen auf Default initialisieren */
-	spiel=nullptr;
+	game=nullptr;
 	selectedx=selectedy=-1;
 	selected_allowed=false;
 	current_stone=-1;
@@ -100,7 +100,7 @@ CGUI::~CGUI()
 	if (window)delete window;
 	if (font)delete font;
 	if (effects)delete effects;
-	if (spiel)delete spiel;
+	if (game)delete game;
 #ifdef WIN32
 	/* Winsock sauber entladen */
 	WSACleanup();
@@ -202,7 +202,7 @@ bool CGUI::parseCmdLine(int argc,char **argv)
  * width/height (breite/hoehe) und Anzahl Einer, Zweier, etc.
  * Rueckgabewert: Erfolg
  **/
-bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int width,int height,int8 stone_numbers[],int ki_threads)
+bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int width,int height,int8 stone_numbers[],int ai_threads)
 {
 	int r;
 	const char *err;
@@ -216,7 +216,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	/* und keinen aktuellen Stein mehr */
 	current_stone=-1;
 	/* Momentan existierenden Spielclient entfernen */
-	if (spiel)delete spiel;
+	if (game)delete game;
 
 	/* Einen lokalen Server in einem sekundaerem Thread
 	   mit den uebergebenen Parametern starten. Der Server laeuft an
@@ -230,7 +230,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 #endif
 
 
-	r=CSpielServer::run_server(path,port,PLAYER_MAX,diff,width,height,gamemode,stone_numbers,ki_threads);
+	r=CGameServer::run_server(path,port,PLAYER_MAX,diff,width,height,gamemode,stone_numbers,ai_threads);
 	if (r!=0)
 	{
 		/* Bei Miserfolg Fehlerdialog ausgeben. */
@@ -241,10 +241,10 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	}
 
 	/* Einen jungfraeulichen SpielClient erstellen */
-	spiel=new CGUISpielClient(this);
+	game=new CGUIGameClient(this);
 
 	/* SpielClient zu lokalen Server connecten */
-	err=spiel->Connect(path, port);
+	err=game->Connect(path, port);
 	if (port == 0)
 		unlink(path);
 		
@@ -262,9 +262,9 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	/* Jetzt [players] lokale Spieler anfordern. */
 	for (int i=0;i<4;i++)
 		if ((players & (1 << i)) != 0)
-			spiel->request_player(i, nullptr);
+			game->request_player(i, nullptr);
 	/* Da das Spiel lokal ist, kann direkt losgelegt werden. Spielstart anfordern */
-	spiel->request_start();
+	game->request_start();
 	/* Erfolg */
 	return true;
 }
@@ -275,10 +275,10 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
  * maxhumans gibt maximale Anzahl menschlicher Spieler an, der Rest wird von
  * Computergegnern belegt
  **/
-bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ki_threads, const char* name)
+bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ai_threads, const char* name)
 {
 	/* Einen Server auf dem Rechner starten. */
-	int r=CSpielServer::run_server(nullptr,TCP_PORT,4,diff,width,height,gamemode,stone_numbers,ki_threads);
+	int r=CGameServer::run_server(nullptr,TCP_PORT,4,diff,width,height,gamemode,stone_numbers,ai_threads);
 	if (r!=0)
 	{
 		/* Wenn Fehler, dann Dialogbox ausgeben */
@@ -309,12 +309,12 @@ bool CGUI::joinMultiplayerGame(const char *host, int port, int players, const ch
 	newCurrentPlayer(-1);
 	current_stone=-1;
 	/* SpielClient entfernen */
-	if (spiel)delete spiel;
+	if (game)delete game;
 	/* Und neuen SpielClient erstellen */
-	spiel=new CGUISpielClient(this);
+	game=new CGUIGameClient(this);
 
 	/* Versuchen, zu Server zu verbinden */
-	err=spiel->Connect(host, port);
+	err=game->Connect(host, port);
 	/* Timer auf 0 setzen, damit das Connect keinen Sprung in der Animation
 	   verursacht */
 	timer.reset();
@@ -330,9 +330,9 @@ bool CGUI::joinMultiplayerGame(const char *host, int port, int players, const ch
 		/* [players] lokale Spieler anfordern. */
 		for (int i=0;i<4;i++)
 			if ((players & (1 << i)) != 0)
-				spiel->request_player(i, name);
+				game->request_player(i, name);
 		/* Dann modal den StartGameDialog als Lobby anzeigen. */
-		widgets.addSubChild(new CStartGameDialog(spiel,this,host));
+		widgets.addSubChild(new CStartGameDialog(game,this,host));
 		/* Erfolg, Verbindung steht. */
 		return true;
 	}
@@ -349,7 +349,7 @@ void CGUI::run()
 	if (!window->createWindow())return;
 
 	/* Einen (unverbundenen) Spielclient erstellen */
-	spiel=new CGUISpielClient(this);
+	game=new CGUIGameClient(this);
 
 	/* Fenster sichtbar machen. */
 	window->show();
@@ -410,7 +410,7 @@ void CGUI::run()
 		/* Abwechselnd immer Fensternachrichten verarbeiten. */
 		window->processEvents();
 		/* Spielclient Netzwerknachrichten verarbeiten lassen. */
-		const char *err=spiel->poll();
+		const char *err=game->poll();
 		if (err!=nullptr)
 		{
 			/* Und bei Fehler entsprechende Fehlermeldung ausgeben,
@@ -477,7 +477,7 @@ void CGUI::startFirstGame()
 
 	if (startupParams.remotehost)
 		joinMultiplayerGame(startupParams.remotehost,startupParams.remoteport,startupParams.humans, nullptr);
-	else startSingleplayerGame(GAMEMODE_4_COLORS_4_PLAYERS,startupParams.humans,KI_MEDIUM,20,20, nullptr,startupParams.threads);
+	else startSingleplayerGame(GAMEMODE_4_COLORS_4_PLAYERS,startupParams.humans,AI_MEDIUM,20,20, nullptr,startupParams.threads);
 }
 
 
@@ -550,7 +550,7 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 		break;
 	/* "Undo" Knopf. Wenn lokaler Spieler dran ist, versuchen, Spielzug rueckgaengig
 	   zu machen. */
-	case 9: if (spiel->is_local_player())spiel->request_undo();
+	case 9: if (game->is_local_player())game->request_undo();
 		break;
 	}
 
@@ -579,16 +579,16 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 					/* Wenn auch noch dieses Feld als "erlaubt" gekennzeichnet wurde,
 					   diesen Zug ausfuehren. */
 					/* Zuerst ausgewaehlten CStone erhalten */
-					CStone& stone=spiel->get_current_player()->get_stone(current_stone);
+					CStone& stone=game->get_current_player()->get_stone(current_stone);
 					/* Stein an selectedx/selectedy zentrieren. */
 					int x=selectedx-stone.get_stone_size()/2;
 					int y=selectedy-stone.get_stone_size()/2;
 					/* Schonmal ne Animation starten, wenn aktiviert. */
 					if (options.get(OPTION_ANIMATE_STONES))
-						addEffect(new CStoneRollEffect(this,&stone,current_stone,spiel->current_player(),x,y,false));
+						addEffect(new CStoneRollEffect(this,&stone,current_stone,game->current_player(),x,y,false));
 					/* Den SpielClient den Stein setzen lassen. Schickt ne Anfrage an den SpielServer. */
-					if (spiel->request_set_stone(stone, y, x)==FIELD_ALLOWED)
-						newCurrentPlayer(spiel->current_player());
+					if (game->request_set_stone(stone, y, x)==FIELD_ALLOWED)
+						newCurrentPlayer(game->current_player());
 					/* Keinen Stein auswaehlen. */
 					current_stone=-1;
 				}
@@ -596,7 +596,7 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 			{
 				/* Wenn ein Stein ausgewaehlt ist, UND ein Pfeil */
 				/* Ausgewaehlten CStone* holen. */
-				CStone& stone=spiel->get_current_player()->get_stone(current_stone);
+				CStone& stone=game->get_current_player()->get_stone(current_stone);
 
 				/* Und je nach Pfeil, den Stein drehen, rotieren, etc. */
 				if (selected_arrow==1)stone.rotate_right();
@@ -615,9 +615,9 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 		}
 		/* Mausrad wurde gedreht. Wenn keine Maustaste dabei gedruckt ist, aktuellen Stein drehen. */
 		if (e->button4 && !e->button1 && !e->button2 && !e->button3 && !e->button5)
-			if (current_stone!=-1)spiel->get_current_player()->get_stone(current_stone).rotate_left();
+			if (current_stone!=-1)game->get_current_player()->get_stone(current_stone).rotate_left();
 		if (e->button5 && !e->button1 && !e->button2 && !e->button3 && !e->button4)
-			if (current_stone!=-1)spiel->get_current_player()->get_stone(current_stone).rotate_right();
+			if (current_stone!=-1)game->get_current_player()->get_stone(current_stone).rotate_right();
 
 		/* Mausrad wurde gedreht, aber rechte Maustaste ist down:
 		   Durch alle Steine durchscrollen. */
@@ -632,7 +632,7 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 				/* Vorne wieder hinten anfangen. */
 				if (current_stone<0)current_stone=STONE_COUNT_ALL_SHAPES-1;
 				/* Und wenn der Stein sogar verfuegbar ist, gluecklich sein und raus. */
-				if (spiel->get_current_player()->get_stone(current_stone).get_available())
+				if (game->get_current_player()->get_stone(current_stone).get_available())
 					return;
 			}
 			/* Sonst keinen Stein auswaehlen, da keiner mehr da. */
@@ -646,7 +646,7 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 			{
 				current_stone++;
 				if (current_stone>=STONE_COUNT_ALL_SHAPES)current_stone=0;
-				if (spiel->get_current_player()->get_stone(current_stone).get_available())
+				if (game->get_current_player()->get_stone(current_stone).get_available())
 					return;
 			}
 			current_stone=-1;
@@ -665,10 +665,10 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 		if (e->button2){
 			/* Und die Maus seit dem Klick hinreichend wenig bewegt wurde,
 			   und ein Stein ausgewaehlt ist und der Spieler auch noch dran ist. */
-			if (abs(e->x-clickx)<4 && abs(e->y-clicky)<4 && spiel->is_local_player() && current_stone!=-1)
+			if (abs(e->x-clickx)<4 && abs(e->y-clicky)<4 && game->is_local_player() && current_stone!=-1)
 			{
 				/* Dann spiegle den aktuellen Stein um die Y-Achse des Screens. */
-				CStone &s=spiel->get_current_player()->get_stone(current_stone);
+				CStone &s=game->get_current_player()->get_stone(current_stone);
 				/* Das ist also abhaenig vom Blickwinkel, also angy */
 				if (angy<45.0 || angy>315.0 || ((angy<45+180) && (angy>-45+180)))
 					s.mirror_over_y();
@@ -725,26 +725,26 @@ void CGUI::processKeyEvent(unsigned short key)
 	else if (key==VK_F1)
 		widgets.addSubChild(new CHelpBox());
 	/* Bei Leertaste und ausgewaehlten Stein */
-	else if (key==VK_SPACE && spiel->is_local_player() && current_stone!=-1)
+	else if (key==VK_SPACE && game->is_local_player() && current_stone!=-1)
 	{
 		/* Diesen an der Y-Achse des Screens spiegeln. */
-		CStone &s=spiel->get_current_player()->get_stone(current_stone);
+		CStone &s=game->get_current_player()->get_stone(current_stone);
 		if (angy<45.0 || angy>315.0 || ((angy<45+180) && (angy>-45+180)))
 			s.mirror_over_y();
 		else s.mirror_over_x();
 	}else 
 	/* Bei Return, wenn ein Spiel laeuft, die ChatBox sichtbar machen. */
-		if (key==VK_RETURN && !menu && spiel->isConnected())chatbox->show();
+		if (key==VK_RETURN && !menu && game->isConnected())chatbox->show();
 	/* Bei 'h' einen Zugvorschlag servieren. */
 	else if (key=='h')showHint();
 	/* Wenn lokaler Spieler dran ist... */
-	else if (spiel->is_local_player()) {
+	else if (game->is_local_player()) {
 		/* Taste rauf, dann aktuelle Stein nach links drehen */
 		if (key==VK_UP && current_stone!=-1)
-			spiel->get_current_player()->get_stone(current_stone).rotate_left();
+			game->get_current_player()->get_stone(current_stone).rotate_left();
 		/* Taste runter, den Rummel nach rechts. */
 		if (key==VK_DOWN && current_stone!=-1)
-			spiel->get_current_player()->get_stone(current_stone).rotate_right();
+			game->get_current_player()->get_stone(current_stone).rotate_right();
 
 		/* Links und rechts -> vorherigen / naechsten Stein auswaehlen. */
 		if (key==VK_LEFT)
@@ -753,7 +753,7 @@ void CGUI::processKeyEvent(unsigned short key)
 			{
 				current_stone--;
 				if (current_stone<0)current_stone=STONE_COUNT_ALL_SHAPES-1;
-				if (spiel->get_current_player()->get_stone(current_stone).get_available())
+				if (game->get_current_player()->get_stone(current_stone).get_available())
 					return;
 			}
 			current_stone=-1;
@@ -764,7 +764,7 @@ void CGUI::processKeyEvent(unsigned short key)
 			{
 				current_stone++;
 				if (current_stone>=STONE_COUNT_ALL_SHAPES)current_stone=0;
-				if (spiel->get_current_player()->get_stone(current_stone).get_available())
+				if (game->get_current_player()->get_stone(current_stone).get_available())
 					return;
 			}
 			/* Keinen Stein auswaehlen, da anscheinend keiner mehr verfuegbar. */
@@ -1003,16 +1003,16 @@ void CGUI::testSelection(int x,int y)
 		   damit man rauskriegt, welches Feld der Spieler ausgewaehlt hat. */
 		if (current_stone!=-1)
 		{
-			glTranslated(	-(spiel->get_field_size_x()-1)*stone_size,
+			glTranslated(	-(game->get_field_size_x()-1)*stone_size,
 					0,
-					-(spiel->get_field_size_y()-1)*stone_size);
+					-(game->get_field_size_y()-1)*stone_size);
 			/* type=1, also zeigen, dass es das Spielfeld ist. */
 			glPushName(1);
-			for (i=0;i<spiel->get_field_size_x();i++)
+			for (i=0;i<game->get_field_size_x();i++)
 			{
 				/* Zweiter Name ist X-Koordinate. */
 				glPushName(i);
-				for (j=0;j<spiel->get_field_size_y();j++)
+				for (j=0;j<game->get_field_size_y();j++)
 				{
 					/* Dritter Name ist Y */
 					glPushName(j);
@@ -1023,14 +1023,14 @@ void CGUI::testSelection(int x,int y)
 				}
 				glPopName();
 				/* Und naechste Reihe beginnen. */
-				glTranslated(stone_size*2.0,0,-(spiel->get_field_size_y())*stone_size*2.0);
+				glTranslated(stone_size*2.0,0,-(game->get_field_size_y())*stone_size*2.0);
 			}
 			glPopName();
 		}
 		glPopMatrix();
 		/* Wenn lokaler Spieler, dann in SelectionBuffer auch die Steine des Spielers rendern. */
-		if (spiel->is_local_player())
-			renderPlayerStones(spiel->current_player(),1.0,true);
+		if (game->is_local_player())
+			renderPlayerStones(game->current_player(),1.0,true);
 	}
 
 	/* Widgets in jedem Fall in den SelectionBuffer rendern. */
@@ -1094,10 +1094,10 @@ void CGUI::testSelection(int x,int y)
 		if (current_stone!=-1)
 		{
 			/* Gucken, ob aktueller Stein so an die Position passen wuerde. */
-			const CStone &stone=spiel->get_current_player()->get_stone(current_stone);
+			const CStone &stone=game->get_current_player()->get_stone(current_stone);
 			int vx=selectedx-stone.get_stone_size()/2,vy=selectedy-stone.get_stone_size()/2;
 			/* Und merken, ob der Stein passen taete. */
-			selected_allowed = spiel->is_valid_turn(stone, spiel->current_player(),vy,vx);
+			selected_allowed = game->is_valid_turn(stone, game->current_player(),vy,vx);
 		}
 	}else if (type==2 && numberOfNames==2)
 	{
@@ -1164,22 +1164,22 @@ void CGUI::render()
 		/* Dann Spielfeld hinklatschen */
 		renderField();
 		/* Dann der Reihe nach alle Steine des Spielfelds rendern */
-		for (i=0;i<spiel->get_field_size_x();i++)
-		for (j=0;j<spiel->get_field_size_y();j++)
-			if (spiel->get_game_field(j,i)!=FIELD_FREE)
+		for (i=0;i<game->get_field_size_x();i++)
+		for (j=0;j<game->get_field_size_y();j++)
+			if (game->get_game_field(j,i)!=FIELD_FREE)
 		{
 			/* aber nur rendern, wenn nicht durch einen Effekt behandelt. In dem Falle rendert
 			   der Effekt diesen Stein. */
 			if (!effects || !effects->is_effected(i,j))
-				renderStone(i,j,spiel->get_game_field(j,i),0.65f,false);
+				renderStone(i,j,game->get_game_field(j,i),0.65f,false);
 		}
 		/* Dann Effekte rendern */
 		if (effects)effects->render();
 		/* Und die Steine aller 4 Spieler. */
-		if (spiel) {
+		if (game) {
 			for (int i=0;i<4;i++)
 			{
-				renderPlayerStones(i,(spiel->isConnected() && spiel->current_player()!=-1)?1.0:0.3,false);
+				renderPlayerStones(i,(game->isConnected() && game->current_player()!=-1)?1.0:0.3,false);
 			}
 		}
 	}
@@ -1268,7 +1268,7 @@ void CGUI::renderPlayerStones(int player,double alpha,bool selectionbuffer)const
 	/* Durch alle Steinformen iterieren */
 	for (int num=0;num<STONE_COUNT_ALL_SHAPES;num++)
 	{
-		CStone &stone=spiel->get_player(player)->get_stone(num);
+		CStone &stone=game->get_player(player)->get_stone(num);
 		/* Wenn der Stein noch vorhanden ist, aber nicht von einem Effekt behandelt */
 		if (stone.get_available()>1 || (stone.get_available()==1 && (!effects || !effects->handle_player_stone(player,num))))
 		{
@@ -1276,7 +1276,7 @@ void CGUI::renderPlayerStones(int player,double alpha,bool selectionbuffer)const
 			glPushName(num);
 			/* Wenn der Stein zum aktuellem lokalen Spieler gehoert, current_stone und hovered_stone
 			   mit einbeziehen. */
-			if (player==spiel->current_player() && spiel->is_local_player())
+			if (player==game->current_player() && game->is_local_player())
 				renderPlayerStone(player,&stone,num,(num==current_stone),(num==hovered_stone),alpha,selectionbuffer);
 			/* Sonst statisch rendern, und auch nur, wenn nicht in selectionBuffer. Da haben
 			   Steine vom Computer nix verloren. */
@@ -1286,11 +1286,11 @@ void CGUI::renderPlayerStones(int player,double alpha,bool selectionbuffer)const
 		}
 	}
 	/* Wenn ein Spieler lokal dran ist und einen Stein ausgewaehlt hat */
-	if (current_stone!=-1 && player==spiel->current_player() && spiel->is_local_player())
+	if (current_stone!=-1 && player==game->current_player() && game->is_local_player())
 	{
 		/* Dann rendere die Pfeile um diesen Stein. */
 		glPushName(3);
-		renderPlayerStoneArrows(player,&spiel->get_player(player)->get_stone(current_stone),current_stone,selectionbuffer);
+		renderPlayerStoneArrows(player,&game->get_player(player)->get_stone(current_stone),current_stone,selectionbuffer);
 		glPopName();
 	}
 }
@@ -1461,8 +1461,8 @@ void CGUI::getPlayerStonePos(int player,int stone,double *dx,double *dy,double *
 {
 	/* Der Radius, in dem die Steine angeordnet werden. Das ist der groessere Wert von
 	   field_size_x und field_size_y, mindestens aber 20. */
-	int s=spiel->get_field_size_x();
-	if (spiel->get_field_size_y()>s)s=spiel->get_field_size_y();
+	int s=game->get_field_size_x();
+	if (game->get_field_size_y()>s)s=game->get_field_size_y();
 	if (s<20)s=20;
 
 	/* x, *dy und z fuer den ersten Spieler errechnen. */
@@ -1583,8 +1583,8 @@ void CGUI::renderGround()const
 void CGUI::renderField(bool withgame,int w,int h)const
 {
 	/* Wenn withgame, dann sollte auch Breite und Hoehe mit der des Felds uebereinstimmen. */
-	if (withgame)w=spiel->get_field_size_x();
-	if (withgame)h=spiel->get_field_size_y();
+	if (withgame)w=game->get_field_size_x();
+	if (withgame)h=game->get_field_size_y();
 	/* Farbwerte des Felds. */
 	float diffuse[]={0.43f,0.43f,0.30f,1.0f};
 	float specular[]={0.27f,0.25f,0.25f,1.0f};
@@ -1636,12 +1636,12 @@ void CGUI::renderField(bool withgame,int w,int h)const
 		bool inside;
 
 		/* Wenn Spieler lokal ist, und mit Spieldaten gerendert werden soll */
-		if (spiel->is_local_player() && withgame)
+		if (game->is_local_player() && withgame)
 		{
 			/* Gucke, ob das Feld zur Auswahl des aktuellen Steins auf dem Feld gehoert. */
 			inside=isInSelection(i,j);
 			/* Wenn das Feld nicht zur Auswahl gehoert, aber es eine erlaubte Ecke ist */
-			if (!inside && spiel->get_game_field(spiel->current_player(),j,i)==FIELD_ALLOWED && options.get(OPTION_SHOW_HINTS))
+			if (!inside && game->get_game_field(game->current_player(),j,i)==FIELD_ALLOWED && options.get(OPTION_SHOW_HINTS))
 			{
 				/* So faerbe dieses Feld in hellem Gruen */
 				float allowed[]={0.5f,0.65f,0.5f,1.0f};
@@ -1750,7 +1750,7 @@ void CGUI::renderField(bool withgame,int w,int h)const
  **/
 void CGUI::renderField(bool withgame)const
 {
-	renderField(withgame,spiel->get_field_size_x(),spiel->get_field_size_y());
+	renderField(withgame,game->get_field_size_x(),game->get_field_size_y());
 }
 
 /**
@@ -1761,9 +1761,9 @@ void CGUI::renderStone(int x,int y,int color,float alpha,bool selectionbuffer)co
 {
 	glPushMatrix();
 	/* An Position auf dem Spielfeld bewegen */
-	glTranslated(-(spiel->get_field_size_x()-1)*stone_size+(double)x*stone_size*2.0,
+	glTranslated(-(game->get_field_size_x()-1)*stone_size+(double)x*stone_size*2.0,
 			bevel_height,
-		     -(spiel->get_field_size_y()-1)*stone_size+(double)y*stone_size*2.0);
+		     -(game->get_field_size_y()-1)*stone_size+(double)y*stone_size*2.0);
 	
 	/* Stein dort rendern. */
 	renderStone(color,alpha,selectionbuffer);
@@ -1968,7 +1968,7 @@ bool CGUI::isInSelection(int x,int y)const
 	if (selectedx==-1 || selectedy==-1)return false;
 
 	/* Stein holen. */
-	CStone &stone=spiel->get_current_player()->get_stone(current_stone);
+	CStone &stone=game->get_current_player()->get_stone(current_stone);
 	/* x/y in Koordinaten relativ zum Stein umrechnen. */
 	y=y-selectedy+stone.get_stone_size()/2;
 	x=x-selectedx+stone.get_stone_size()/2;
@@ -2016,7 +2016,7 @@ void CGUI::newCurrentPlayer(int player)
 		char text[500];
 		/* Frame entsprechend transparent setzen, abhaengig, ob der Spieler lokal
 		   ist, oder nicht. */
-		playerframe->setAlpha(spiel->is_local_player()?0.75:0.20);
+		playerframe->setAlpha(game->is_local_player()?0.75:0.20);
 		/* Farbe des Frames setzen. */
 		switch (player)
 		{
@@ -2030,14 +2030,14 @@ void CGUI::newCurrentPlayer(int player)
 		case 3:playerframe->setColor(0,1.0,0);
 			break;
 		}
-		if (spiel->is_local_player())
+		if (game->is_local_player())
 		{
 			/* lokaler Spieler hat anderen Text. */
 			sprintf(text,"%s, it's your turn!",COLOR_NAME[player]);
 			/* Hint soll nur aktiv sein, wenn nur ein Client, oder nur ein
 			   lokaler Spieler mitspielen. */
-			bool b=spiel->getServerStatus()->clients<=1;
-			b=b||(spiel->getServerStatus()->player<=1);
+			bool b=game->getServerStatus()->clients<=1;
+			b=b||(game->getServerStatus()->player<=1);
 			/* Knoepfe entsprechend aktivieren. */
 			hint->setEnabled(true);
 			undo->setEnabled(b);
@@ -2058,18 +2058,18 @@ void CGUI::newCurrentPlayer(int player)
  **/
 void CGUI::showHint()
 {
-	CPlayer *p=spiel->get_current_player();
+	CPlayer *p=game->get_current_player();
 	/* Nur anzeigen, wenn tatsaechlich gerade ein lokaler Spieler dran ist. */
-	if (p && spiel->is_local_player() && hint->isEnabled())
+	if (p && game->is_local_player() && hint->isEnabled())
 	{
 		/* Die KI soll mal einen Zug vorschlagen. */
 #if (1)
 		NET_REQUEST_HINT data;
-		data.player=spiel->current_player();
-		spiel->send_message((NET_HEADER*)&data,sizeof(data),MSG_REQUEST_HINT);
+		data.player=game->current_player();
+		game->send_message((NET_HEADER*)&data,sizeof(data),MSG_REQUEST_HINT);
 		hint->setEnabled(false);
 #else
-		CTurn *t=board->get_ki_turn(board->current_player(),KI_HARD);
+		CTurn *t=board->get_ai_turn(board->current_player(),AI_HARD);
 		/* Animation nicht weiterlaufen lassen, da sonst Spruenge auftreten. */
 		timer.reset(); 
 		/* Wenn es einen Zug gibt */
