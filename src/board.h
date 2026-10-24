@@ -45,6 +45,10 @@ public:
 
     virtual ~CBoard();
 
+    /* Owns m_game_field, a copy would free it twice */
+    CBoard(const CBoard &) = delete;
+    CBoard &operator=(const CBoard &) = delete;
+
     void follow_situation(const CBoard &from_board, const CTurn &turn);
 
     void init_field();

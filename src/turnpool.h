@@ -17,6 +17,10 @@ class CTurnPool {
 		    delete_all_turns();
 		}
 
+		/* Owns its turns, a copy would delete them twice */
+		CTurnPool(const CTurnPool &) = delete;
+		CTurnPool &operator=(const CTurnPool &) = delete;
+
 		void add_turn(const int player, const int stone, const int y, const int x, const int mirrored, const int rotation);
 
 		void delete_all_turns() {
