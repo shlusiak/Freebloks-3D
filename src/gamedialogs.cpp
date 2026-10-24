@@ -122,6 +122,8 @@ void CStartGameDialog::execute(double elapsed)
  **/
 void CStartGameDialog::sendChat()
 {
+	/* The dialog stays alive during its close animation, but client is already gone then */
+	if (client==nullptr)return;
 	/* Chat-Nachricht abschicken. */
 	client->chat(chat->getText());
 	/* Und Eingabefeld leeren */
