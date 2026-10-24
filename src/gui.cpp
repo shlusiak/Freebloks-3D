@@ -2012,6 +2012,10 @@ void CGUI::newCurrentPlayer(int player)
 		/* Knoepfe deaktivieren, die man nun nicht benutzen sollte. */
 		hint->setEnabled(false);
 		undo->setEnabled(false);
+		/* Without a current player there is nothing to select; the rendering and event code
+		   dereference game->get_current_player() whenever current_stone is set. */
+		current_stone=-1;
+		selectedx=selectedy=-1;
 	}else{
 		char text[500];
 		/* Frame entsprechend transparent setzen, abhaengig, ob der Spieler lokal
