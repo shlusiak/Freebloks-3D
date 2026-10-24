@@ -17,11 +17,6 @@ RUN aclocal \
 ################## IMAGE
 FROM alpine:3.20
 
-LABEL org.opencontainers.image.title="freebloks_dedicated" \
-      org.opencontainers.image.description="Dedicated Freebloks game server" \
-      org.opencontainers.image.licenses="GPL-2.0-or-later" \
-      org.opencontainers.image.source="https://github.com/shlusiak/Freebloks"
-
 ENV LIMIT=15
 # Optional overrides, unset by default: PORT LISTEN MODE AI WIDTH HEIGHT MAX_HUMANS THREADS LOGFILE
 

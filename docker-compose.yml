@@ -2,9 +2,6 @@ services:
   freebloks:
     build: .
     image: freebloks
-    container_name: freebloks
-    # Host networking is required; Docker does not filter traffic in this mode,
-    # so restrict access to the port (default 59995) with the host firewall.
     network_mode: host
     restart: unless-stopped
     stop_grace_period: 30s
@@ -16,8 +13,6 @@ services:
     security_opt:
       - no-new-privileges:true
     pids_limit: 256
-    mem_limit: 1g
-    cpus: 2
     logging:
       driver: json-file
       options:
