@@ -25,6 +25,19 @@ static int get_distance_points(CBoard& follow_situation, const int playernumber,
             abs(follow_situation.get_player_start_y(playernumber) - turn.y + stone.get_stone_size() / 2);
 }
 
+/* The worker threads and the calling thread score turns concurrently; rand() shares one hidden
+   state between them. Use a per-thread state where rand_r() is available. */
+static int ai_random(int max_exclusive) {
+    if (max_exclusive <= 0) return 0;
+#ifdef WIN32
+    return rand() % max_exclusive;
+#else
+    static thread_local unsigned int seed = 0;
+    if (seed == 0) seed = (unsigned int)rand() | 1;
+    return rand_r(&seed) % max_exclusive;
+#endif
+}
+
 static int get_ultimate_points(CBoard& follow_situation, const int playernumber, const int ai_error, const CTurn& turn) {
     int sum = 0;
     for (int p = 0; p < PLAYER_MAX; p++){
@@ -38,7 +51,7 @@ static int get_ultimate_points(CBoard& follow_situation, const int playernumber,
         }
     }
     sum += get_distance_points(follow_situation, playernumber, turn) * 20;
-    return ((100+(rand() % ((ai_error) + 1))) * sum) / 100;
+    return ((100+ai_random(ai_error + 1)) * sum) / 100;
 }
 
 /**
