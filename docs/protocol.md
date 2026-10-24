@@ -7,6 +7,7 @@ Source of truth: [src/network.h](../src/network.h), [src/network.cpp](../src/net
 ## Transport
 
 - TCP, default port `59995` (`TCP_PORT`).
+- Local games use a stream Unix domain socket instead, selected by port `0` (`CServerListener::init`, `CGameClient::Connect`). The GUI's single player game names it `P_tmpdir/freebloks-<random>`; `freebloks_dedicated -p 0 -L <name>` and `freebloks_client -p 0 <name>` do the same. `local_socket_address()` in `network.cpp` builds the address for both sides: on Linux the name goes into the abstract namespace (leading NUL in `sun_path`, no file); elsewhere, e.g. macOS, it is a socket file, which the server unlinks before `bind()` and the GUI unlinks right after connecting. On Windows the GUI uses TCP on `127.0.0.1:59996` (`TCP_PORT+1`). The message format is identical on all transports.
 - No handshake, no authentication, no encryption. Right after `accept()` the server broadcasts a `MSG_CHAT` ("Client N joined") to the clients that were already connected, then a `MSG_SERVER_STATUS` to everybody. The new client does not receive the join notice (it is sent before the client is registered) but does receive the status. The client may send at any time.
 - Messages are sent back-to-back on the byte stream. Each message is self-delimiting through the header's `data_length`.
 - Maximum accepted message size: 512 bytes on both server and client (receive buffer size). Larger messages are treated as invalid and the connection is dropped.
