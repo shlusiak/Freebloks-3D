@@ -34,7 +34,7 @@ public:
 
 	void Disconnect();
 
-	const bool isConnected()const { return client_socket!=0; }
+	bool isConnected()const { return client_socket!=0; }
 
 	/* Processes all pending network messages.
 	 * nullptr: success
@@ -48,7 +48,7 @@ public:
 
 	void request_undo()const;
 
-	const int send_message(NET_HEADER *header,uint16 data_length,uint8 msg_type) const
+	int send_message(NET_HEADER *header,uint16 data_length,uint8 msg_type) const
 	{ return network_send(client_socket,header,data_length,msg_type); }
 
 	void process_message(NET_HEADER* data);
@@ -61,9 +61,9 @@ public:
 
 	void chat(const char *text);
 
-	const bool is_local_player()const { return is_local_player(m_current_player); }
+	bool is_local_player()const { return is_local_player(m_current_player); }
 	/* true if the player is a local player */
-	const bool is_local_player(const int player)const;
+	bool is_local_player(const int player)const;
 
 private:
 	virtual void newCurrentPlayer(const int player){};

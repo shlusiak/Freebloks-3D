@@ -36,7 +36,7 @@ CTimer::CTimer()
  * Returns a timestamp in seconds, but with very high resolution
  * The timestamp is relative to some arbitrary value and can only be used for time differences
  **/
-const double CTimer::getTick()const
+double CTimer::getTick()const
 {
 #ifdef WIN32
 	__int64 tick;
@@ -61,7 +61,7 @@ void CTimer::reset()
 /**
  * Elapsed time is (current time)-(previously remembered time)
  **/
-const double CTimer::elapsed()const
+double CTimer::elapsed()const
 {
 	return getTick()-value;
 }

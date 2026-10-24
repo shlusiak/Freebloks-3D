@@ -31,14 +31,14 @@ class CPlayer{
 		void init(const CBoard& board, const int playernumber);
 		void refresh_data(const CBoard& board);
 
-		const int get_number() const; //now returns a value from 0 to 3!
-		const int get_stone_points_left() const;
-		const int get_position_points() const; //returns an evaluation of the position
-		const int get_number_of_possible_turns() const;
-		const int get_stone_count() const;
+		int get_number() const; //now returns a value from 0 to 3!
+		int get_stone_points_left() const;
+		int get_position_points() const; //returns an evaluation of the position
+		int get_number_of_possible_turns() const;
+		int get_stone_count() const;
 
-		const int get_teammate() const;
-		const int get_nemesis() const;
+		int get_teammate() const;
+		int get_nemesis() const;
 		void set_teammate(int playernumber);
 		void set_nemesis(int playernumber);
 
@@ -48,40 +48,40 @@ class CPlayer{
 };
 
 inline
-const int CPlayer::get_number_of_possible_turns()const{
+int CPlayer::get_number_of_possible_turns()const{
 	return m_number_of_possible_turns;
 }
 
 inline
-const int CPlayer::get_stone_points_left()const{
+int CPlayer::get_stone_points_left()const{
 	return m_stone_points_left;
 }
 
 
 inline
-const int CPlayer::get_number()const{
+int CPlayer::get_number()const{
 	return CPlayer::m_number;
 }
 
 
 inline
-const int CPlayer::get_position_points()const{
+int CPlayer::get_position_points()const{
 	return CPlayer::m_position_points;
 }
 
 
 inline
-const int CPlayer::get_stone_count()const{
+int CPlayer::get_stone_count()const{
 	return CPlayer::m_stone_count;
 }
 
 inline
-const int CPlayer::get_teammate()const{
+int CPlayer::get_teammate()const{
 	return CPlayer::m_teammate;
 }
 
 inline
-const int CPlayer::get_nemesis()const{
+int CPlayer::get_nemesis()const{
 	return CPlayer::m_nemesis;
 }
 

@@ -499,7 +499,7 @@ void CGameClient::chat(const char *text)
 /**
  * Returns true if the player is not a computer player
  **/
-const bool CGameClient::is_local_player(const int player_number)const
+bool CGameClient::is_local_player(const int player_number)const
 {
 	if (player_number == -1) return false;
 	return (player[player_number] != PLAYER_COMPUTER);

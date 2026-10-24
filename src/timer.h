@@ -21,17 +21,17 @@ private:
 	double value;
 
 	/* Returns the current, non-absolute timestamp, in seconds */
-	const double getTick()const;
+	double getTick()const;
 public:
 	CTimer();
 
 	void reset();
 
 	/* Returns the time difference from now to the previous reset(), in seconds */
-	const double elapsed()const;
+	double elapsed()const;
 
 	/* Returns the time difference since the last checkpoint and resets the timer */
-	const double checkPoint() { double bla=elapsed(); reset(); return bla; }
+	double checkPoint() { double bla=elapsed(); reset(); return bla; }
 
 	/* Waits the given number of milliseconds */
 	static void sleep(const int ms);

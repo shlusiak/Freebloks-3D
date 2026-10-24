@@ -26,7 +26,7 @@ private:
     CPlayer m_player[PLAYER_MAX];
     TSingleField *m_game_field;
 
-    const bool is_position_inside_field(const int y, const int x) const;
+    bool is_position_inside_field(const int y, const int x) const;
 
     void set_single_stone_for_player(const int player_number, const int y, const int x);
 
@@ -63,17 +63,17 @@ public:
     int get_player_start_y(const int player_number) const;
 
 
-    const int get_number_of_possible_turns(const int player_number) const;
+    int get_number_of_possible_turns(const int player_number) const;
 
-    const int get_stone_points_left(const int player_number) const;
+    int get_stone_points_left(const int player_number) const;
 
-    const int get_position_points(const int player_number) const;
+    int get_position_points(const int player_number) const;
 
-    const int get_stone_count(const int player_number) const;
+    int get_stone_count(const int player_number) const;
 
-    const int get_teammate(const int player_number) const;
+    int get_teammate(const int player_number) const;
 
-    const int get_nemesis(const int player_number) const;
+    int get_nemesis(const int player_number) const;
 
     void start_new_game(GAMEMODE game_mode);
 
@@ -82,11 +82,11 @@ public:
         m_field_size_y = y;
     }
 
-    const int get_field_size_x() const;
+    int get_field_size_x() const;
 
-    const int get_field_size_y() const;
+    int get_field_size_y() const;
 
-    const int get_player_max() const;
+    int get_player_max() const;
 
     void set_teams(int player_team1_1, int player_team1_2, int player_team2_1, int player_team2_2);
 
@@ -104,11 +104,11 @@ public:
 
     bool is_valid_turn(const CTurn &turn);
 
-    const TSingleField get_game_field(const int playernumber, const int y, const int x) const;
+    TSingleField get_game_field(const int playernumber, const int y, const int x) const;
 
-    const TSingleField get_game_field(const int y, const int x) const;
+    TSingleField get_game_field(const int y, const int x) const;
 
-    const char get_game_field_value(const int y, const int x) const;
+    char get_game_field_value(const int y, const int x) const;
 
     TSingleField *get_field_pointer() const;
 
@@ -119,7 +119,7 @@ public:
 };
 
 inline
-const char CBoard::get_game_field_value(const int y, const int x) const {
+char CBoard::get_game_field_value(const int y, const int x) const {
     return m_game_field[y * m_field_size_x + x];
 }
 
@@ -129,7 +129,7 @@ TSingleField *CBoard::get_field_pointer() const {
 }
 
 inline
-const TSingleField CBoard::get_game_field(const int playernumber, const int y, const int x) const {
+TSingleField CBoard::get_game_field(const int playernumber, const int y, const int x) const {
     TSingleField value = get_game_field_value(y, x);
     if (value >= PLAYER_BIT_HAVE_MIN) return FIELD_DENIED;
     value &= PLAYER_BIT_ADDR[playernumber];
@@ -140,39 +140,39 @@ const TSingleField CBoard::get_game_field(const int playernumber, const int y, c
 
 
 inline
-const TSingleField CBoard::get_game_field(const int y, const int x) const {
+TSingleField CBoard::get_game_field(const int y, const int x) const {
     const TSingleField value = CBoard::get_game_field_value(y, x);
     if (value < PLAYER_BIT_HAVE_MIN) return FIELD_FREE;
     return value & 3;
 }
 
 inline
-const int CBoard::get_field_size_x() const {
+int CBoard::get_field_size_x() const {
     return CBoard::m_field_size_x;
 }
 
 inline
-const int CBoard::get_field_size_y() const {
+int CBoard::get_field_size_y() const {
     return CBoard::m_field_size_y;
 }
 
 inline
-const int CBoard::get_player_max() const {
+int CBoard::get_player_max() const {
     return PLAYER_MAX;
 }
 
 inline
-const int CBoard::get_stone_count(const int player_number) const {
+int CBoard::get_stone_count(const int player_number) const {
     return CBoard::m_player[player_number].get_stone_count();
 }
 
 inline
-const int CBoard::get_nemesis(const int player_number) const {
+int CBoard::get_nemesis(const int player_number) const {
     return CBoard::m_player[player_number].get_nemesis();
 }
 
 inline
-const int CBoard::get_teammate(const int player_number) const {
+int CBoard::get_teammate(const int player_number) const {
     return CBoard::m_player[player_number].get_teammate();
 }
 
@@ -187,22 +187,22 @@ CPlayer *CBoard::get_player(const int player_number) {
 }
 
 inline
-const bool CBoard::is_position_inside_field(const int y, const int x) const {
+bool CBoard::is_position_inside_field(const int y, const int x) const {
     return (y >= 0 && y < CBoard::m_field_size_y && x >= 0 && x < CBoard::m_field_size_x);
 }
 
 inline
-const int CBoard::get_number_of_possible_turns(const int player_number) const {
+int CBoard::get_number_of_possible_turns(const int player_number) const {
     return CBoard::m_player[player_number].get_number_of_possible_turns();
 }
 
 inline
-const int CBoard::get_stone_points_left(const int player_number) const {
+int CBoard::get_stone_points_left(const int player_number) const {
     return CBoard::m_player[player_number].get_stone_points_left();
 }
 
 inline
-const int CBoard::get_position_points(const int player_number) const {
+int CBoard::get_position_points(const int player_number) const {
     return CBoard::m_player[player_number].get_position_points();
 }
 

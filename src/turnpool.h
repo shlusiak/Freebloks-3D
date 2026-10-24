@@ -30,7 +30,7 @@ class CTurnPool {
 			turns.clear();
 		}
 
-		const int size() const {
+		int size() const {
 		    return turns.size();
 		}
 

@@ -34,9 +34,9 @@ public:
 	void drawText(double x,double y,double z,const char *text)const;
 	void drawText(double x,double y,const char *text,unsigned int len)const;
 	void drawText(double x,double y,double z,const char *text,unsigned int len)const;
-	const double width()const { return char_width; }
-	const double height()const { return char_height; }
-	const double width(const char *text)const { return width()*strlen(text); }
+	double width()const { return char_width; }
+	double height()const { return char_height; }
+	double width(const char *text)const { return width()*strlen(text); }
 };
 
 

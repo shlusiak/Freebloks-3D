@@ -27,7 +27,7 @@ private:
 public:
 	/* Set the options to their defaults. Everything 1 (on) */
 	TOptions() { for (int i=0;i<OPTION_MAX;i++) opt[i]=1; opt[OPTION_FPS]=35; }
-	const int get(const OPTION what)const { return opt[what]; }
+	int get(const OPTION what)const { return opt[what]; }
 	/* Set the value of an option. */
 	void set(const OPTION what,const int value) { opt[what]=value; }
 };

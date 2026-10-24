@@ -41,7 +41,7 @@ public:
 
     void set_no_player() { m_current_player = -1; }
 
-    const int current_player() const { return m_current_player; }
+    int current_player() const { return m_current_player; }
 
     CPlayer *get_current_player() {
         if (m_current_player == -1)
@@ -53,7 +53,7 @@ public:
     // Return number of non-computer players
     int num_players() const;
 
-    const GAMEMODE get_game_mode() const { return m_game_mode; }
+    GAMEMODE get_game_mode() const { return m_game_mode; }
 };
 
 #endif

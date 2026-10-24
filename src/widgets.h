@@ -76,7 +76,7 @@ public:
 
 	void remove() { m_deleted=true; }
 	// Return the ID of this widget
-	const int getId()const { return m_id; }
+	int getId()const { return m_id; }
 	double getX() { return x; }
 	double getY() { return y; }
 	void setId(int id) { m_id=id; }
