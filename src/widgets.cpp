@@ -780,7 +780,8 @@ const char* CTextEdit::getText()
 void CTextEdit::setText(const char *vtext)
 {
 	m_committed=false;
-	strncpy(text,vtext,sizeof(text));
+	strncpy(text,vtext,sizeof(text)-1);
+	text[sizeof(text)-1]='\0';
 }
 
 /**
