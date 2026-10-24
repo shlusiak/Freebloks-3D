@@ -537,13 +537,20 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			if (ntohs(data->data_length) < sizeof(NET_REQUEST_HINT))
 				return;
 
-			const CTurn *turn = m_ai.get_ai_turn(*this, ((NET_REQUEST_HINT*)data)->player,AI_HARD);
+			int hint_player = ((NET_REQUEST_HINT*)data)->player;
+			/* Only hints for valid players owned by the requesting client */
+			if (hint_player < 0 || hint_player >= PLAYER_MAX)
+				return;
+			if (player[hint_player] != clients[client])
+				return;
+
+			const CTurn *turn = m_ai.get_ai_turn(*this, hint_player, AI_HARD);
 			if (turn == nullptr)
 				return;
 
 			NET_SET_STONE d;
 
-			d.player=((NET_REQUEST_HINT*)data)->player;
+			d.player=hint_player;
 			d.stone=turn->stone_number;
 			d.mirror_count=turn->mirror_count;
 			d.rotate_count=turn->rotate_count;
