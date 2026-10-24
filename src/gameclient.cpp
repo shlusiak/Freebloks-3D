@@ -280,6 +280,7 @@ void CGameClient::process_message(NET_HEADER* data)
 		case MSG_GRANT_PLAYER:
 			if (ntohs(data->data_length) < sizeof(NET_GRANT_PLAYER))break;
 			i=((NET_GRANT_PLAYER*)data)->player;
+			if (i < 0 || i >= PLAYER_MAX)break;
 			/* Merken, dass es sich bei i um einen lokalen Spieler handelt */
 			player[i]=PLAYER_LOCAL;
 			break;
@@ -287,6 +288,8 @@ void CGameClient::process_message(NET_HEADER* data)
 		/* Der Server hat einen aktuellen Spieler festgelegt */
 		case MSG_CURRENT_PLAYER:
 			if (ntohs(data->data_length) < sizeof(NET_CURRENT_PLAYER))break;
+			/* -1 means no current player */
+			if (((NET_CURRENT_PLAYER*)data)->player < -1 || ((NET_CURRENT_PLAYER*)data)->player >= PLAYER_MAX)break;
 			m_current_player=((NET_CURRENT_PLAYER*)data)->player;
 			newCurrentPlayer(m_current_player);
 			break;
@@ -295,6 +298,7 @@ void CGameClient::process_message(NET_HEADER* data)
 		case MSG_SET_STONE: {
 			if (ntohs(data->data_length) < sizeof(NET_SET_STONE))break;
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
+			if (!network_check_set_stone(s))break;
 			/* Entsprechenden Stein des Spielers holen */
 			CStone &stone=get_player(s->player)->get_stone(s->stone);
 			/* Stein in richtige Position drehen */
@@ -315,6 +319,7 @@ void CGameClient::process_message(NET_HEADER* data)
 		case MSG_STONE_HINT: {
 			if (ntohs(data->data_length) < sizeof(NET_SET_STONE))break;
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
+			if (!network_check_set_stone(s))break;
 			hintReceived(s);
 			break;
 		}
