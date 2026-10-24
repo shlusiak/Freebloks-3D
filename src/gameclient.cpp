@@ -9,6 +9,7 @@
   #include "config.h"
 #endif
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -276,18 +277,23 @@ void CGameClient::process_message(NET_HEADER* data)
 	switch(data->msg_type)
 	{
 		/* Der Server gewaehrt dem Client einen lokalen Spieler */
-		case MSG_GRANT_PLAYER:i=((NET_GRANT_PLAYER*)data)->player;
+		case MSG_GRANT_PLAYER:
+			if (ntohs(data->data_length) < sizeof(NET_GRANT_PLAYER))break;
+			i=((NET_GRANT_PLAYER*)data)->player;
 			/* Merken, dass es sich bei i um einen lokalen Spieler handelt */
 			player[i]=PLAYER_LOCAL;
 			break;
 
 		/* Der Server hat einen aktuellen Spieler festgelegt */
-		case MSG_CURRENT_PLAYER: m_current_player=((NET_CURRENT_PLAYER*)data)->player;
+		case MSG_CURRENT_PLAYER:
+			if (ntohs(data->data_length) < sizeof(NET_CURRENT_PLAYER))break;
+			m_current_player=((NET_CURRENT_PLAYER*)data)->player;
 			newCurrentPlayer(m_current_player);
 			break;
 
 		/* Nachricht des Servers ueber ein endgueltiges Setzen eines Steins auf das Feld */
 		case MSG_SET_STONE: {
+			if (ntohs(data->data_length) < sizeof(NET_SET_STONE))break;
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
 			/* Entsprechenden Stein des Spielers holen */
 			CStone &stone=get_player(s->player)->get_stone(s->stone);
@@ -307,6 +313,7 @@ void CGameClient::process_message(NET_HEADER* data)
 			break;
 		}
 		case MSG_STONE_HINT: {
+			if (ntohs(data->data_length) < sizeof(NET_SET_STONE))break;
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
 			hintReceived(s);
 			break;
@@ -321,6 +328,8 @@ void CGameClient::process_message(NET_HEADER* data)
 		/* Ein Server-Status Paket ist eingetroffen, Inhalt merken */
 		case MSG_SERVER_STATUS:
 		{
+			/* The oldest protocol version ends right before player_owner */
+			if (ntohs(data->data_length) < offsetof(NET_SERVER_STATUS, player_owner))break;
 			NET_SERVER_STATUS *s=(NET_SERVER_STATUS*)data;
 			int version = 1;
 
@@ -332,6 +341,10 @@ void CGameClient::process_message(NET_HEADER* data)
 				status.version_min = s->version_min;
 			} else
 				status.version_min = 1;
+
+			/* Version 3 added stone_numbers at the end, do not read beyond the received data */
+			if (version >= 3 && ntohs(data->data_length) < sizeof(NET_SERVER_STATUS))
+				version = 2;
 
 			status.version = version;
 			status.clients=s->clients;
@@ -386,6 +399,7 @@ void CGameClient::process_message(NET_HEADER* data)
 
 		/* Server hat eine Chat-Nachricht geschickt. */
 		case MSG_CHAT: {
+			if (ntohs(data->data_length) < sizeof(NET_CHAT))break;
 			NET_CHAT* chat=(NET_CHAT*)data;
 			chatReceived(chat);
 			break;
