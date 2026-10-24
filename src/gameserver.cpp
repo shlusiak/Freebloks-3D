@@ -1156,7 +1156,21 @@ int CServerListener::wait_for_player(bool verbose, sockaddr_storage *client)
 			/* Akzeptiere die Verbindung, cl ist der neue Client-Socket */
 			l=sizeof(*client);
 			int cl=accept(listen_sockets[j],(sockaddr*)client,&l);
-			if (cl==-1)return -1;
+			if (cl==-1)
+			{
+				int err = errno;
+				perror("accept: ");
+				/* Transient failures (aborted connection, out of file descriptors, ...) must
+				   not take down the whole server. Back off briefly, as the pending connection
+				   keeps the listen socket readable. */
+				if (err == EINTR || err == EAGAIN || err == ECONNABORTED || err == EMFILE ||
+				    err == ENFILE || err == ENOBUFS || err == ENOMEM)
+				{
+					CTimer::sleep(100);
+					continue;
+				}
+				return -1;
+			}
 
 			if (verbose)
 			{
