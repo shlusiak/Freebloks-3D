@@ -340,9 +340,9 @@ static void parse_params(int argc,char **argv)
 				exit(1);
 			}
 			int w=atoi(argv[i]);
-			if (w<3 || w>30)
+			if (w<FIELD_SIZE_MIN || w>30)
 			{
-				printf("%s: Invalid width (%d). Must be between 3 and 30.\n",argv[i-1],w);
+				printf("%s: Invalid width (%d). Must be between %d and 30.\n",argv[i-1],w,FIELD_SIZE_MIN);
 				exit(1);
 			}
 			width=w;
@@ -357,9 +357,9 @@ static void parse_params(int argc,char **argv)
 				exit(1);
 			}
 			int h=atoi(argv[i]);
-			if (h<3 || h>30)
+			if (h<FIELD_SIZE_MIN || h>30)
 			{
-				printf("%s: Invalid height (%d). Must be between 3 and 30.\n",argv[i-1],h);
+				printf("%s: Invalid height (%d). Must be between %d and 30.\n",argv[i-1],h,FIELD_SIZE_MIN);
 				exit(1);
 			}
 			height=h;
@@ -548,6 +548,13 @@ int main(int argc,char ** argv)
 
 	/* Kommandozeilenparameter verarbeiten */
 	parse_params(argc,argv);
+
+	/* Clients (and the server's own seeding code) reject configurations like DUO on a field below 5x5 */
+	if (!is_valid_game_config(gamemode, width, height))
+	{
+		printf("Invalid combination of game mode and field size (%dx%d).\n", width, height);
+		return 1;
+	}
 
 #ifdef WIN32
 	/* Winsock initialisieren */
