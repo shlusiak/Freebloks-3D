@@ -67,7 +67,10 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 		sockaddr_un addr;
 
 		errno=0;
+		memset(&addr, 0, sizeof(addr));
 		addr.sun_family=AF_UNIX;
+		if (strlen(host) >= sizeof(addr.sun_path))
+			return "Socket path too long";
 		strcpy(addr.sun_path, host);
 	
 		/* Ein Socket erstellen */

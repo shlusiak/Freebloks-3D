@@ -979,6 +979,11 @@ int CServerListener::init(const char* interface_,int port)
 		// This moves it into the abstract namespace, copying interface_ after the null byte
 		int addr_len = 0;
 		if (interface_ != nullptr) {
+			/* One byte is taken by the leading null, and the address length must fit as well */
+			if (strlen(interface_) + 1 > sizeof(my_addr.sun_path)) {
+				closesocket(listen_socket);
+				return ENAMETOOLONG;
+			}
 			strcpy(&my_addr.sun_path[1], interface_);
 			addr_len = strlen(interface_);
 		}
