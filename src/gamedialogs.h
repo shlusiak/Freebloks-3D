@@ -1,7 +1,7 @@
 /**
  * gamedialogs.h
- * Autor: Sascha Hlusiak
- * Spiel-Starten-Dialog (Netzwerk Lobby) und Spiel-Ende-Dialog
+ * Author: Sascha Hlusiak
+ * Start game dialog (network lobby) and game over dialog
  **/
 #ifndef __GAMEDIALOGS_H_INCLUDED_
 #define __GAMEDIALOGS_H_INCLUDED_
@@ -11,8 +11,8 @@
 
 
 /**
- * Die Lobby eines Multiplayer-Spiels. Zeigt verbundene Clients an, und bietet Knopf zum Starten
- * einer Runde, wenn genug Spieler verbunden sind. Bietet Moeglichkeit zum Chatten
+ * The lobby of a multiplayer game. Shows the connected clients and offers a button to start
+ * a round once enough players are connected. Offers a chat
  **/
 class CStartGameDialog:public CDialog
 {
@@ -20,47 +20,47 @@ private:
 	CGUI* gui;
 	CGameClient *client;
 	CStaticText *statustext;
-	// Ein Zeitzaehler, um periodisch das Fenster zu aktualisieren
+	// A timer to refresh the window periodically
 	double time;
 	CTextEdit *chat;
 
-	// Den NET_SERVER_STATUS des SpielClient in dem statustext anzeigen
+	// Show the game client's NET_SERVER_STATUS in the status text
 	void updateStatus(NET_SERVER_STATUS *status);
-	// Aktuellen Text im Chat-Edit absenden.
+	// Send the current text in the chat edit.
 	void sendChat();
 public:
-	// Constructor des StartGameDialog, servername ist zum Anzeigen des Servers
+	// Constructor of the StartGameDialog; servername is for displaying the server
 	CStartGameDialog(CGameClient *vclient,CGUI* vgui,const char *servername);
-	// Maustaste verarbeiten
+	// Handle a mouse button
 	virtual int processMouseEvent(TMouseEvent *event);
-	// Animieren, periodisch aktualisieren
+	// Animate, refresh periodically
 	virtual void execute(double elapsed);
-	// Taste verarbeiten
+	// Handle a key
 	virtual bool processKey(unsigned short key);
 };
 
 
 /**
- * Der Dialog, der ueber Ausgang einer Partie berichtet, sowie ne Option zum neustarten 
- * einer Runde bietet.
+ * The dialog that reports the outcome of a match and offers an option to restart
+ * a round.
  **/
 class CGameFinishDialog:public CDialog
 {
 private:
-	// GUI merken
+	// Remember the GUI
 	CGUI *gui;
 	CTextEdit *chat;
 	void sendChat();
 
 public:
-	// Constructor. Er saugt sich alle Daten aus dem CGameClient*
+	// Constructor. It pulls all data from the CGameClient*
 	CGameFinishDialog(CGUI *vgui,CGameClient *vclient);
-	// Maustaste verarbeiten
+	// Handle a mouse button
 	virtual int processMouseEvent(TMouseEvent *event);
-	// Taste verarbeiten
+	// Handle a key
 	virtual bool processKey(unsigned short key);
 	virtual void close();
-	// Wir wollen nicht exklusiv die Maus, und hiermit kann man die Ansicht noch rotieren
+	// We do not want the mouse exclusively, so the view can still be rotated
 	virtual bool handleUI() { return true; }
 };
 

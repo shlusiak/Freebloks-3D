@@ -1,7 +1,7 @@
 /**
  * options.cpp
- * Autor: Sascha Hlusiak
- * Dialog zum Einstellen der Optionen.
+ * Author: Sascha Hlusiak
+ * Dialog for changing the options.
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -34,18 +34,18 @@ public:
 
 
 /**
- * OptionsDialog erstellen, Widgets hinzufuegen und Wert aus den Optionen zuteilen.
+ * Create the OptionsDialog, add widgets and assign the values from the options.
  **/
 COptionsDialog::COptionsDialog(CGUI *vgui)
 :CDialog(400,310,"Options")
 {
-	/* Farbe setzen. */
+	/* Set the colour. */
 	setColor(0.35,0.50,0.85);
-	/* Aus der GUI die TOptions holen, als Zeiger. Wir koennen diese direkt veraendern. */
+	/* Get the TOptions from the GUI as a pointer. We can modify them directly. */
 	options=vgui->getOptions();
 	fps=nullptr;
 
-	/* CheckBoxes hinzufuegen. */
+	/* Add the check boxes. */
 	addChild(shadow=new CCheckBox(20,50,160,20,10000,"Render Shadows",options->get(OPTION_SHADOW)!=0,this));
 	addChild(env=new CCheckBox(20,75,290,20,10004,"Render textured Environment",options->get(OPTION_ENVIRONMENT)!=0,this));
 	addChild(hints=new CCheckBox(20,100,290,20,10006,"Mark possible corners on field",options->get(OPTION_SHOW_HINTS)!=0,this));
@@ -56,7 +56,7 @@ COptionsDialog::COptionsDialog(CGUI *vgui)
 	addChild(animatearrows=new CCheckBox(20,205,300,20,10003,"Animate Arrows of Selected Stone",options->get(OPTION_ANIMATE_ARROWS)!=0,this));
 	addChild(autochat=new CCheckBox(20,230,240,20,10002,"Autoopen/Autoclose Chatbox",options->get(OPTION_AUTO_CHATBOX)!=0,this));
 
-	/* Und Schliessknopf mit ID=1 nicht vergessen. */
+	/* And do not forget the close button with ID=1. */
 	addChild(new CButton(160,270,80,30,1,this,"Okay"));
 
 	if (options->get(OPTION_LIMITFPS))
@@ -68,7 +68,7 @@ int COptionsDialog::processMouseEvent(TMouseEvent *event)
 	int r=CDialog::processMouseEvent(event);
 	switch (r)
 	{
-	/* Und gucken, ob das Ereignis von einer CheckBox verarbeitet wurde. Dann Option entsprechend setzen. */
+	/* And check whether the event was handled by a check box. Then set the option accordingly. */
 	case 10000: options->set(OPTION_SHADOW,shadow->getCheck());
 		break;
 	case 10001: options->set(OPTION_ANIMATE_STONES,animatestones->getCheck());

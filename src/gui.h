@@ -1,9 +1,9 @@
 /**
  * gui.h
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
- * Bildet die Hauptklasse der GUI. Beherbergt das CWindow, reagiert auf Ereignisse des
- * Users, und rendert den ganzen Kappes. Nicht zu unterschaetzen!
+ * The main class of the GUI. Holds the CWindow, reacts to user
+ * events and renders the whole lot. Not to be underestimated!
  **/
 
 #ifndef _WINDOW_INCLUDED_
@@ -22,78 +22,78 @@ class CIntro;
 class CChatBox;
 
 
-// Sooo gross ist ein Stein in Raum-Koordinaten (das ist der Radius, nicht der Durchmesser)
+// This is how big a stone is in world coordinates (the radius, not the diameter)
 const double stone_size=0.45;
-// So hoch ist die Erhoehung auf dem Spielfeld, also ist ein Spielstein doppelt so hoch
+// This is the height of the bevel on the board, so a stone is twice as high
 const double bevel_height=0.15;
-// Die Richtung unserer direktionalen Lichtquelle. Wird u.a. fuer Schatten benoetigt
+// The direction of our directional light source. Needed among others for shadows
 const float light0_pos[]    = {2.5f, 5.0f, -2.0f, 0.0f};
 
 const char * const COLOR_NAME[4]={"Blue","Yellow","Red","Green"};
 
 
 /**
- * Die GUI Klasse, quasi das Herzstueck des Programms
+ * The GUI class, effectively the heart of the program
  **/
 class CGUI
 {
 private:
 	CWindow * window;
 
-	// Einen Timer, fuer hochgenaue Timings, die das Rendern und die Animationen betreffen
+	// A timer for high-precision timing of rendering and animations
 	CTimer timer;
 
-	// Verkettete Liste fuer die 2D Widgets, also die Steuerelemente der GUI
+	// Linked list for the 2D widgets, i.e. the GUI controls
 	CWidgetPane widgets;
 
-	// Chat-Box ist stets vorhanden
+	// The chat box always exists
 	CChatBox *chatbox;
 
-	// Hier sollten Unterfenster hinzugefuegt werden, die parallel zur Menuleiste laufen sollen
+	// Subwindows that run in parallel to the toolbar should be added here
 	CWidget *subchilds;
 
-	// Zeiger auf wichtige, dynamische Widgets
+	// Pointers to important, dynamic widgets
 	CFrame *playerframe;
 	CStaticText *playertext;
 
-	// Zeiger auf das 2D-Hauptmenu, sofern sichtbar
+	// Pointer to the 2D main menu, if visible
 	CDialog *menu;
 
-	// Effekte und Animationen von Steinen kommen in diese verkettete Liste
+	// Effects and animations of stones go into this linked list
 	CStoneEffect *effects;
 
-	// Das Intro Objekt, sofern es gerade abgespielt wird.
+	// The intro object, if it is currently playing.
 	CIntro *intro;
 
 	CTexture texture_ground,texture_wall,texture_field;
 
 	TOptions options;
 
-	// Aktuelle Winkel der Ansicht, um Y-Achse und X-Achse und Entfernung der Kamera vom Mittelpunkt
+	// Current view angles around the Y and X axes and distance of the camera from the centre
 	double angx,angy,camera_distance;
 
-	// Letzte Mausposition
+	// Last mouse position
 	int lastx,lasty;
 
-	// Koordinate des letzten Mausklicks. Gebraucht bei Rechts-Klick zum spiegeln ODER drehen
+	// Coordinate of the last mouse click. Needed for right-click to mirror OR rotate
 	int clickx,clicky;
 
-	// Aktuelle X und Y Koordinate des selektierten Spielsteins auf dem Spielfeld in Feld-Koordinaten
+	// Current X and Y coordinate of the selected stone on the board, in board coordinates
 	int selectedx,selectedy;
 
-	// Ist der Zug, der auf dem Spielfeld ausgewaehlt ist, erlaubt?
+	// Is the move selected on the board allowed?
 	char selected_allowed;
 
-	// Aktueller ausgewaehlter Stein, oder -1 fuer kein Stein
+	// Currently selected stone, or -1 for no stone
 	int current_stone;
 
-	// Zeitzaehler fuer Animationen
+	// Time counter for animations
 	double anim;
 
-	// Stein, auf dem gerade der Mauszeiger steht. Dieser wird grafisch hervorgehoben
+	// Stone currently under the mouse pointer. It is highlighted
 	int hovered_stone;
 
-	// Pfeil (Rotation, Spiegelung), der gerade mit der Maus selektiert ist
+	// Arrow (rotation, mirroring) currently selected with the mouse
 	int selected_arrow;
 
 	CGLFont *font;
@@ -103,7 +103,7 @@ private:
 
 	CButton *hint,*undo;
 
-	// Startupparameter
+	// Start-up parameters
 	struct PARAMS
 	{
 		char* remotehost;
@@ -115,30 +115,30 @@ public:
 	CGUI();
 	~CGUI();
 	
-	// Hauptmethode, wird von der main() aus freebloks.cpp aufgerufen.
+	// Main method, called from main() in freebloks.cpp.
 	void run();
 
-	// Hilfetext ausgeben
+	// Print the help text
 	void printHelp()const;
 
-	// Parameter parsen
+	// Parse the parameters
 	bool parseCmdLine(int argc,char **argv);
 
-	// Funktion Animiert und Rendert, aber erst nachdem mintime sek seit dem letzten Mal verstrichen sind.
+	// Animates and renders, but only once mintime seconds have passed since the last time.
 	bool checkPoint(double mintime=0.0);
 
-	// CWindow ruft dies auf, wenn ein TMouseEvent anliegt. Wird hier von der GUI verarbeitet
+	// CWindow calls this when a TMouseEvent occurs. Handled here by the GUI
 	void processMouseEvent(TMouseEvent *e);
 
 	void processKeyEvent(unsigned short key);
 
-	// CGameClient teilt hier mit, dass ein Spielerwechsel stattgefunden hat
+	// CGameClient reports here that the current player has changed
 	void newCurrentPlayer(int player);
 
-	// Setze Rotation um Y-Achse
+	// Set the rotation around the Y axis
 	void setAngy(double a) { angy=a; }
 
-	// Setze Zoom-Faktor
+	// Set the zoom factor
 	void setZoom(double z) { camera_distance=z; }
 private:
 	void initGL();
@@ -149,63 +149,63 @@ private:
 
 	void render();
 
-	// Animiere alles bei einer Zeitdifferenz von elapsed, seit dem letzten Frame
+	// Animate everything by a time difference of elapsed since the last frame
 	void execute(double elapsed);
 	
-	// Prueft, auf welches Objekt der Benutzer gerade mit der Maus zeigt (Fensterkoordinate x/y) und setzt entsprechende Variablen.
+	// Checks which object the user is pointing at with the mouse (window coordinate x/y) and sets the corresponding variables.
 	void testSelection(int x,int y);
 
-	// true, wenn das uebergebene Feld in Feldkoordinaten, zur aktuellen Auswahl auf dem Feld gehoert, also der User gerade dort einen Stein platzieren will
+	// true if the given square, in board coordinates, belongs to the current selection on the board, i.e. the user wants to place a stone there
 	bool isInSelection(int x,int y)const;
 
 	void renderCube(double x1,double z1,double x2,double z2,double y1,double y2)const;
 
-	// Rendert alle Steine des Spielers direkt vor den Betrachter
+	// Renders all of the player's stones right in front of the viewer
 	void renderPlayerStones(int player,double alpha,bool selectionbuffer)const;
 
-	// Rendert einen einzigen Stein aus dem Sortiment des Spielers, ggf. samt Pfeile
+	// Renders a single stone from the player's set, with its arrows if needed
 	void renderPlayerStone(int player,CStone* stone,int stone_number,bool current,bool hovered,double alpha,bool selectionbuffer)const;
 
 	void renderPlayerStoneArrows(int player,CStone* stone,int stone_number,bool selectionbuffer)const;
 
-	// Rendert exakt einen Pfeil an den Ursprung des aktuellen Koordinatensystems
+	// Renders exactly one arrow at the origin of the current coordinate system
 	void renderArrow(bool doublearrow,bool selected)const;
 
 	void renderQuad(double size)const;
 
-	// Beendet das Intro, z.B. bei Mausklick oder Tastendruck
+	// Ends the intro, e.g. on a mouse click or key press
 	void stopIntro();
 
-	// Zeigt den Zug an, den die schwere KI jetzt setzen wuerde
+	// Shows the move the hard AI would play now
 	void showHint();
 public:
-	// Das eigentliche Spiel (der Client), connected oder nicht
+	// The actual game (the client), connected or not
 	CGUIGameClient * game;
 
-	// Rendert einen einzelnen Stein nach x/y in Feldkoordinaten, mit Farbe, alpha
+	// Renders a single stone at x/y in board coordinates, with colour and alpha
 	void renderStone(int x,int y,int color,float alpha,bool doublesided)const;
 
-	// Rendert einen einzelnen Stein der Farbe und Transparenz an den Ursprung des Koordinatensystems
+	// Renders a single stone of the given colour and transparency at the origin of the coordinate system
 	void renderStone(int color,float alpha,bool selectionbuffer)const;
 
-	// Rendert, ausgehend vom Ursprung, das Shadowvolume eines Steines, projiziert entlang der Richtung des Lichts
+	// Renders, starting at the origin, the shadow volume of a stone, projected along the direction of the light
 	void renderStoneShadow(float lightdir[3])const;
 
-	// Rendert die Unterlage des Spielfeldes (z.B. ein Holztisch)
+	// Renders the base under the board (e.g. a wooden table)
 	void renderGround()const;
 
-	// Rendert das Spielfeld (ohne Steine), ggf mit farbiger markierung moeglicher Steine
+	// Renders the board (without stones), optionally highlighting possible squares in colour
 	void renderField(bool withgame=true)const;
 	void renderField(bool withgame,int w,int h)const;
 
-	// Fuegt einen CStoneEffect der verketteten Liste hinzu. Wird vom CGameClient aufgerufen, nachdem ein Computer einen Zug gemacht hat. 
+	// Adds a CStoneEffect to the linked list. Called by CGameClient after a computer has made a move.
 	void addEffect(CStoneEffect *effect) { effects->add(effect); }
 
-	// Fuegt ein (vollstaendig modales) Unterfenster den widgets hinzu!
+	// Adds a (fully modal) subwindow to the widgets!
 	void addSubChild(CWidget *w,bool modal=true) { if (modal)widgets.addSubChild(w); else subchilds->addSubChild(w);}
 
-	// Gibt die Weltkoordinaten des Spielersteins zurueck, der vor der Kamera schwebt.
-	// Anhaenig von den Betrachtungswinkeln. Wird auch von CStoneRollEffect benutzt
+	// Returns the world coordinates of the player's stone that floats in front of the camera.
+	// Depends on the viewing angles. Also used by CStoneRollEffect
 	void getPlayerStonePos(int player,int stone,double *dx,double *dy,double *dz)const;
 
 	bool startSingleplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ai_threads);
@@ -214,10 +214,10 @@ public:
 
 	void showIntro();
 
-	// Fuegt der CChatBox die uebergebene Textnachricht an, die vom Netzwerk empfangen wurde
+	// Appends the given text message received from the network to the CChatBox
 	void addChatMessage(int client,const char* text);
 
-	// Ist die ChatBox sticky, so verschwindet sie NICHT automatisch nach 7 sek. 
+	// If the chat box is sticky, it does NOT hide automatically after 7 s.
 	void setChatBoxSticky(bool sticky);
 
 	TOptions* getOptions() { return &options; }

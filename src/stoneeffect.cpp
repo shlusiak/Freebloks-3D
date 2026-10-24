@@ -1,7 +1,7 @@
 /**
  * stoneeffect.cpp
- * Autor: Sascha Hlusiak
- * Effekte fuer wirbelnde Steine und so.
+ * Author: Sascha Hlusiak
+ * Effects for whirling stones and the like.
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -19,7 +19,7 @@
 
 
 /**
- * Einen leeren CStoneEffect erzeugen, der nix kann. z.B. als Kopf einer Liste.
+ * Create an empty CStoneEffect that does nothing, e.g. as the head of a list.
  **/
 CStoneEffect::CStoneEffect()
 {
@@ -30,7 +30,7 @@ CStoneEffect::CStoneEffect()
 }
 
 /**
- * StoneEffect mit CStone, player, x und y erzeugen. */
+ * Create a StoneEffect with CStone, player, x and y. */
 CStoneEffect::CStoneEffect(CGUI *vgui,const CStone *vstone,int vplayer,int vx,int vy)
 {
 	x=vx;
@@ -43,7 +43,7 @@ CStoneEffect::CStoneEffect(CGUI *vgui,const CStone *vstone,int vplayer,int vx,in
 }
 
 /**
- * StoneEffect aus einem CTurn und player erstellen.
+ * Create a StoneEffect from a CTurn and player.
  **/
 CStoneEffect::CStoneEffect(CGUI *vgui,const CTurn *turn,int vplayer)
 {
@@ -52,23 +52,23 @@ CStoneEffect::CStoneEffect(CGUI *vgui,const CTurn *turn,int vplayer)
 	next=0;
 	player=vplayer;
 	gui=vgui;
-	/* Stone kopieren und Daten aus CTurn uebernehmen */
+	/* Copy the stone and take over the data from CTurn */
 	stone.init(turn->stone_number);
 	stone.mirror_rotate_to(turn->mirror_count,turn->rotate_count);
 }
 
 /**
- * Aufraeumen
+ * Clean up
  **/
 CStoneEffect::~CStoneEffect()
 {
-	/* Wenn Nachfolger existieren, diese mit entfernen (rekursiv) */
+	/* If successors exist, remove them too (recursively) */
 	if (next)delete next;
 	next=0;
 }
 
 /**
- * Verkettete Liste hier abschneiden, alle nachfolgenden CStoneEffects entfernen (rekursiv)
+ * Cut the linked list here, removing all following CStoneEffects (recursively)
  **/
 void CStoneEffect::clear()
 {
@@ -77,11 +77,11 @@ void CStoneEffect::clear()
 }
 
 /**
- * Stein animieren. true zurueckgeben, wenn Effekt entfernt werden will.
+ * Animate the stone. Return true if the effect wants to be removed.
  **/
 bool CStoneEffect::execute(double elapsed)
 {
-	/* Wenn Nachfolger entfernt werden will */
+	/* If the successor wants to be removed */
 	if (next) if (next->execute(elapsed))
 	{
 		CStoneEffect *n=next;
@@ -89,33 +89,33 @@ bool CStoneEffect::execute(double elapsed)
 		n->next=0;
 		delete n;
 	}
-	/* Wir wollen nicht sterben */
+	/* We do not want to die */
 	return false;
 }
 
 /**
- * true, wenn das Feld x/y von diesem Effekt behandelt wird.
+ * true if square x/y is handled by this effect.
  **/
 bool CStoneEffect::is_effected(int x,int y)
 {
-	/* Wenn irgendein Effekt das Feld x/y behandelt: true. */
+	/* If any effect handles square x/y: true. */
 	if (next)if (next->is_effected(x,y))return true;
-	/* Wenn garkein richtiger Effekt (stone==0): false */
+	/* If not a real effect at all (stone==0): false */
 	//if (stone==0)return false; /* FIXME */
 	if (gui==0)return false;
 	y-=this->y;
 	x-=this->x;
-	/* Wenn x/y ausserhalb unserer Grenzen des Steins: false */
+	/* If x/y is outside the bounds of our stone: false */
 	if (x<0 || y<0 || x>=stone.get_stone_size() || y>=stone.get_stone_size())return false;
 
-	/* Wenn unser Stein an der errechneten Stelle ein Element hat: true */
+	/* If our stone has an element at the computed position: true */
 	if (stone.get_stone_field(y,x)!=STONE_FIELD_FREE)return true;
 	return false;
 }
 
 
 /**
- * Ein simpler Fade-Effekt. Zeit mit 0 initialisieren, mehr brauchts nicht.
+ * A simple fade effect. Initialise the time with 0; nothing else is needed.
  **/
 CStoneFadeEffect::CStoneFadeEffect(CGUI *vgui,const CStone *vstone,int vplayer,int vx,int vy)
 :CStoneEffect(vgui,vstone,vplayer,vx,vy)
@@ -130,28 +130,28 @@ CStoneFadeEffect::CStoneFadeEffect(CGUI *vgui,const CTurn *turn,int vplayer)
 }
 
 /**
- * Animieren.
+ * Animate.
  **/
 bool CStoneFadeEffect::execute(double elapsed)
 {
-	/* Andere Effekte animieren. */
+	/* Animate the other effects. */
 	CStoneEffect::execute(elapsed);
-	/* Zeit erhoehen, und nach 3 sek soll der Effekt entfernt werden wollen. */
+	/* Increase the time; after 3 s the effect wants to be removed. */
 	time+=elapsed;
 	return (time>3.0);
 }
 
 /**
- * Einfach rendern.
+ * Simply render.
  **/
 void CStoneFadeEffect::render()
 {
 	int i,j;
-	/* Eine weiche Animation des Alpha-Kanals errechnen. */
+	/* Compute a smooth animation of the alpha channel. */
 	const double alpha=(sin(time/3.0*M_PI*8.5)+1.0)*0.5*0.45+0.2;
-	/* Andere Effekte rendern. */
+	/* Render the other effects. */
 	CStoneEffect::render();
-	/* Und Stein an entsprechende Position auf dem Spielfeld rendern. */
+	/* And render the stone at the corresponding position on the board. */
 	for (i=0;i<stone.get_stone_size();i++)
 	for (j=0;j<stone.get_stone_size();j++)
 		if (stone.get_stone_field(j,i)!=STONE_FIELD_FREE)
@@ -161,9 +161,9 @@ void CStoneFadeEffect::render()
 }
 
 /**
- * Wirbelnder Stein. Animation beim Legen eines Steins von einem Spieler.
- * Benoetigt Spielernummer, Stein, Stein-Nummer, Position
- * bei vreverse==true fliegt der Stein vom Spielfeld zum Spieler, sonst vom Spieler aufs Feld
+ * Whirling stone. Animation when a player places a stone.
+ * Needs the player number, stone, stone number and position
+ * With vreverse==true the stone flies from the board to the player, otherwise from the player onto the board
  **/
 CStoneRollEffect::CStoneRollEffect(CGUI *vgui, const CStone *vstone,int stone_number,int vplayer,int vx,int vy,bool vreverse)
 :CStoneEffect(vgui,vstone,vplayer,vx,vy)
@@ -171,60 +171,60 @@ CStoneRollEffect::CStoneRollEffect(CGUI *vgui, const CStone *vstone,int stone_nu
 	reverse=vreverse;
 	if (reverse)time=1.0;
 	else time=0.0;
-	/* Der Stein startet bei einer Skalierung von 0.7 */
+	/* The stone starts at a scale of 0.7 */
 	scale=0.70;
 	ang=0.0;
-	/* Die Position des entsprechenden Steins des Spielers in Welt-Koordinaten erhalten.
-	   Das ist unsere Startposition. */
+	/* Get the position of the player's corresponding stone in world coordinates.
+	   This is our start position. */
 	gui->getPlayerStonePos(vplayer,stone_number,&cx,&cy,&cz);
 	
-	/* Die Zielposition auf dem Feld in Welt-Koordinaten berechnen. */
+	/* Compute the target position on the board in world coordinates. */
 	dx=-(gui->game->get_field_size_x()-1)*stone_size+((double)x+(double)stone.get_stone_size()/2.0)*stone_size*2.0-stone_size;
 	dy=bevel_height;
 	dz=-(gui->game->get_field_size_y()-1)*stone_size+((double)y+(double)stone.get_stone_size()/2.0)*stone_size*2.0-stone_size;
 
 	{
-		/* Eine zufaellige Rotationsachse berechnen. */
+		/* Compute a random rotation axis. */
 		double angx=double(rand()%360)/180.0*M_PI;
 		double angy=double(rand()%360)/180.0*M_PI;
 		axe_x=sin(angx)*cos(angy);
 		axe_y=sin(angy);
 		axe_z=cos(angx)*cos(angy);
 	}
-	/* Gravitation ist -1/2*80 */
+	/* Gravity is -1/2*80 */
 	parabola_a=-40.0;
-	/* Daraus das b der Parabel berechnen, dass die Parabel genau durch Start und Ziel geht */
+	/* From this compute b of the parabola so that it passes exactly through start and target */
 	parabola_b=-parabola_a+dy-cy;
 }
 
 /**
- * Animieren
+ * Animate
  **/
 bool CStoneRollEffect::execute(double elapsed)
 {
-	/* Stein soll sich stets um 2*360 Grad rotieren */
+	/* The stone always rotates by 2*360 degrees */
 	const double loops=2.0;
-	/* Animation soll 1.0 sek dauern. */
+	/* The animation lasts 1.0 s. */
 	const double duration=1.0;
 	CStoneEffect::execute(elapsed);
 
-	/* Zeit entweder vorwaerts oder rueckwaerts zaehlen */
+	/* Count the time either forwards or backwards */
 	if (reverse)time-=(elapsed/duration);
 	else time+=(elapsed/duration);
-	/* Rotation auf passenden Winkel zur Zeit setzen. */
+	/* Set the rotation to the angle matching the time. */
 	ang=(time)*360.0*loops;
-	/* Wenn Animation ausserhalb 0 und 1, ist sie vorrueber. */
+	/* If the animation is outside 0 and 1, it is over. */
 	return (time<0.0)||(time>1.0);
 }
 
 void CStoneRollEffect::render()
 {
 	int i,j;
-	/* Die Skalierung des Steins errechnen und einpassen. */
+	/* Compute the stone's scale and apply it. */
 	double s=scale+(1.0-scale)*(time*2.5);
 	if (s>1.0)s=1.0;
 
-	/* Aktuelle Position entlang der Parabel aus der Zeit errechnen. */
+	/* Compute the current position along the parabola from the time. */
 	const double x=cx+time*(dx-cx);
 	const double y=parabola_a*time*time+parabola_b*time+cy;
 	const double z=cz+time*(dz-cz);
@@ -250,13 +250,13 @@ void CStoneRollEffect::render()
 }
 
 /**
- * Schatten rendern. Dazu Stein an Position bringen, Richtung des Lichts errechnen,
- * Stein an Lichtstrahl extrudieren und in Stencil Buffer rendern.
+ * Render the shadow. Move the stone into position, compute the direction of the light,
+ * extrude the stone along the light ray and render into the stencil buffer.
  */
 void CStoneRollEffect::renderShadow()
 {
 	int i,j;
-	/* Skalierung ausrechnen. */
+	/* Compute the scale. */
 	double s=scale+(1.0-scale)*(time*3.5);
 	if (s>1.0)s=1.0;
 	const double x=cx+time*(dx-cx);
@@ -267,21 +267,21 @@ void CStoneRollEffect::renderShadow()
 
 	float dir[3];
 	float M[16];
-	/* Hier kommt unser Licht her. */
+	/* This is where our light comes from. */
 	float *v=(float*)&light0_pos;
 
 	glPushMatrix();
 	glLoadIdentity();
-	/* Stein rueckwaerts rotieren. */
+	/* Rotate the stone backwards. */
   	glRotated(-ang,axe_x,axe_y,axe_z);
 	glGetFloatv(GL_MODELVIEW_MATRIX,M);
-	/* Und resultierenden Richtungsvektor extrahieren. Die Richtung ist relativ zum gedrehten
-	   Stein, zeigt also global immer in dieselbe Richtung. */
+	/* And extract the resulting direction vector. The direction is relative to the rotated
+	   stone, so it always points the same way globally. */
 	dir[0]=-(M[ 0]*v[0]+M[ 4]*v[1]+M[ 8]*v[2]);
 	dir[1]=-(M[ 1]*v[0]+M[ 5]*v[1]+M[ 9]*v[2]);
 	dir[2]=-(M[ 2]*v[0]+M[ 6]*v[1]+M[10]*v[2]);
 
-	/* In Position kommen. */
+	/* Move into position. */
 	glPopMatrix();
 	glPushMatrix();
 	glTranslated(x,y,z);
@@ -296,7 +296,7 @@ void CStoneRollEffect::renderShadow()
  		glTranslated(+stone_size+((double)i-(double)stone.get_stone_size()/2.0)*stone_size*2.0,
 			0,
 			     +stone_size+((double)j-(double)stone.get_stone_size()/2.0)*stone_size*2.0);
-		/* Und den Schatten eines kleinen Steins entlang der Richtung des Lichts berechnen. */
+		/* And compute the shadow of a small stone along the direction of the light. */
 		gui->renderStoneShadow(dir);
 		glPopMatrix();
 	}
@@ -304,8 +304,8 @@ void CStoneRollEffect::renderShadow()
 }
 
 /**
- * Behandelt dieser Effekt einen Stein des Spielers?
- * Nur wenn er rueckwaerts fliegt.
+ * Does this effect handle one of the player's stones?
+ * Only when it flies backwards.
  **/
 bool CStoneRollEffect::handle_player_stone(int player,int n_stone)
 {
@@ -316,8 +316,8 @@ bool CStoneRollEffect::handle_player_stone(int player,int n_stone)
 
 
 /**
- * Ein Stein mit physikalischen Eigenschaften. Wird im Intro bis zum Umfallen verwendet.
- * Konstruktor: Alles mit 0 initialisieren, wird nachher ueber Memberfunktionen gefuettert.
+ * A stone with physical properties. Used in the intro until it falls over.
+ * Constructor: initialise everything with 0; it is fed via member functions later.
  **/
 CPhysicalStone::CPhysicalStone(CGUI *vgui,CStone *vstone,int player)
 :CStoneEffect(vgui,vstone,player,0,0)
@@ -353,9 +353,9 @@ void CPhysicalStone::setSpeed(double sx,double sy,double sz)
 }
 
 /**
- * Die Zielkoordinate des Steins setzen.
- * Sobald die (Y-Koordinate<=desty) wird, wird der Stein auf dx/dy/dz gesetzt, um
- * Ungenauigkeiten in der Animation zu beheben.
+ * Set the stone's target coordinate.
+ * As soon as (Y coordinate<=desty), the stone is set to dx/dy/dz to
+ * correct inaccuracies in the animation.
  **/
 void CPhysicalStone::setDestination(double destx,double desty,double destz)
 {
@@ -365,23 +365,23 @@ void CPhysicalStone::setDestination(double destx,double desty,double destz)
 }
 
 /**
- * Animieren.
+ * Animate.
  **/
 bool CPhysicalStone::execute(double elapsed)
 {
 	CStoneEffect::execute(elapsed);
-	/* Gradlinige Bewegung, einfach zu animieren. */
+	/* Straight-line motion, easy to animate. */
 	x+=speedx*elapsed;
 	y-=speedy*elapsed;
 	z+=speedz*elapsed;
-	/* Konstante Winkelgeschwindigkeit bei Rotation. Linear animieren. */
+	/* Constant angular velocity for the rotation. Animate linearly. */
 	ang+=elapsed*angspeed;
-	/* wenn y unterhalb von dy gefallen ist, Stein auf dx/dy/dz setzen. */
+	/* If y has fallen below dy, set the stone to dx/dy/dz. */
 	if (y<dy && dy>-100.0)
 	{
-		/* Stein soll wieder nach oben huepfen, aber mit gedaempfter vertikaler Geschw. */
+		/* The stone should bounce up again, but with damped vertical speed. */
 		if (speedy>0.5)speedy=-speedy*0.32;else speedy=0.0;
-		/* Soll nicht mehr rotieren, und soll genau parallel zur Erde sein. */
+		/* It should stop rotating and lie exactly parallel to the ground. */
 		angspeed=0.0;
 		ang=0.0;
 		speedx=0.0;
@@ -390,14 +390,14 @@ bool CPhysicalStone::execute(double elapsed)
 		y=dy;
 		z=dz;
 	}
-	/* Stein vertikal beschleunigen (Gravitation). */
+	/* Accelerate the stone vertically (gravity). */
 	speedy+=elapsed*17.0;
-	/* Der Stein will nie entfernt werden, verschwindet nie automatisch. */
+	/* The stone never wants to be removed and never disappears automatically. */
 	return false;
 }
 
 /**
- * Rendern.
+ * Render.
  **/
 void CPhysicalStone::render()
 {
@@ -405,7 +405,7 @@ void CPhysicalStone::render()
 
 	int i,j;
 
-	/* Stein in Position bringen, und normal rendern, wie alle anderen auch. */
+	/* Move the stone into position and render it normally, like all the others. */
 	glPushMatrix();
 	glTranslated(x,y,z);
 	glRotated(ang,ax,ay,az);
@@ -435,7 +435,7 @@ void CPhysicalStone::renderShadow()
 	
 	glPushMatrix();
 	glLoadIdentity();
-	/* Rueckwaerts rotieren, um Richtung des Lichts relativ zum Stein zu erhalten. */
+	/* Rotate backwards to get the direction of the light relative to the stone. */
 	glRotated(-ang,ax,ay,az);
 	glGetFloatv(GL_MODELVIEW_MATRIX,M);
 	dir[0]=-(M[ 0]*v[0]+M[ 4]*v[1]+M[ 8]*v[2]);
@@ -455,7 +455,7 @@ void CPhysicalStone::renderShadow()
  		glTranslated(+stone_size+((double)i-(double)stone.get_stone_size()/2.0)*stone_size*2.0,
 			0,
 			     +stone_size+((double)j-(double)stone.get_stone_size()/2.0)*stone_size*2.0);
-		/* Und extrudiertes Schatten-Volume in Licht-Richtung rendern. */
+		/* And render the extruded shadow volume in the direction of the light. */
 		gui->renderStoneShadow(dir);
 		glPopMatrix();
 	}

@@ -1,6 +1,6 @@
 /**
  * about.h
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  **/
 
 #ifndef __ABOUT_H_INCLUDED_
@@ -9,12 +9,12 @@
 #include "widgets.h"
 
 /**
- * Dialog, der die AboutBox bereitstellt, mit Infos ueber das Spiel.
+ * Dialog that provides the About box with information about the game.
  **/
 class CAboutBox:public CDialog
 {
 public:
-	/* Nur ein Dialog, mit Widgets, ohne Funktionialitaet */
+	/* Just a dialog with widgets, without functionality */
 	CAboutBox();
 };
 

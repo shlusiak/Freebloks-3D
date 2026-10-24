@@ -1,13 +1,13 @@
 /**
  * texture.h
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  **/
 
 #ifndef __TEXTURE_H_INCLUDED_
 #define __TEXTURE_H_INCLUDED_
 
 /**
- * Kapselt eine OpenGL Textur fur leichtere Verwaltung und Benutzung
+ * Wraps an OpenGL texture for easier management and use
  **/
 class CTexture
 {
@@ -22,18 +22,18 @@ public:
 
 	~CTexture();
 
-	/* Laedt eine Datei als Textur. true bei Erfolg, sonst false */
+	/* Loads a file as a texture. true on success, otherwise false */
 	bool load(const char *filename);
 	
 	void activate()const;
 
-	/* Textur deaktivieren -> es ist vorerst keine Textur mehr aktiv */
+	/* Deactivate the texture -> no texture is active for now */
 	void deactivate()const;
 };
 
 
 /**
- * Diese Textur in OpenGL aktivieren
+ * Activate this texture in OpenGL
  **/
 inline void CTexture::activate()const
 {

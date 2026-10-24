@@ -1,8 +1,8 @@
 /**
- * spielclient.cpp
- * Autor: Sascha Hlusiak
+ * gameclient.cpp
+ * Author: Sascha Hlusiak
  *
- * Klasse fuer einen Netzwerk-Client.
+ * Class for a network client.
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -45,16 +45,16 @@ CGameClient::CGameClient()
 
 CGameClient::~CGameClient()
 {
-	/* Verbindung trennen */
+	/* Disconnect */
 	Disconnect();
 }
 
 /**
- * Verbindet dem SpielClient mit einem SpielServer
- * host: Hostname oder IP des Servers
- * port: Port, auf dem Verbunden werden soll
+ * Connects the game client to a game server
+ * host: host name or IP of the server
+ * port: port to connect to
  *
- * Rueckgabe: nullptr bei Erfolg, sonst Zeiger auf Zeichenkette mit der Fehlermeldung
+ * Returns: nullptr on success, otherwise a pointer to a string with the error message
  **/
 
 const char* CGameClient::Connect(const char* host,int port, int blocking)
@@ -76,7 +76,7 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 		if (client_socket==-1)return strerror(errno);
 		if (connect(client_socket,(sockaddr*)&addr,sizeof(addr))==-1)
 		{
-			/* Verbindungsaufbau Fehlgeschlagen */
+			/* Connection failed */
 			closesocket(client_socket);
 			client_socket=0;
 			return strerror(errno);
@@ -92,7 +92,7 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 
 
 #if (defined HAVE_GETADDRINFO) || (defined WIN32)
-	/* Dies beinhaltet auch IPv6 */
+	/* This includes IPv6 */
 	sockaddr_in *addr=nullptr;
 	struct addrinfo *addr_info,*p;
 	int addr_len;
@@ -100,7 +100,7 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 
 	errno=0;
 	errormessage = nullptr;
-	/* Hostname in IP wandeln */
+	/* Resolve the host name to an IP */
 	errno=getaddrinfo(host,nullptr,nullptr,&addr_info);
 	if (errno)return gai_strerror(errno);
 
@@ -122,7 +122,7 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 				free(addr);
 				break;
 			}
-			/* Verbindungsaufbau Fehlgeschlagen */
+			/* Connection failed */
 			closesocket(client_socket);
 			client_socket=0;
 		#ifdef WIN32
@@ -152,18 +152,18 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 	_addr.sin_family=AF_INET;
 	_addr.sin_port=htons(port);
 
-	/* Hostname in IP wandeln */
+	/* Resolve the host name to an IP */
 	he=gethostbyname(host);
 	if (he==nullptr)return "Host not found";
 	
-	/* Host Adresse speichern */
+	/* Store the host address */
 	memcpy(&_addr.sin_addr,he->h_addr,he->h_length);
 	client_socket=socket(AF_INET,SOCK_STREAM,0);
 
 	if (client_socket==-1)return strerror(errno);
 	if (connect(client_socket,(sockaddr*)addr,addr_len)==-1)
 	{
-		/* Verbindungsaufbau Fehlgeschlagen */
+		/* Connection failed */
 		closesocket(client_socket);
 		client_socket=0;
 	#ifdef WIN32
@@ -174,9 +174,9 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 	}
 #endif
 	
-	/* Den Socket nicht-blockierend machen, damit recv() Aufrufe sofort
-	 * zurueckkehren, wenn keine Daten vorliegen. 
-	 * Der Socket des Clients wird periodisch "gepollt".
+	/* Make the socket non-blocking so recv() calls return
+	 * immediately when no data is available.
+	 * The client's socket is polled periodically.
 	 */
 	if (blocking == 0)
 	{
@@ -213,9 +213,9 @@ void CGameClient::Disconnect()
 }
 
 /**
- * Alle anstehenden Netzwerknachrichten abholen und verarbeiten.
- * Gibt nullptr bei Erfolg zurueck, sonst Zeiger auf Fehlermeldung, die anzeigt
- * dass die Verbindung zum Server verloren wurde
+ * Fetch and process all pending network messages.
+ * Returns nullptr on success, otherwise a pointer to an error message indicating
+ * that the connection to the server was lost
  **/
 const char* CGameClient::poll()
 {
@@ -223,15 +223,15 @@ const char* CGameClient::poll()
 	static char buffer[512];
 	do
 	{
-		/* Lese eine Nachricht komplett aus dem Socket in buffer */
+		/* Read one complete message from the socket into buffer */
 		err=read_network_message(client_socket,(NET_HEADER*)buffer,sizeof(buffer));
-		/* Bei 0 ist eine Nachricht erfolgreicht gelesen worden. Verarbeiten! */
+		/* nullptr means a message was read successfully. Process it! */
 		if (err==nullptr)process_message((NET_HEADER*)buffer);
-		/* bei -1 liegen keine Daten mehr vor */
+		/* -1 means no more data is available */
 		else if (err!=(char*)(-1))
 		{
-			/* Ansonsten ist ein Lesefehler aufgetreten 
-			   und die Verbindung wird getrennt */
+			/* Otherwise a read error occurred
+			   and the connection is closed */
 			Disconnect();
 			return err;
 		}
@@ -240,8 +240,8 @@ const char* CGameClient::poll()
 }
 
 /**
- * Erbitte Spielserver um einen lokalen Spieler.
- * Server schickt eine Spielernummer an den Client zurueck.
+ * Ask the game server for a local player.
+ * The server sends a player number back to the client.
  **/
 void CGameClient::request_player(int wish_player, const char* name)const
 {
@@ -260,7 +260,7 @@ void CGameClient::process_message(NET_HEADER* data)
 	int i;
 	switch(data->msg_type)
 	{
-		/* Der Server gewaehrt dem Client einen lokalen Spieler */
+		/* The server grants the client a local player */
 		case MSG_GRANT_PLAYER:
 			if (ntohs(data->data_length) < sizeof(NET_GRANT_PLAYER))break;
 			i=((NET_GRANT_PLAYER*)data)->player;
@@ -268,7 +268,7 @@ void CGameClient::process_message(NET_HEADER* data)
 			player[i]=PLAYER_LOCAL;
 			break;
 
-		/* Der Server hat einen aktuellen Spieler festgelegt */
+		/* The server has set a current player */
 		case MSG_CURRENT_PLAYER:
 			if (ntohs(data->data_length) < sizeof(NET_CURRENT_PLAYER))break;
 			/* -1 means no current player */
@@ -277,18 +277,18 @@ void CGameClient::process_message(NET_HEADER* data)
 			newCurrentPlayer(m_current_player);
 			break;
 
-		/* Nachricht des Servers ueber ein endgueltiges Setzen eines Steins auf das Feld */
+		/* Message from the server about the final placement of a stone on the board */
 		case MSG_SET_STONE: {
 			if (ntohs(data->data_length) < sizeof(NET_SET_STONE))break;
 			NET_SET_STONE *s=(NET_SET_STONE*)data;
 			if (!network_check_set_stone(s))break;
 			CStone &stone=get_player(s->player)->get_stone(s->stone);
 			stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
-			/* Stein aufs echte Spielfeld setzen */
+			/* Place the stone on the real board */
 			if ((!is_valid_turn(stone, s->player, s->y, s->x)) ||
                 (!set_stone(stone, s->player, s->y, s->x)))
-			{	// Spiel scheint nicht mehr synchron zu sein
-				// GAANZ schlecht!!
+			{	// The game seems to be out of sync
+				// REALLY bad!!
 				printf("Game not in sync!\n");
 				exit(1);
 			}
@@ -304,13 +304,13 @@ void CGameClient::process_message(NET_HEADER* data)
 			break;
 		}
 
-		/* Server hat entschlossen, dass das Spiel vorbei ist */
+		/* The server has decided that the game is over */
 		case MSG_GAME_FINISH:{
 			gameFinished();
 			break;
 		}
 
-		/* Ein Server-Status Paket ist eingetroffen, Inhalt merken */
+		/* A server status packet arrived, remember its content */
 		case MSG_SERVER_STATUS:
 		{
 			/* The oldest protocol version ends right before player_owner */
@@ -337,8 +337,8 @@ void CGameClient::process_message(NET_HEADER* data)
 			status.clients=s->clients;
 			status.player=s->player;
 			status.computer=s->computer;
-			/* Wenn Spielfeldgroesse sich von Server unterscheidet,
-			   lokale Spielfeldgroesse hier anpassen */
+			/* If the board size differs from the server's,
+			   adjust the local board size here */
 			status.width=s->width;
 			status.height=s->height;
 			if (status.width!=get_field_size_x() || status.height!=get_field_size_y()) {
@@ -392,10 +392,10 @@ void CGameClient::process_message(NET_HEADER* data)
 			chatReceived(chat);
 			break;
 		}
-		/* Der Server hat eine neue Runde gestartet. Spiel zuruecksetzen */
+		/* The server started a new round. Reset the game */
 		case MSG_START_GAME: {
 			CBoard::start_new_game(m_game_mode);
-			/* Unbedingt history leeren. */
+			/* Be sure to clear the history. */
 			history.delete_all_turns();
 
 			if (status.version <= 2)
@@ -416,7 +416,7 @@ void CGameClient::process_message(NET_HEADER* data)
 			break;
 		}
 
-		/* Server laesst den letzten Zug rueckgaengig machen */
+		/* The server undoes the last turn */
 		case MSG_UNDO_STONE: {
 			const CTurn *t=history.get_last_turn();
 			/* Nothing to undo, the server is out of sync or broken */
@@ -432,8 +432,8 @@ void CGameClient::process_message(NET_HEADER* data)
 }
 
 /**
- * Wird von der GUI aufgerufen, wenn ein Spieler einen Stein setzen will
- * Die Aktion wird nur an den Server geschickt, der Stein wird NICHT lokal gesetzt
+ * Called by the GUI when a player wants to place a stone
+ * The action is only sent to the server; the stone is NOT placed locally
  **/
 TSingleField CGameClient::request_set_stone(const CStone& stone, int y, int x)
 {
@@ -449,8 +449,8 @@ TSingleField CGameClient::request_set_stone(const CStone& stone, int y, int x)
 
 	send_message((NET_HEADER*)&data,sizeof(data),MSG_SET_STONE);
 
-	/* Lokal keinen Spieler als aktiv setzen.
-	   Der Server schickt uns nachher den neuen aktiven Spieler zu */
+	/* Locally set no player as active.
+	   The server will send us the new active player afterwards */
 	set_no_player();
 	return FIELD_ALLOWED;
 }
@@ -468,15 +468,15 @@ void CGameClient::request_undo()const
 }
 
 /**
- * Schickt eine Chat-Nachricht an den Server. Dieser wird sie schnellstmoeglich
- * an alle Clients weiterleiten (darunter auch dieser Client selbst).
+ * Sends a chat message to the server. It forwards it as soon as possible
+ * to all clients (including this client itself).
  **/
 void CGameClient::chat(const char *text)
 {
 	if (strlen(text)<1)return;
-	/* Berechne Platz der NET_CHAT Nachricht, dass der Text exakt ans Ende passt */
+	/* Compute the size of the NET_CHAT message so the text fits exactly at the end */
 	int len=sizeof(NET_CHAT)+sizeof(char)*strlen(text)+1;
-	/* Reserviere ordentlich Speicher */
+	/* Allocate the memory properly */
 	NET_CHAT *chat=(NET_CHAT*)malloc(len);
 	chat->length=strlen(text);
 	strcpy((char*)&chat->text[0],text);
@@ -485,7 +485,7 @@ void CGameClient::chat(const char *text)
 }
 
 /**
- * Gibt true zurueck, wenn der Spieler kein Computerspieler ist
+ * Returns true if the player is not a computer player
  **/
 const bool CGameClient::is_local_player(const int player_number)const
 {

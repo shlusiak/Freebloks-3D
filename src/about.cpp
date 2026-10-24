@@ -1,7 +1,7 @@
 /**
  * about.cpp
- * Autor: Sascha Hlusiak
- * CAboutBox Dialog und CAboutWidget Widget, fuer den About-Dialog (ach).
+ * Author: Sascha Hlusiak
+ * CAboutBox dialog and CAboutWidget widget for the About dialog.
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -17,22 +17,22 @@
 
 
 /**
- * Die Daten werden in diesem extra Widget bereitgestellt, Nachfahre von CFrame
+ * The content is provided by this separate widget, a descendant of CFrame
  **/
 class CAboutWidget:public CFrame
 {
 private:
-	/* Fortschritt der Animation */
+	/* Progress of the animation */
 	double anim;
 public:
 	CAboutWidget(double x,double y,double w,double h);
-	/* Animieren */
+	/* Animate */
 	virtual void execute(double elapsed);
 	virtual void render(bool selection);
 };
 
-/* Hier die Textzeilen der About-Box als Array of char*.
-   nullptr sind Leerzeilen. Die Texte werden zentriert ausgegeben. */
+/* The text lines of the About box as an array of char*.
+   nullptr entries are empty lines. The lines are rendered centred. */
 static const char *AboutText[]={
 	"Freebloks 3D",
 	"(v" VERSION ", build: " __DATE__ ")",
@@ -114,19 +114,19 @@ CAboutWidget::CAboutWidget(double x,double y,double w,double h)
 :CFrame(x,y,w,h)
 {
 	setColor(0,0,0);
-	/* Und fadet langsam rein, also Alpha bei 0 beginnen lassen. */
+	/* It fades in slowly, so start with alpha 0. */
 	setAlpha(0.0);
 	anim=0.0;
 }
 
 /**
- * Animation ausfuehren.
+ * Run the animation.
  **/
 void CAboutWidget::execute(double elapsed)
 {
-	/* Animieren. */
+	/* Animate. */
 	anim+=elapsed*8.0;
-	/* Widget langsam einblenden, also Alpha animieren. */
+	/* Fade the widget in slowly, i.e. animate the alpha. */
 	if (anim<12.0)setAlpha(0.6*anim/12.0);else setAlpha(0.6);
 	CFrame::execute(elapsed);
 }
@@ -138,35 +138,35 @@ void CAboutWidget::render(bool selection)
 	{
 		unsigned int i;
 		CGLFont font(8,20);
-		/* Wir wollen einen drehenden Zylinder, das ist der Radius. */
+		/* We want a rotating cylinder; this is its radius. */
 		const double radius=h/2.1;
-		/* Nach jeder Zeile den Zylinder um folgenden Winkel drehen: */
+		/* After each line, rotate the cylinder by this angle: */
 		const double da=90.0/((M_PI/2.0*radius)/(double)font.height());
 		double ang;
 
-		/* Und Flaechen-Rueckseiten sollen sichtbar sein. */
+		/* Back faces should be visible too. */
 		glDisable(GL_CULL_FACE);
 		glPushMatrix();
-		/* Zylinder in Mitte des Widgets verschieben und ausrichten. */
+		/* Move the cylinder to the centre of the widget and align it. */
 		glTranslated(x+w/2.0,y+h/2.0,radius);
 		glRotated(20.0,0,1,0);
 		ang=-100.0+anim;
 		glRotated(ang,-1,0,0);
 		for (i=0;i<sizeof(AboutText)/sizeof(AboutText[0]);i++)
 		{
-			/* <90 ist Vorderseite, also 100%, sonst 30% Opazitaet */
+			/* <90 is the front side, so 100%, otherwise 30% opacity */
 			if (ang<90.0)glColor3d(1,1,1);
 				else glColor3d(0.3,0.3,0.3);
-			/* Nur rendern, wenn innerhalb der ersten Drehung. */
+			/* Only render while within the first rotation. */
 			if (AboutText[i] && ang>-90.0 && ang<270.0)
 				font.drawText(-font.width(AboutText[i])/2.0,-font.height()/2.0,-radius,AboutText[i]);
-			/* Zylinder weiter drehen. */
+			/* Keep rotating the cylinder. */
 			ang-=da;
 			glRotated(da,1,0,0);
 		}
-		/* Wenn die letzte Zeile 270 ueberschreitet, wieder von vorn anfangen. */
+		/* When the last line passes 270, start over from the beginning. */
 		if (ang>270.0)anim=15.0;
-		/* GL zuruecksetzen */
+		/* Reset GL */
 		glPopMatrix();
 		glEnable(GL_CULL_FACE);
 	}
@@ -176,7 +176,7 @@ void CAboutWidget::render(bool selection)
 CAboutBox::CAboutBox()
 :CDialog(400,300,"About Freebloks")
 {
-	/* Tuffige Farbe setzen */
+	/* Set a fancy colour */
 	setColor(0.7,0.2,0.4);
 	addChild(new CButton((w-70)/2,h-30,70,25,1,this,"Okay"));
 	addChild(new CAboutWidget(x+10,y+30,w-20,h-70));

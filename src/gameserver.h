@@ -1,9 +1,9 @@
 /**
- * spielserver.h
- * Autor: Sascha hlusiak
+ * gameserver.h
+ * Author: Sascha Hlusiak
  *
- * Klassen zur Unterhaltung eines SpielServers, 
- * und eines Listeners, der neue Spiele errichtet
+ * Classes for running a game server
+ * and a listener that sets up new games
  **/
 
 #ifndef __GAMESERVER_H_INCLUDED_
@@ -25,8 +25,8 @@
 #define LISTEN_SOCKETS_MAX (8)
 
 /**
- * Zentraler SpielServer, zu dem sich die SpielClients verbinden.
- * Wird vom SpielListener errichtet
+ * Central game server that the game clients connect to.
+ * Set up by CServerListener
  **/
 class CGameServer : public CGame {
 private:
@@ -34,32 +34,32 @@ private:
 
     CAI m_ai;
 
-    /* Die sockets der verbundenen Clients */
+    /* The sockets of the connected clients */
     int clients[CLIENTS_MAX];
 
-    /* seit 1.5: Namen der verbundenen Clients */
+    /* since 1.5: names of the connected clients */
     char *names[CLIENTS_MAX];
 
-    /* Maximale Anzahl menschlicher Spieler, der Rest ist fuer Computergegener reserviert */
+    /* Maximum number of human players; the rest is reserved for computer opponents */
     const int max_humans;
 
-    /* Art der KI / Schwierigkeitsgrad */
+    /* Kind of AI / difficulty */
     const int ai_mode;
 
-    /* Ein Zeitzaehler, um die Dauer eines Spiels rauszukriegen */
+    /* A timer to measure the duration of a game */
     CTimer timer;
 
     /* If true, a computer turn will always take at least 800 ms */
     const bool forceDelay;
 
-    /* Anzahl der Spielsteine bestimmter Groesse */
+    /* Number of stones of each shape */
     int8 stone_numbers[STONE_COUNT_ALL_SHAPES];
 
     CLogger *logger;
 
 
-    /* Entferne einen bestimmten Client aus der Liste. Bei notify=true wird ne
-       Meldung ausgegeben. */
+    /* Remove a specific client from the list. With notify=true a message
+       is printed. */
     void delete_client(int index, bool notify);
 
     void process_message(int client, NET_HEADER *data);
@@ -79,26 +79,26 @@ public:
 
     virtual ~CGameServer();
 
-    /* Verarbeite alle Netzwerknachrichten des angegebenen Clients */
+    /* Process the network messages of the given client */
     void handle_client(int index);
 
-    /* Gibt Anzahl der verbundenen Clients (nicht Spieler) zurueck */
+    /* Returns the number of connected clients (not players) */
     int num_clients() const;
 
     void add_client(int s);
 
-    /* Hauptschleife, verwaltet ein Spiel bis zum bitteren Ende */
+    /* Main loop, runs a game to the bitter end */
     void run();
 
-    /* Setzt das Spiel auf gestartet, sofern es noch nicht laeuft. */
+    /* Marks the game as started, unless it is already running. */
     void start_game();
 
     virtual void set_stone_numbers(int8 stone_numbers[]);
 
-    /* Logdatei setzen */
+    /* Set the log file */
     void setLogger(CLogger *l) { logger = l; }
 
-    /* Startet einen Server lokal in einem Thread */
+    /* Starts a server locally in a thread */
     static int
     run_server(const char *interface_, int port, int maxhumans, int ai_mode, int width, int height, GAMEMODE gamemode,
                int8 stone_numbers[], int ai_threads);
@@ -113,7 +113,7 @@ public:
 
 
 /**
- * Lauscht an einem Socket und fuegt die verbindenden Clients einem CGameServer hinzu
+ * Listens on a socket and adds connecting clients to a CGameServer
  **/
 class CServerListener {
 private:
@@ -128,22 +128,22 @@ public:
 
     ~CServerListener();
 
-    /* Bereitet den Listener vor, an der angegebenen Schnittstellt und
-       dem Port Verbindungen zu akzeptieren. */
+    /* Prepares the listener to accept connections on the given interface and
+       port. */
     int init(const char *interface_, int port);
 
-    /* Lauscht an allen Netzwerksockets und verarbeitet eine Nachricht */
+    /* Listens on all network sockets and processes one message */
     int wait_for_player(bool verbose, sockaddr_storage *client);
 
-    /* Schliesst das listen_socket, sodass keine Verbindungen mehr akzeptiert werden */
+    /* Closes the listen_socket so no more connections are accepted */
     void close();
 
-    /* Richtet einen neuen CGameServer ein, mit max. max_humans menschlichen Spielern */
+    /* Sets up a new CGameServer with at most max_humans human players */
     void new_game(int max_humans, int ai_mode, GAMEMODE gamemode, int ai_threads, bool forceDelay);
 
     CGameServer *get_game() { return server; }
 
-    /* Logdatei setzen */
+    /* Set the log file */
     void setLogger(CLogger *l) { logger = l; }
 };
 

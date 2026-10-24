@@ -1,6 +1,6 @@
 /**
  * benchmark.cpp
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
  * Benchmark to test the AI
  **/

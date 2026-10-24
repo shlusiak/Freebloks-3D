@@ -1,6 +1,6 @@
 /**
  * texture.cpp
- * Autor: Sascha Hlusiak, teilweise Fremdcode
+ * Author: Sascha Hlusiak, partly third-party code
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -14,7 +14,7 @@
 #include "texture.h"
 
 
-/* Struktur Zum Laden von BMP Dateien */
+/* Structure for loading BMP files */
 typedef struct                       /**** BMP file info structure ****/
 {
     unsigned int   biSize;           /* Size of info header */
@@ -45,7 +45,7 @@ CTexture::CTexture(const char *filename)
 
 CTexture::~CTexture()
 {
-	/* Textur freigeben */
+	/* Free the texture */
 	unload();
 }
 
@@ -75,12 +75,12 @@ static const int TEXTURE_SIZE_MAX = 8192;
 
 
 /**
- * Laedt die angegebene Datei (BMP Format) in die Textur
- * BMP-Lad'-Code irgendwo "gefunden" und ueberarbeitet
+ * Loads the given file (BMP format) into the texture
+ * BMP loading code "found" somewhere and reworked
  **/
 bool CTexture::load(const char *filename)
 {
-	/* Textur entladen */
+	/* Unload the texture */
 	unload();
 
 	FILE * file=nullptr;
@@ -88,7 +88,7 @@ bool CTexture::load(const char *filename)
 
 	MYBITMAPINFOHEADER infoheader;
 
-	/* Datei im binaer Modus oeffnen */
+	/* Open the file in binary mode */
 #ifdef DATA_PREFIX
 	char mypath[1024];
 	if (strlen(DATA_PREFIX)+strlen(filename)<1023)
@@ -125,7 +125,7 @@ bool CTexture::load(const char *filename)
 		return false;
 	}
 
-	/* Farbtiefe lesen (bits per Pixel). Es werden nur 24bpp Bilder geladen */
+	/* Read the colour depth (bits per pixel). Only 24 bpp images are loaded */
 	if (!freadnum(sizeof(unsigned short int), file, &num)) { fclose(file); return false; }
 	infoheader.biBitCount=(unsigned short)num;
 	if (infoheader.biBitCount != 24) {
@@ -136,7 +136,7 @@ bool CTexture::load(const char *filename)
 
 	fseek(file, 24, SEEK_CUR);
 
-	// Platz fuer Daten zu reservieren. Bei 24bpp (=3byte per Pixel) sind das 3*w*h Byte */
+	// Reserve space for the data. At 24 bpp (=3 bytes per pixel) that is 3*w*h bytes */
 	const size_t data_size = (size_t)infoheader.biWidth * (size_t)infoheader.biHeight * 3;
 	infoheader.data = (char *) malloc(data_size);
 	if (infoheader.data == nullptr) {
@@ -152,21 +152,21 @@ bool CTexture::load(const char *filename)
 		return false;
 	}
 
-	/* Farben umkehren ( BGR -> RGB ) */
+	/* Swap the colours ( BGR -> RGB ) */
 	for (size_t k=0; k<data_size; k+=3) {
 		temp = infoheader.data[k];
 		infoheader.data[k] = infoheader.data[k+2];
 		infoheader.data[k+2] = temp;
 	}
 
-	/* Datei schliessen */
+	/* Close the file */
 	fclose(file);
 
 	glGenTextures(1,&m_texture);
-	/* Erhaltene Textur aktivieren */
+	/* Activate the obtained texture */
 	glBindTexture(GL_TEXTURE_2D, m_texture);
 
-	/* Texturparameter setzen */
+	/* Set the texture parameters */
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -175,10 +175,10 @@ bool CTexture::load(const char *filename)
 
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, infoheader.biWidth, infoheader.biHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, infoheader.data);
 
-	/* Mipmaps zur weichen Darstellung der Textur bei Verkleinerung */
+	/* Mipmaps for smooth display of the texture when scaled down */
 	gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,infoheader.biWidth,infoheader.biHeight,GL_RGB,GL_UNSIGNED_BYTE,infoheader.data);
 
-	/* Speicher wieder freigeben */
+	/* Free the memory again */
 	free(infoheader.data);
 
 	glBindTexture(GL_TEXTURE_2D, 0);

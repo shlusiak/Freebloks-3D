@@ -1,10 +1,10 @@
 /**
  * client.cpp
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
- * Hauptprogramm eines dedizierten Freebloks Clients!!
- * Das Programm verbindet sich zu einem Server und spielt
- * fuer eine angegebene Anzahl Spieler.
+ * Main program of a dedicated Freebloks client.
+ * The program connects to a server and plays
+ * for a given number of players.
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -18,7 +18,7 @@
 #include "timer.h"
 
 
-/* Globale Variablen. Koennen durch Kommandozeilenparameter geaendert werden. */
+/* Global variables. Can be changed by command line parameters. */
 static int port=TCP_PORT;
 static char* server = nullptr;
 static int max_players=1;
@@ -28,7 +28,7 @@ static int ai_strength=AI_HARD;
 
 
 
-/* Hilfetext ausgeben */
+/* Print the help text */
 static void help()
 {
 	printf("Usuage: client [OPTIONS] server\n\n");
@@ -45,7 +45,7 @@ static void help()
 	exit(0);
 }
 
-/* Kommandozeilenparameter verarbeiten */
+/* Process the command line parameters */
 static void parseParams(int argc,char **argv)
 {
 	int i=1;
@@ -170,7 +170,7 @@ void CAIGameClient::newCurrentPlayer(const int player)
 {
 	if (!is_local_player())return;
 
-	/* Ermittle CTurn, den die KI jetzt setzen wuerde */
+	/* Determine the CTurn the AI would play now */
 	const CTurn *turn=ai.get_ai_turn(*this, current_player(),ai_strength);
 	if (turn == nullptr)
 	{
@@ -239,11 +239,11 @@ int main(int argc,char ** argv)
 #endif
 
 
-	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
-	   und Clients connecten laesst */
+	/* Create a ServerListener that listens for connections
+	   and lets clients connect */
 	CGameClient* client=nullptr;
 
-	/* Kommandozeilenparameter verarbeiten */
+	/* Process the command line parameters */
 	parseParams(argc,argv);
 
 	if (server == nullptr)
@@ -253,7 +253,7 @@ int main(int argc,char ** argv)
 		return 0;
 	}
 #ifdef WIN32
-	/* Winsock initialisieren */
+	/* Initialise Winsock */
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2,0),&wsadata);
 #endif
@@ -266,7 +266,7 @@ int main(int argc,char ** argv)
 	delete client;
 
 #ifdef WIN32
-	/* Winsock sauber beenden */
+	/* Shut down Winsock cleanly */
 	WSACleanup();
 #endif
 	return 0;

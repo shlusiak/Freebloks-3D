@@ -1,6 +1,6 @@
 /*
 **dialogs.h
-**autor: Alex Besstschastnich
+**Author: Alex Besstschastnich
 */
 
 

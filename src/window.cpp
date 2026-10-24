@@ -1,8 +1,8 @@
 /**
  * window.cpp
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
- * Kapselt ein Fenster, entweder mit WIN32-API unter Windows, oder X11 unter Linux
+ * Wraps a window, either with the WIN32 API on Windows, or X11 on Linux
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -16,8 +16,8 @@
   #include <windows.h>
   #include "resource.h"
   #ifndef WM_MOUSEWHEEL
-// Windows-Message fuer das Maus-Rad. Einfachheithalber hier definiert, damit es auch mit alten
-// Win-SDKs compiliert. 
+// Windows message for the mouse wheel. Defined here for simplicity so it also compiles with old
+// Win-SDKs.
     #define WM_MOUSEWHEEL                   0x020A
   #endif
 #else
@@ -30,18 +30,18 @@
 #include "gui.h"
 
 static const char* WINDOW_TITLE="Freebloks 3D";
-// Startgroesse des Fensters (unter Windows ist das Fenster zusaetzlich noch maximiert
+// Initial size of the window (on Windows the window is also maximised)
 static const int WND_SIZE_X=800;
 static const int WND_SIZE_Y=600;
 
 #ifdef WIN32
-// Die HINSTANCE des Programms. Wird in der Winmain() der freebloks.cpp gesetzt.
+// The HINSTANCE of the program. Set in WinMain() in freebloks.cpp.
 HINSTANCE hInstance=0;
 
 /**
- * Die eigentliche Fensterfunktion des Hauptfensters. Mit USERDATA ist allerdings ein Pointer
- * assoziiert, der auf die CWindow Instanz zeigt. Somit kann die processMessage des Fensters
- * aufgerufen werden
+ * The actual window procedure of the main window. USERDATA holds a pointer
+ * to the CWindow instance, so the window's processMessage can be
+ * called
  **/
 LRESULT CALLBACK WndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 {
@@ -69,8 +69,8 @@ CWindow::CWindow(CGUI *vgui)
 }
 
 /**
- * Destruktor: Sofern vorher ein Fenster erstellt wurde, 
- * so wird es hier schliesslich sauber entfernt
+ * Destructor: if a window was created before,
+ * it is finally removed cleanly here
  **/
 CWindow::~CWindow()
 {
@@ -89,17 +89,17 @@ CWindow::~CWindow()
 }
 
 /**
- * Wird aufgerufen, um den OpenGL-Viewports des Fensters auf die richtige Groesse einzustellen
- * Parameter: Groesse des verfuegbaren Bereichs des Fensters (Clientbereich)
+ * Called to set the window's OpenGL viewport to the right size
+ * Parameters: size of the window's available area (client area)
  **/
 void CWindow::reshape(int width,int height)
 {
-	// Viewport auf jeden Fall 4:3 halten
+	// Always keep the viewport at 4:3
 	int w=width,h=height;
 // 	if ((w*3)/4 > height)w=(height*4)/3;
 // 	else h=(width*3)/4;
 
-	// Viewport der Breite w und h setzen und im Fenster zentrieren
+	// Set the viewport of width w and height h and centre it in the window
 	glViewport((width-w)/2, (height-h)/2, (GLint) w, (GLint) h);
 }
 
@@ -108,11 +108,11 @@ void CWindow::reshape(int width,int height)
 #ifdef WIN32
 
 /**
- * WIN32-Implementation von createWindow(): Erstelle ein Fenster samt OpenGL-Firlefanz
+ * WIN32 implementation of createWindow(): create a window with all the OpenGL trimmings
  **/
 bool CWindow::createWindow()
 {
-	// Zuerst will die Klasse des Fensters registriert sein
+	// First the window class has to be registered
 	WNDCLASS wndclass;
 	ZeroMemory(&wndclass,sizeof(wndclass));
 	wndclass.style=CS_HREDRAW|CS_VREDRAW;
@@ -123,15 +123,15 @@ bool CWindow::createWindow()
 	wndclass.lpszClassName="FreebloksWindowClass";
 	if (!RegisterClass(&wndclass))return false;
 
-	// Erstelle ein Win32-Fenster, standard Position, aber vorgegebene Groesse. Nix besonderes.
+	// Create a Win32 window, default position but given size. Nothing special.
 	hWnd=CreateWindow("FreebloksWindowClass",WINDOW_TITLE,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN|WS_CLIPSIBLINGS,CW_USEDEFAULT,CW_USEDEFAULT,WND_SIZE_X,WND_SIZE_Y,nullptr,nullptr,::hInstance,nullptr);
 	if (hWnd==0)return false;
 
-	// Hier muss USERDATA des Fensters mit this assoziiert werden, damit die globale Fensterfunktion
-	// Das Fenster mit dieser Klasse verbinden und unsere processMessage() aufrufen kann. 
+	// USERDATA of the window must be associated with this here, so the global window procedure
+	// can connect the window with this class and call our processMessage().
 	SetWindowLong(hWnd,GWL_USERDATA,(unsigned long)this);
 
-	// Passendes PixelFormat auswaehlen, hDC zuordnen und OpenGL Kontext erstellen
+	// Choose a suitable pixel format, assign the hDC and create the OpenGL context
 	PIXELFORMATDESCRIPTOR pfd;
 	int iPixelFormat;
 	m_canShadow=true;
@@ -141,75 +141,75 @@ bool CWindow::createWindow()
 	ZeroMemory(&pfd,sizeof(pfd));
 	pfd.nSize=sizeof(pfd);
 	pfd.nVersion=1;
-	// Wir wollen ins Fenster rendern koennen, mit OpenGL, und Doublebuffer, 
-	// damit wir in den Hintergrund rendern koennen
+	// We want to render into the window, with OpenGL, and double buffering,
+	// so we can render into the back buffer
 	pfd.dwFlags=PFD_DRAW_TO_WINDOW|PFD_SUPPORT_OPENGL|PFD_DOUBLEBUFFER;
-	// Zuerst mindestens 1 Bit Stencil Buffer anfordern.
+	// First request at least 1 bit of stencil buffer.
 	pfd.cStencilBits=1;
-	// Passendes PixelFormat auswaehlen. 
+	// Choose a suitable pixel format.
 	iPixelFormat=ChoosePixelFormat(hDC,&pfd);
 
 	if (iPixelFormat==0)
-	{	// Wenn kein PixelFormat gefunden wurde, dasselbe nochmal, aber ohne StencilBits versuchen.
+	{	// If no pixel format was found, try the same again without stencil bits.
 		pfd.cStencilBits=0;
 		iPixelFormat=ChoosePixelFormat(hDC,&pfd);
-		// Auf jeden Fall koennen wir nun keine Schatten mehr
+		// In any case we can no longer do shadows
 		m_canShadow=false;
 	}
 	if (iPixelFormat==0)return false;
 
 	SetPixelFormat(hDC,iPixelFormat,&pfd);
 
-	// Und verbinden einen OpenGL Kontext zu dem hDC und damit dem hWnd (Fenster). 
+	// And connect an OpenGL context to the hDC and thus to the hWnd (window).
 	ctx=wglCreateContext(hDC);
 	if (ctx==0)return false;
 
-	// Kontext aktivieren, gilt global fuer die gesamte Anwendung.
+	// Activate the context; it applies globally to the whole application.
 	wglMakeCurrent(hDC,ctx);
 
 	closed=false;
 
-	// ERFOLG!
+	// SUCCESS!
 	return true;
 }
 
 /**
- * Nachrichtenschleife fuer Win32, verarbeitet alle anstehenden Nachrichten, und kehrt danach zurueck
+ * Message loop for Win32: processes all pending messages and then returns
  **/
 void CWindow::processEvents()
 {
 	MSG msg;
 	while (PeekMessage(&msg, nullptr,0,0,PM_REMOVE))
 	{
-		// WM_QUIT setzt das WM_DESTROY des Fensters ab. Damit wird das Fenster als geschlossen betrachtet
+		// WM_QUIT is posted by the window's WM_DESTROY. The window is then considered closed
 		if (msg.message==WM_QUIT)
 			closed=true;
 		else {
-			// Eventuelle WM_KEYDOWN Messages in WM_CHAR uebersetzen. Wichtig fuer Tastatureingaben
+			// Translate any WM_KEYDOWN messages into WM_CHAR. Important for keyboard input
 			TranslateMessage(&msg);
-			// Nachricht verarbeiten. Ruft i.A. die Fensterfunktion des Fensters auf.
+			// Process the message. Usually calls the window's window procedure.
 			DispatchMessage(&msg);
 		}
 	}
 }
 
 /**
- * Die Fensterfunktion des Fensters. Wird von der globalen Fensterfunktion aufgerufen, die durch
- * DispatchMessage aufgerufen wird. Hier werden alle Fensternachrichten verarbeitet, und ggf. an die GUI
- * weitergeleitet.
+ * The window procedure of the window. Called by the global window procedure, which is called by
+ * DispatchMessage. All window messages are processed here and forwarded to the GUI
+ * if needed.
  **/
 LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 {
 	switch(uMsg)
 	{
-	// Das Fenster wurde geschlossen. Damit soll auch die Anwendung selbst beendet werden. 
+	// The window was closed. This also ends the application itself.
 	case WM_DESTROY:PostQuitMessage(0);
 		break;
 
 	case WM_CREATE:
 		{
 			RECT r;
-			// Hole Groesse des Clientbereichs (Fenster ohne Rahmen/Titelleiste)
+			// Get the size of the client area (window without border/title bar)
 			GetClientRect(hWnd,&r);
 			reshape(r.right,r.bottom);
 		}
@@ -217,9 +217,9 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 
 	case WM_LBUTTONDOWN:
 		{
-			// Baue ein passendes TMouseEvent, pressed und button1, Position steht in LOWORD(lParam) und HIWORD(lParam)
+			// Build a matching TMouseEvent, pressed and button1; the position is in LOWORD(lParam) and HIWORD(lParam)
 			TMouseEvent me={true,false,false, true,false,false,false,false,(short)LOWORD(lParam),(short)HIWORD(lParam)};
-			// Wir wollen exklusive Nachrichten der Maus, solange die Taste gedrueckt wurde
+			// We want the mouse messages exclusively while the button is pressed
 			SetCapture(hWnd);
 			gui->processMouseEvent(&me);
 		}
@@ -240,13 +240,13 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 		break;
 	case WM_MOUSEWHEEL:
 		{
-			// Die Koordinaten liegen seltsamerweise in Screen-Koordinaten vor
+			// Oddly, the coordinates are in screen coordinates
 			POINT p={LOWORD(lParam),HIWORD(lParam)};
-			// Konvertiere Screen in Client-Koordinaten, also relativ zum Fenster
+			// Convert screen to client coordinates, i.e. relative to the window
 			ScreenToClient(hWnd,&p);
-			// Stricke wieder ein TMouseEvent
+			// Knit a TMouseEvent again
 			TMouseEvent me={true,false,false, false,false,false,false,false,p.x,p.y};
-			// Das delta des Mausrads gibt die Richtung an, button4 ist hoch, button5 ist runter
+			// The delta of the mouse wheel gives the direction: button4 is up, button5 is down
 			me.button1=(LOWORD(wParam)&MK_LBUTTON)!=0;
 			me.button2=(LOWORD(wParam)&MK_RBUTTON)!=0;
 			me.button3=(LOWORD(wParam)&MK_MBUTTON)!=0;
@@ -259,10 +259,10 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 	case WM_LBUTTONUP:
 		{
 			TMouseEvent me={false,true,false, true,false,false,false,false,(short)LOWORD(lParam),(short)HIWORD(lParam)};
-			// Ereignis an GUI weitergeben
+			// Pass the event on to the GUI
 			gui->processMouseEvent(&me);
-			// Maus unbedingt wieder freigeben, die wir zuvor mit SetCapture() uebernommen haben,
-			// Damit Mausereignisse wieder andere Fenster erreichen koennen. 
+			// Be sure to release the mouse we captured with SetCapture() before,
+			// so mouse events can reach other windows again.
 			ReleaseCapture();
 		}
 		break;
@@ -289,20 +289,20 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 			me.button1=(wParam&MK_LBUTTON)!=0;
 			me.button2=(wParam&MK_RBUTTON)!=0;	// ...
 			me.button3=(wParam&MK_MBUTTON)!=0;	// ...
-			me.button4=me.button5=false;	// "Mausrad" ist generell nicht bewegt
-			me.x=(short)LOWORD(lParam);	// Koordinaten setzen
+			me.button4=me.button5=false;	// The "mouse wheel" is generally not moved
+			me.x=(short)LOWORD(lParam);	// Set the coordinates
 			me.y=(short)HIWORD(lParam);	// ...
-			// Ereignis weiterreichen
+			// Pass the event on
 			gui->processMouseEvent(&me);
 		}
 		break;
 
-	// Obige TranslateMessage hat uns ein WM_CHAR generiert, das ein char in wParam enthaelt
+	// The TranslateMessage above generated a WM_CHAR for us, which holds a char in wParam
 	case WM_CHAR:
 		gui->processKeyEvent(wParam);
 		break;
 
-	// Manche originale Sondertasten an GUI uebergeben
+	// Pass some original special keys to the GUI
 	case WM_KEYDOWN:
 		if (wParam==VK_UP || wParam==VK_DOWN || wParam==VK_LEFT || wParam==VK_RIGHT || wParam==VK_F1)
 			gui->processKeyEvent(wParam);
@@ -314,22 +314,22 @@ LRESULT CWindow::processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam)
 	
 	default: return DefWindowProc(hWnd,uMsg,wParam,lParam);
 	}
-	// 0 zurueckgeben, als Zeichen, dass wir die Nachricht behandelt haben.
+	// Return 0 to indicate that we handled the message.
 	return 0;
 }
 
 /**
- * Win32: Fenster sichtbar machen
+ * Win32: make the window visible
  **/
 void CWindow::show()
 {
-	// Fenster im Zustand Maximiert anzeigen
+	// Show the window maximised
 	ShowWindow(hWnd,SW_SHOWMAXIMIZED);
 	UpdateWindow(hWnd);
 }
 
 /**
- * OpenGL-Puffer des Fensters tauschen, um die letzten Renderings sichtbar zu machen
+ * Swap the window's OpenGL buffers to make the latest rendering visible
  **/
 void CWindow::swapBuffers()
 {
@@ -339,13 +339,13 @@ void CWindow::swapBuffers()
 #else
 
 /**
- * X11-Implementierung von createWindow()
- * Erstellt ein X11-Fenster samt OpenGL-Rattenschwanz
+ * X11 implementation of createWindow()
+ * Creates an X11 window with all the OpenGL baggage
  **/
 bool CWindow::createWindow()
 {
-	/* Unsere Forderungen. Wir wollen mindestens:
-	   RGBA, 1 Bit von jeder Farbe, DoubleBuffer, Z-Buffer und Stencil-Buffer */
+	/* Our requirements. We want at least:
+	   RGBA, 1 bit of each colour, double buffering, Z buffer and stencil buffer */
 	int attrib[] = { GLX_RGBA,
 		GLX_RED_SIZE, 1,
 		GLX_GREEN_SIZE, 1,
@@ -360,7 +360,7 @@ bool CWindow::createWindow()
 	Window root,wnd;
 	XVisualInfo *visinfo;
 
-	// Das Standard-Display oeffnen (aus $DISPLAY Variable der Shell)
+	// Open the default display (from the shell's $DISPLAY variable)
 	dpy=XOpenDisplay(nullptr);
 	if (dpy==0)
 	{
@@ -371,21 +371,21 @@ bool CWindow::createWindow()
 	scrnum = DefaultScreen( dpy );
 	root = RootWindow( dpy, scrnum );
 
-	// Wir wollen ein OpenGL-Visual mit den obigen Anforderungen
+	// We want an OpenGL visual with the requirements above
 	visinfo = glXChooseVisual( dpy, scrnum, attrib );
 	if (!visinfo) {
 		printf("Error: couldn't get an RGB, Double-buffered visual\n");
 		return false;
 	}
 
-	// Fenster Attribute waehlen
+	// Choose the window attributes
 	attr.background_pixel = 0;
 	attr.border_pixel = 0;
 	attr.colormap = XCreateColormap( dpy, root, visinfo->visual, AllocNone);
 	attr.event_mask = StructureNotifyMask | ExposureMask | KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask;
 	mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
 
-	// X11-Fenster erstellen, mit angegebener Fenstergroesse, Position wird durch Fenstermanager gewaehlt
+	// Create the X11 window with the given window size; the position is chosen by the window manager
 	wnd= XCreateWindow( dpy, root, 0, 0, WND_SIZE_X, WND_SIZE_Y,
 		0, visinfo->depth, InputOutput,
 		visinfo->visual, mask, &attr );
@@ -395,7 +395,7 @@ bool CWindow::createWindow()
 		return false;
 	}
 
-	// Wir wollten einen Stencil Buffer, sind wir hier, haben wir ihn auch gekriegt, also koennen wir Schatten rendern
+	// We asked for a stencil buffer; if we got here we got it, so we can render shadows
 	m_canShadow=true;
 
 	{
@@ -445,51 +445,51 @@ bool CWindow::createWindow()
 		return false;
 	}
 
-	// Den Speicher fuer das visual muessen wir selbst wieder freigeben
+	// We have to free the memory of the visual ourselves
 	XFree(visinfo);
 
-	// Fenster merken
+	// Remember the window
 	window=wnd;
 	closed=false;
 
 	glXMakeCurrent(dpy,window,ctx);
 	reshape(WND_SIZE_X,WND_SIZE_Y);
 
-	// Erfolg!!
+	// Success!!
 	return true;
 }
 
 /**
- * Fenster sichtbar machen
+ * Make the window visible
  **/
 void CWindow::show()
 {
 	XMapWindow(dpy, window);
-	// Aktiviert den OpenGL Kontext, er ist fuer die Instanz global
+	// Activates the OpenGL context; it is global for the instance
 	glXMakeCurrent(dpy,window,ctx);
 }
 
 /**
- * Nachrichtenschleife, verarbeitet alle X11-Events, solang welche vorhanden sind.
+ * Message loop: processes all X11 events as long as there are any.
  */
 void CWindow::processEvents()
 {
 	while (XPending(dpy) > 0) 
 	{
 		XEvent event;
-		// Hole naechstes X11-Event ab
+		// Fetch the next X11 event
 		XNextEvent(dpy, &event);
 		processEvent(event);
 	}
 }
 
 /**
- * Eigene X11 Nachrichtenfunktion. Verarbeitet ein XEvent und leitet so manche an die GUI weiter
+ * Our own X11 message function. Processes an XEvent and forwards some of them to the GUI
  **/
 void CWindow::processEvent(XEvent event)
 {
 	switch (event.type) {
-	// Das Fenster wurde frisch erstellt. Informiere OpenGL ueber die Groesse
+	// The window was just created. Tell OpenGL about its size
 	case ConfigureNotify:
  		reshape(event.xconfigure.width, event.xconfigure.height);
       		break;
@@ -497,7 +497,7 @@ void CWindow::processEvent(XEvent event)
 	case KeyPress: {
 		KeySym mykeysym;
 		char buffer[16];
-		// Verwandle den Keycode in ein char (nur ein Byte, koennten ja auch mehrere sein)
+		// Convert the keycode into a char (only one byte, though there could be several)
 		XLookupString((XKeyEvent*)&event, buffer,15, &mykeysym, nullptr);
 		/* processKeyEvent takes 16 bits; truncating a larger keysym (e.g. 0x100ff0d for a Unicode
 		   character) would turn it into an unrelated key like Return. */
@@ -520,7 +520,7 @@ void CWindow::processEvent(XEvent event)
 			me.button4=(e->button==Button4);
 			me.button5=(e->button==Button5);
 
-			// X11 gibt uns automatisch alle weiteren MouseEvents, solang die Taste noch gedrueckt ist
+			// X11 automatically gives us all further mouse events while the button is still held
 			gui->processMouseEvent(&me);
 		}
 		break;

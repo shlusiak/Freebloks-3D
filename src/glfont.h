@@ -1,6 +1,6 @@
 /**
  * glfont.h
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  **/
 #ifndef __GLFONT_H_INCLUDED_
 #define __GLFONT_H_INCLUDED_
@@ -10,7 +10,7 @@
 #include <string.h>
 
 /**
- * Stellt die Schnittstelle fuer OpenGL Textausgaben bereit
+ * Provides the interface for OpenGL text output
  **/
 
 class CGLFont
@@ -20,7 +20,7 @@ private:
 
 	static GLuint m_displayLists;
 
-	/* Ein Referenz-Zaehler. Ist keine Referenz mehr vorhanden, wird die Texur entfernt */
+	/* A reference counter. When no reference is left, the texture is removed */
 	static int ref_count;
 
 	const double char_width,char_height;

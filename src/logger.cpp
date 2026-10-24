@@ -1,8 +1,8 @@
 /**
- * logger.h
- * Autor: Sascha Hlusiak
+ * logger.cpp
+ * Author: Sascha Hlusiak
  *
- * Klasse zum Loggen von Ausgaben auf Konsole oder in Datei
+ * Class for logging output to the console or to a file
  **/
 
 

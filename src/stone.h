@@ -263,7 +263,7 @@ const TStoneField STONE_FIELD[STONE_COUNT_ALL_SHAPES]=
 					};
 
 
-/* ende Stone-Constants */
+/* end Stone-Constants */
 
 
 class CBoard;

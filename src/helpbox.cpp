@@ -1,6 +1,6 @@
 /**
  * helpbox.cpp
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -13,24 +13,24 @@
 CHelpBox::CHelpBox()
 :CDialog(450,350,"Help")
 {
-	/* Farbe setzen */
+	/* Set the colour */
 	setColor(0.75,0.2,0.4);
 
-	/* Drei Buttons am oberen Rand plazieren */
+	/* Place three buttons at the top edge */
 	addChild(t1=new CButton(75,30,90,20,1001,this,"Rules"));
 	addChild(t2=new CButton(170,30,90,20,1002,this,"Mouse"));
 	addChild(t3=new CButton(265,30,90,20,1003,this,"Keyboard"));
 
-	/* Ok Knopf hinzufuegen */
+	/* Add the OK button */
 	addChild(new CButton((w-80)/2.0,h-30,70,25,1,this,"Okay"));
 	addChild(text=new CStaticText(20,65,"",this));
 
-	/* Topic #1 setzen (Rules). */
+	/* Set topic #1 (Rules). */
 	setTopic(1);
 }
 
 /**
- * Setzt den Text des Widgets auf das angegebene Thema.
+ * Sets the widget's text to the given topic.
  **/
 void CHelpBox::setTopic(int topic)
 {
@@ -77,7 +77,7 @@ void CHelpBox::setTopic(int topic)
 	if (topic==2)text->setText(topic2,true);
 	if (topic==3)text->setText(topic3,true);
 
-	/* Das aktuelle Thema soll deaktiviert sein, die anderen aktiviert. */
+	/* The current topic is disabled, the others enabled. */
 	t1->setEnabled(topic!=1);
 	t2->setEnabled(topic!=2);
 	t3->setEnabled(topic!=3);

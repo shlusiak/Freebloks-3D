@@ -1,7 +1,7 @@
 /**
  * intro.cpp
- * Autor: Sascha Hlusiak
- * Implementation der Intro-Sequenz mit allem drum und dran
+ * Author: Sascha Hlusiak
+ * Implementation of the intro sequence with all the trimmings
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -16,7 +16,7 @@
 #include "stoneeffect.h"
 #include "gameclient.h"
 
-/* Waehrend der Animation soll das Feld 20x20 Felder betragen. */
+/* During the animation the board is 20x20 squares. */
 const int FIELD_SIZE_X=20,FIELD_SIZE_Y=20;
 
 CIntro::CIntro(CGUI *vgui)
@@ -36,8 +36,8 @@ CIntro::~CIntro()
 }
 
 /**
- * Steine initialisieren (Formen)
- * Und das Wort "Free Bloks" vorbereiten
+ * Initialise the stones (shapes)
+ * and prepare the word "Free Bloks"
  **/
 void CIntro::init()
 {
@@ -106,8 +106,8 @@ void CIntro::init()
 }
 
 /**
- * Einen fliegenden Buchstaben 'c' der Farbe color hinzufuegen, dass er an x/y landet (linke obere Ecke)
- * Dazu wird er in einzelne Steine zerlegt und diese hinzugefuegt.
+ * Add a flying letter 'c' of colour color so that it lands at x/y (top left corner)
+ * It is split into individual stones, which are added.
  **/
 void CIntro::addChar(char c,int color,int x,int y)
 {
@@ -202,13 +202,13 @@ void CIntro::addChar(char c,int color,int x,int y)
 }
 
 /**
- * Einen CPhysicalStone hinzufuegen, der an dx/dy landet
- * Startposition und Rotation ist zufaellig
+ * Add a CPhysicalStone that lands at dx/dy
+ * Start position and rotation are random
  **/
 void CIntro::add(int stone,int color,int dx,int dy)
 {
 	double x,y,z;
-	/* Eine Rotationsachse berechnen */
+	/* Compute a rotation axis */
 	double angx=double(rand()%360)/180.0*M_PI;
 	double angy=double(rand()%360)/180.0*M_PI;
 	double axe_x=sin(angx)*cos(angy);
@@ -217,72 +217,72 @@ void CIntro::add(int stone,int color,int dx,int dy)
 
 	CStone *st=&stones[stone];
 	CPhysicalStone *s=new CPhysicalStone(gui,st,color);
-	/* Lokale dx/dy des Feldes in globale Welt-Koordinaten umrechnen. */
+	/* Convert the board-local dx/dy into global world coordinates. */
 	x=-(FIELD_SIZE_X-1)*stone_size+((double)dx+(double)st->get_stone_size()/2.0)*stone_size*2.0-stone_size;
 	z=-(FIELD_SIZE_Y-1)*stone_size+((double)dy+(double)st->get_stone_size()/2.0)*stone_size*2.0-stone_size;
-	/* Zufaellige Hoehe geben. */
+	/* Give it a random height. */
 	y=22.0+(double)(rand()%180)/10.0;
 
-	/* Der Stein wird in <time> sek den Boden erreichen. 17 ist Gravitation*/
+	/* The stone will reach the ground in <time> s. 17 is gravity */
 	double time=sqrt(2*y/17.0);
-	/* x/z Koordinaten zufaellig verschieben */
+	/* Shift the x/z coordinates randomly */
 	double xoffs=rand()%60-30.0;
 	double zoffs=rand()%60-30.0;
-	/* Position setzen */
+	/* Set the position */
 	s->setPos(x+xoffs,y,z+zoffs);
-	/* x/z Geschwindigkeit setzen, y Geschw. ist 0 */
+	/* Set the x/z speed; the y speed is 0 */
 	s->setSpeed(-xoffs/time,0,-zoffs/time);
 	s->setDestination(x,bevel_height,z);
-	/* Stein dreht sich exakt um 360 Grad in <time> sek. */
+	/* The stone rotates by exactly 360 degrees in <time> s. */
 	s->setRotationSpeed(360.0/time,axe_x,axe_y,axe_z);
 	effects->add(s);
 }
 
-/* Geschw. in der das Feld auf-wippen soll */
+/* Speed at which the board tips up */
 const double wipe_speed=6.8;
-/* Winkel, bis zu dem das Feld gekippt werden soll */
+/* Angle up to which the board is tilted */
 const double wipe_ang=32.0;
 
 /**
- * Das Feld kippen und alle Steine entlang der Radialgeschwindigkeit beschleunigen
+ * Tilt the board and accelerate all stones along the radial velocity
  **/
 void CIntro::wipe()
 {
 	field_up=true;
 	field_anim=0.0;
-	/* Komplette verkettete Liste durchgehen und fuer jeden enthaltenen CPhysicalStone...*/
+	/* Go through the whole linked list and, for every CPhysicalStone in it...*/
 	CPhysicalStone *s=(CPhysicalStone*)effects->next;
 	while (s)
 	{
-		/* ...Geschwindigkeit setzen, dass die Steine tangential zur Drehung des 
-		   Felds wegfliegen */
-		/* Winkel, in dem die Steine beschleunigt werden */
+		/* ...set the speed so the stones fly off tangentially to the rotation of the
+		   board */
+		/* Angle at which the stones are accelerated */
 		const double ang=wipe_ang/180.0*M_PI;
-		/* Radialgeschwindigkeit errechnen. */
+		/* Compute the radial velocity. */
 		const double v=(ang*wipe_speed)*(s->getZ()-FIELD_SIZE_X*stone_size)-(double)(rand()%100)/10.0-8.0;
-		/* Stein nur leicht rotieren lassen, und nicht ganz zufaellig */
+		/* Let the stone rotate only slightly, and not entirely at random */
 		const double a1=0.95;
 		const double a2=((rand()%2)?1:-1)*sqrt((1.0-a1*a1)/2.0);
 		const double a3=((rand()%2)?1:-1)*sqrt((1.0-a1*a1)/2.0);
-		/* Stein hauptsaechlich in Richtung der Felddrehung rotieren lassen */
+		/* Rotate the stone mainly in the direction of the board's rotation */
 		s->setRotationSpeed(wipe_ang*wipe_speed+(double)(rand()%100)/15.0,a1,a2,a3);
-		/* Geschwindigkeit und Winkel in Kartesische Koordinaten umrechnen */
+		/* Convert speed and angle into Cartesian coordinates */
 		s->setSpeed((double)(rand()%100)/20.0,cos(ang)*v,-sin(ang)*v);
-		/* Stein soll kein Ziel mehr haben, d.h. er faellt unendlich tief */
+		/* The stone has no target any more, i.e. it falls forever */
 		s->unsetDestination();
 		s=(CPhysicalStone*)s->next;
 	}
 }
 
-/* Die Matrix Animation startet bei matrix_start, stoppt bei matrix_stop,
-   und wird um matrix_duration_start langsam eingeblendet */
+/* The matrix animation starts at matrix_start, stops at matrix_stop,
+   and fades in slowly over matrix_duration_start */
 const double matrix_start=1.56;
 const double matrix_stop=6.0;
 const double matrix_duration_start=0.25;
 const double matrix_duration_stop=0.25;
 
 /**
- * Alles animieren. return true, wenn die Intro-Sequenz vorrueber ist.
+ * Animate everything. Returns true when the intro sequence is over.
  **/
 bool CIntro::execute(double elapsed)
 {
@@ -300,14 +300,14 @@ bool CIntro::execute(double elapsed)
 				field_up=false;
 			}
 		}else{
-			/* Runter animieren. */
+			/* Animate downwards. */
 			field_anim-=elapsed*2.5;
 			if (field_anim<0.0)field_anim=0.0;
 		}
 	}
 	if (phase==0)
 	{
-		/* In phase 0 kommt ein Matrix-Mode zwischen die fliegenden Steine */
+		/* In phase 0 a matrix mode appears between the flying stones */
 		if (anim<matrix_start+matrix_duration_start)
 		{
 			if (anim<matrix_start)effects->execute(elapsed);
@@ -320,20 +320,20 @@ bool CIntro::execute(double elapsed)
 		}
 		if (anim>10.5)
 		{
-			/* Nach 10.5 Zeiteinheiten Feld leeren und Phase auf 1 */
+			/* After 10.5 time units clear the board and set the phase to 1 */
 			phase=1;
 			wipe();
 		}
 	}else{
-		/* Effekte animieren */
+		/* Animate the effects */
 		effects->execute(elapsed);
-		/* Bei den Phasen fallen Steine vom Himmel, diese sollen zuegig fallen */
+		/* In these phases stones fall from the sky; they should fall quickly */
 		if (phase==2 || phase==4 || phase==5 || phase==6)
 			effects->execute(elapsed*0.7);
-		/* Jede Phase dauert 12 Zeiteinheiten */
+		/* Each phase lasts 12 time units */
 		if (anim>12.0)
 		{
-			/* Neue Phase und entweder Feld leeren */
+			/* New phase, and either clear the board */
 			phase++;
 			if (phase==3)
 			{
@@ -345,7 +345,7 @@ bool CIntro::execute(double elapsed)
 				anim=9.5;
 				wipe();
 			}
-			/* Oder neue Steine regnen lassen. */
+			/* or let new stones rain down. */
 			if (phase==2)
 			{
 				anim=9.1;
@@ -381,7 +381,7 @@ bool CIntro::execute(double elapsed)
 				addChar('h',1,13,13);
 				addChar('a',0,16,13);
 			}
-			/* Nach der 7. Phase ist das Intro vorrueber */
+			/* After the 7th phase the intro is over */
 			if (phase==8)return true;
 		}
 	}
@@ -389,14 +389,14 @@ bool CIntro::execute(double elapsed)
 }
 
 /**
- * Intro rendern
+ * Render the intro
  **/
 void CIntro::render()
 {
-	/* Kaera ist 30 Einheiten vom Feld entfernt */
+	/* The camera is 30 units away from the board */
 	const double distance=30.0;
 	glLoadIdentity();
-	/* Kamera positionieren */
+	/* Position the camera */
 	glTranslated(0,4,0);
 	gluLookAt(0,
 		0,
@@ -404,7 +404,7 @@ void CIntro::render()
 		0,0,0,
 		0,1,0);
 
-	/* Kamera drehen, evtl. durch Matrix move */
+	/* Rotate the camera, possibly by the matrix move */
 	glRotated(60,1,0,0);
 	const double winkel1=180.0;
 	const double winkel2=-70.0;
@@ -426,7 +426,7 @@ void CIntro::render()
  		glTranslated(0,-13+13*(matrix_anim*matrix_anim),0);
 	}
 
-	/* Licht setzen der neuen Kameraposition anpassen*/
+	/* Adjust the light to the new camera position */
 	glLightfv(GL_LIGHT0,GL_POSITION,light0_pos);
 
 	gui->renderGround();
@@ -443,7 +443,7 @@ void CIntro::render()
 }
 
 /**
- * Schatten im Intro rendern.
+ * Render the shadows in the intro.
  **/
 void CIntro::renderShadow()
 {

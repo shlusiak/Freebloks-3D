@@ -31,9 +31,9 @@ class CPlayer{
 		void init(const CBoard& board, const int playernumber);
 		void refresh_data(const CBoard& board);
 
-		const int get_number() const; //liefert jetzt einen wert von 0 bis 3!
+		const int get_number() const; //now returns a value from 0 to 3!
 		const int get_stone_points_left() const;
-		const int get_position_points() const; //gibt eine situationsbewertung zur�ck
+		const int get_position_points() const; //returns an evaluation of the position
 		const int get_number_of_possible_turns() const;
 		const int get_stone_count() const;
 

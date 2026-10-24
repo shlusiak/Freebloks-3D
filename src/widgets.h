@@ -1,7 +1,7 @@
 /**
  * widgets.h
- * Autor: Sascha Hlusiak
- * Klassen der Engine fuer die 2D Menues, hier "Widgets" genannt
+ * Author: Sascha Hlusiak
+ * Classes of the engine for the 2D menus, called "widgets" here
  **/
 
 #ifndef __WIDGETS_H_INCLUDED_
@@ -15,30 +15,30 @@ struct TOptions;
 
 
 /**
- * Widget, die Hauptklasse, davon werden alle anderen Widgets abgeleitet
- * Stellt grundlegende virtuelle Methoden zur Verfuegung, ohne wirklich viel zu machen
+ * Widget, the main class from which all other widgets are derived
+ * Provides basic virtual methods without really doing much
  **/
 class CWidget
 {
 private:
-	/* next:  Widgets, die parallel zu this liegen
-	   child: Ein Widget, das innerhalb von this zu finden ist
-	   subchild: Ein Widget, das ausserhalb von this liegt, und hoehere Prioritaet hat */
+	/* next:  widgets that lie parallel to this
+	   child: a widget found inside this
+	   subchild: a widget that lies outside this and has higher priority */
 	CWidget *next,*child,*subchild;
-	// Flag, ob das Widget entfernt werden soll. Wird in aufrufender execute entfernt
+	// Flag whether the widget is to be removed. It is removed in the calling execute
 	bool m_deleted;
-	// Die ID des Widgets (sollte eindeutig sein).
-	// die ID spielt nur bei Mausoperationen eine Rolle, damit die GUI das entsprechende
-	// Widget wiederfinden kann
+	// The ID of the widget (should be unique).
+	// the ID only matters for mouse operations, so the GUI can find the corresponding
+	// widget again
 	int m_id;
 protected:
-	// Koordinaten des Widgets, sind nicht wichtig, ausser fuer SelectionBuffer,
-	// und wenn die Parameter schonmal da sind...
+	// Coordinates of the widget; not important except for the selection buffer,
+	// and since the parameters are there anyway...
 	double x,y,w,h;
 
-	// Wird aufgerufen, wenn die Maus innerhalb des Widgets bewegt wurde
+	// Called when the mouse moves inside the widget
 	virtual void mouseEnter() {}
-	// Wird aufgerufen, wenn die Maus ausserhalb des Widgets bewegt wurde
+	// Called when the mouse moves outside the widget
 	virtual void mouseLeave() {}
 public:
 	// Constructor
@@ -46,63 +46,63 @@ public:
 	// Destructor
 	virtual ~CWidget();
 
-	// Ein neues Widget parallel zu this in einer Liste einhaengen
+	// Append a new widget parallel to this in a list
 	void add(CWidget* w) { if (next) next->add(w); else next=w; }
-	// Ein Kind-Widget anhaengen, als direktes Kind von this. Dies ist ein next von ggf. vorhandenen Widgets
+	// Attach a child widget as a direct child of this. It becomes a next of any existing child widgets
 	void addChild(CWidget *w) { if (child)child->add(w); else child=w; }
-	// Fuegt ein Unterfenster an, dieses kriegt etwas exklusiver Nachrichten und wird bevorzugt behandelt, als haette es den Fokus
+	// Adds a subwindow; it gets messages somewhat more exclusively and is given priority, as if it had the focus
 	void addSubChild(CWidget *subchild);
 	
 	bool deleted() { return m_deleted; }
 	bool hasSubChild() { return (subchild!=0); }
 	CWidget *getSubChild() { return subchild; }
 
-	// Kommt hier true zustande, verzichtet die GUI auf eigene Mausbehandlung beim Spielfeld (sinnvoll bei modalen Dialogen)
+	// If this returns true, the GUI skips its own mouse handling on the board (useful for modal dialogs)
 	virtual bool handleUI() { bool r=false; if (next)r|=next->handleUI(); if (subchild)r|=subchild->handleUI(); if (child)r|=child->handleUI(); return r; }
 
-	// Widget schliessen, einfach entfernen. Kann ueberladen werden, um Animationen o.ae. zu ermoeglichen
+	// Close the widget by simply removing it. Can be overridden to allow animations or similar
 	virtual void close() { remove(); }
 
-	// Wird von GUI aufgerufen, mit der ID des Widgets, ueber dem sich gerade der Mauszeiger bewegt (oder 0, bei keinem Widget). Das ist die einzige Moeglichkeit festzustellen, ueber welchem Widget der Mauszeiger ist.
+	// Called by the GUI with the ID of the widget currently under the mouse pointer (or 0 for no widget). This is the only way to find out which widget the mouse pointer is over.
 	void processSelection(int id);
 
-	// Wird von GUI aufgerufen, wenn ein Mausereignis eingetreten ist (z.B. klick)
-	// Der Rueckgabewert kann die ID eines Widgets sein, der Aufrufer kriegt mit,
-	// ob das Widget Beachtung will, oder nicht (Button Klick, Checkbox Klick, oder so)
-	// >> So teilen Widgets dem uebergeordneten Widgets Events mit! <<
+	// Called by the GUI when a mouse event occurred (e.g. a click)
+	// The return value can be the ID of a widget; the caller learns
+	// whether the widget wants attention or not (button click, check box click or similar)
+	// >> This is how widgets report events to their parent widgets! <<
 	virtual int processMouseEvent(TMouseEvent *event);
-	// Wird von GUI aufgerufen, wenn eine Taste gedrueckt wurde, die verarbeitet werden will. Gibt true, wenn das Widget die Taste verarbeitet hat, bei true sollte KEIN anderes Widget die Taste weiter verarbeiten, da schon geschehen.
+	// Called by the GUI when a key was pressed that wants to be handled. Returns true if the widget handled the key; on true NO other widget should process the key any further, since that already happened.
 	virtual bool processKey(unsigned short key);
 
 	void remove() { m_deleted=true; }
-	// ID dieses Widgets zurueckgeben
+	// Return the ID of this widget
 	const int getId()const { return m_id; }
 	double getX() { return x; }
 	double getY() { return y; }
 	void setId(int id) { m_id=id; }
 
-	// Hier kommen Animationen und sonstige automatische Aktionen rein
+	// Animations and other automatic actions go here
 	virtual void execute(double elapsed);
-	// Widget rendern, selection ist true, wenn in SelectionBuffer gerendert werden soll
+	// Render the widget; selection is true when rendering into the selection buffer
 	virtual void render(bool selection);
-	// Subchilds rendern, muessen immer nach eigentlichem Widget gerendert werden.
+	// Render the subchilds; they must always be rendered after the actual widget.
 	void renderSubChild(bool selection);
 };
 
 
 /**
- * Diese Klasse wird von der GUI als Widget-Speicher benutzt.
+ * This class is used by the GUI as the widget container.
  **/
 class CWidgetPane:public CWidget
 {
 public:
-	// Hier wird OpenGL fuers Rendern der 2D Widgets vorbereitet, dann werden die eigentlichen Widgets der verketteten Listen gerendert
+	// Prepares OpenGL for rendering the 2D widgets, then renders the actual widgets of the linked lists
 	void render(bool selectionBuffer);
 	virtual int processMouseEvent(TMouseEvent *event);
 };
 
 /**
- * Ein simples Rechteck, 4 Ecken, transparent, mit Farbverlauf
+ * A simple rectangle, 4 corners, transparent, with a colour gradient
  **/
 class CFrame:public CWidget
 {
@@ -111,28 +111,28 @@ private:
 public:
 	// Hm...
 	CFrame(double vx,double vy,double vw,double vh);
-	// Unglaublich
+	// Unbelievable
 	virtual void render(bool selection);
-	// Wers weiss, darf sich nen Keks nehmen
+	// Whoever knows gets a biscuit
 	void setColor(double vr,double vg,double vb) { r=vr; g=vg; b=vb; }
-	// Ja, aeh...
+	// Yes, er...
 	void setAlpha(double va) { a=va; }
-	// Groesse setzen
+	// Set the size
 	void setSize(double vx,double vy,double vw,double vh);
 };
 
 class CButton:public CWidget
 {
 private:
-	// Ist der Knopf hervorgehoben (Maus-over), ist er enabled?
+	// Is the button highlighted (mouse over), is it enabled?
 	bool hovered,enabled;
-	// Animation des Mouse-Over Effekts (0.0-1.0), und Animation des Klicks
+	// Animation of the mouse-over effect (0.0-1.0), and animation of the click
 	double anim,pushanim;
 	char *text;
 protected:
-	// Maus bewegt sich ueber Widget, damit ist hover=enabled
+	// The mouse moves over the widget, so hover=enabled
 	virtual void mouseEnter() { hovered=enabled && true; }
-	// Maus bewegt sich ausserhalb des Widgets, Button ist in jedem Fall nicht mehr hovered
+	// The mouse moves outside the widget; the button is no longer hovered in any case
 	virtual void mouseLeave() { hovered=false; }
 public:
 	// Constructor
@@ -141,56 +141,56 @@ public:
 
 	virtual void render(bool selection);
 	virtual void execute(double elapsed);
-	// Mausereignis verarbeiten. Wenn gedrueckt und hovered, dann wird die ID des Buttons zurueck gegeben
+	// Handle a mouse event. If pressed and hovered, the ID of the button is returned
 	virtual int processMouseEvent(TMouseEvent *event);
-	// Button enablen / disablen
+	// Enable / disable the button
 	void setEnabled(bool enabled) { this->enabled=enabled; }
 	bool isEnabled() { return enabled; }
 };
 
 /**
- * Eine Checkbox, kann aus oder an sein, koennen in CheckBox-Groups organisieren werden
+ * A check box; can be on or off, and can be organised in check box groups
  **/
 class CCheckBox:public CWidget
 {
 private:
-	// Maus kann ueber Checkbox sein, Checkbox kann deaktiviert sein, und an oder aus (checkt)
+	// The mouse can be over the check box, the check box can be disabled, and it can be on or off (checked)
 	bool hovered,enabled,checked;
-	// Beschriftung
+	// Label
 	char *text;
-	// Animation, wenn man mit der Maus draufdrueckt
+	// Animation when the mouse presses on it
 	double pushanim;
 protected:
-	// Maus ist ueber Widget, also ist hovered=enabled
+	// The mouse is over the widget, so hovered=enabled
 	virtual void mouseEnter() { hovered=enabled && true; }
-	// Maus ist ausserhalb Widget, hovered ist immer false
+	// The mouse is outside the widget; hovered is always false
 	virtual void mouseLeave() { hovered=false; }
 public:
-	// Fuer CheckBox-Gruppen, Zeiger auf naechste und vorherige Checkbox, oder nullptr, wenn es das Ende ist
+	// For check box groups: pointers to the next and previous check box, or nullptr at the end
 	CCheckBox *nextCheckBox,*prevCheckBox;
 
 	// Constructor
 	CCheckBox(double vx,double vy,double vw,double vh,int id,const char *vtext,bool vchecked,CWidget *parent);
 	virtual ~CCheckBox();
 	
-	// Rendern
+	// Render
 	virtual void render(bool selection);
-	// Animieren
+	// Animate
 	virtual void execute(double elapsed);
-	// Mausereignis verarbeiten, gibt ID zurueck, wenn auf Checkbox geklickt wurde
+	// Handle a mouse event; returns the ID if the check box was clicked
 	virtual int processMouseEvent(TMouseEvent *event);
 	bool getCheck() { return checked; }
-	// check setzen
+	// Set checked
 	void setCheck(bool vchecked) { checked=vchecked; }
-	// Checkbox aktivieren oder deaktivieren, nimmt bei Deaktivierung keine Mausereignisse mehr an
+	// Enable or disable the check box; when disabled it no longer accepts mouse events
 	void setEnabled(bool enabled) { this->enabled=enabled; }
-	// Eine weitere Checkbox der Gruppe anfuegen. Verhaelt sich wie eine Radiogroup
+	// Add another check box to the group. Behaves like a radio group
 	void addCheckBox(CCheckBox *n);
 };
 
 /**
- * Nur ein statischer Text, der gerendert wird. Kann zentriert sein, Text kann nachtraeglich
- * geaendert werden.
+ * Just static text that is rendered. Can be centred; the text can be changed
+ * afterwards.
  **/
 class CStaticText:public CWidget
 {
@@ -198,160 +198,160 @@ private:
 	char *text;
 	double a;
 public:
-	// Konstruktor, Text wird links an x und y ausgerichtet, relativ zur Koordinate von parent
+	// Constructor; the text is left-aligned at x and y, relative to the coordinates of parent
 	CStaticText(double x,double y,const char *vtext,CWidget *parent);
-	// Konstruktor, Text wird zentriert an x mit Breite w ausgegeben, relativ zur Koordinate von parent
+	// Constructor; the text is centred at x with width w, relative to the coordinates of parent
 	CStaticText(double x,double y,double w,const char *vtext,CWidget *parent);
-	// Aufraeumen
+	// Clean up
 	virtual ~CStaticText();
-	// Den Text setzen, ggf. alten Text freigeben. adjustwidth: soll neue Breite dem Text angepasst werden?
+	// Set the text, freeing the old text if needed. adjustwidth: should the width adapt to the new text?
 	void setText(const char *vtext,bool adjustwidth=false);
 	virtual void render(bool selection);
-	// Transparenz setzen
+	// Set the transparency
 	void setAlpha(double va) { a=va; }
 };
 
 
 /**
- * Ein TextEdit-Feld. Man kann Text eingeben, ggf. auch nur auf Zahlen beschraenkt
+ * A text edit field. Text can be entered, optionally restricted to digits
  **/
 class CTextEdit:public CFrame
 {
 protected:
-	// Ist die Maus ueber dem Edit-Feld, akzeptiert das Feld Tastatureingaben, sind NUR Zahlen erlaubt, oder alles?
+	// Is the mouse over the edit field, does the field accept keyboard input, are ONLY digits allowed, or everything?
 	bool hovered,focused,numbers;
-	// Status der Animation des Fokuses, und der Animation eines eingebenenen Zeichens
+	// State of the focus animation, and of the animation of an entered character
 	double animatefocused,animatechar;
-	// true, wenn der Benutzer Enter gedrueckt hat. 
+	// true if the user pressed Enter.
 	bool m_committed;
-	// Das Zeichen, das mit Backspace entfernt wurde, damit es angemessen entfernt werden kann
+	// The character removed with Backspace, so it can be removed with an animation
 	char lastchar;
-	// Puffer der eingegebenen Zeichen. 100 sollten reichen, werden ja keine Romane eingegeben
+	// Buffer of the entered characters. 100 should be enough; nobody types novels here
 	char text[100];
-	// Soll der Text links im Edit Feld ausgerichtet werden?
+	// Should the text be left-aligned in the edit field?
 	bool left_align;
 	virtual void mouseEnter() { hovered=true; }
 	virtual void mouseLeave() { hovered=false; }
-	// Aufgerufen, wenn TextEdit den Fokus verliert, hier koennten Ueberpruefungen rein (wie bei SpinBox)
+	// Called when the TextEdit loses focus; checks could go here (as in SpinBox)
 	virtual void endEdit() {}
 public:
-	// Constructor, selbsterklaerend hoff ich
+	// Constructor, self-explanatory I hope
 	CTextEdit(double x,double y,double w,double h,int id,const char *vtext,bool numbers_only,CWidget *parent);
-	// Aufraeumen
+	// Clean up
 	virtual ~CTextEdit();
 
-	// Textfeld soll den Fokus haben, kann von extern bei Initialisierung von Dialogen aufgerufen werden
+	// The text field should have focus; can be called from outside when initialising dialogs
 	void setFocus() { focused=true; }
 	bool hasFocus() { return focused; }
-	// Gibt eingegebenen Text zurueck. Zeiger sollte kopiert und nicht veraendert werden
+	// Returns the entered text. The pointer should be copied and not modified
 	const char *getText();
 	void setText(const char *vtext);
 	bool committed() { return m_committed; }
 	void unsetCommitted() { m_committed=false; }
 
-	// Animieren
+	// Animate
 	virtual void execute(double elapsed);
-	// Rendern
+	// Render
 	virtual void render(bool selection);
-	// Mausereignis verarbeiten
+	// Handle a mouse event
 	virtual int processMouseEvent(TMouseEvent *event);
-	// Tastendruck verarbeiten. 
+	// Handle a key press.
 	virtual bool processKey(unsigned short key);
 };
 
 /**
- * Eine Spinbox, ist ein TextEdit, das nur Zahlen akzeptiert, und 
- * zwei Buttons fuer die Pfeile als "child" hat :)
+ * A spin box: a TextEdit that only accepts digits and
+ * has two buttons for the arrows as "children" :)
  **/
 class CSpinBox:public CTextEdit
 {
 protected:
-	// Gueltiger Bereich des Wertes. Aktueller Wert steht als Text im TextEdit
+	// Valid range of the value. The current value is stored as text in the TextEdit
 	int min,max,def;
-	// Buttons fuer + und -, damit sie bei Erreichen der Grenze deaktiviert werden koennen
+	// Buttons for + and -, so they can be disabled when the limit is reached
 	CButton *up,*down;
 	
-	// Wenn das Editieren beendet ist, soll eine Ueberpruefung des Werts stattfinden
+	// When editing is finished, the value should be validated
 	virtual void endEdit();
 public:
 	CSpinBox(double x,double y,double w,double h,int id,int min,int max,int value,CWidget *parent,bool rightButtons=true);
 
-	// Aktuellen Wert als Zahl zurueckgeben
+	// Return the current value as a number
 	int getValue();
-	// Wert setzen
+	// Set the value
 	void setValue(int value);
 
-	// Grenzen setzen
+	// Set the limits
 	void setMin(int min) { this->min=min; endEdit(); }
 	void setMax(int max) { this->max=max; endEdit(); }
 
-	// Mausereignis verarbeiten
+	// Handle a mouse event
 	virtual int processMouseEvent(TMouseEvent *event);
 };
 
 /**
- * Ein Dialog. Erweitert CFrame um eine schicke Animation beim Erstellen/Entfernen, 
- * sowie einen Titelleistentext
+ * A dialog. Extends CFrame with a fancy animation when created/removed,
+ * and a title bar text
  **/
 
 class CDialog:public CFrame
 {
 private:
-	// Animation beim herein-, bzw. herausgleiten
+	// Animation when sliding in or out
 	double anim;
-	// Wird der Dialog gerade eingeblendet, oder ausgeblendet?
+	// Is the dialog currently fading in or fading out?
 	bool starting;
-	// Titelleistentext
+	// Title bar text
 	char *caption;
 public:
-	// Einen Dialog der Breite vw und Hoehe vh erstellen. Der Dialog wird im Fenster genau zentriert und erhaelt die Titelleiste "vcaption"
+	// Create a dialog of width vw and height vh. The dialog is centred exactly in the window and gets the title bar "vcaption"
 	CDialog(double vw,double vh,const char *vcaption);
-	// Aufraeumen
+	// Clean up
 	virtual ~CDialog();
 
-	// Dialog und Unterfenster rendern, ggf. vorher die Animation mit berechnen
+	// Render the dialog and its subwindows, computing the animation first if needed
 	virtual void render(bool selection);
-	// Animieren
+	// Animate
 	virtual void execute(double elapsed);
-	// Maustaste verarbeiten
+	// Handle a mouse button
 	virtual int processMouseEvent(TMouseEvent *event);
-	// Taste verarbeiten
+	// Handle a key
 	virtual bool processKey(unsigned short key);
-	// Wenn irgendein Dialog geoeffnet ist, darf die GUI keine Mausereignisse verarbeiten
+	// While any dialog is open, the GUI must not handle mouse events
 	virtual bool handleUI() { return starting; }
-	// Extra close() Funktionen, um dem Dialog ein animiertes Ableben zu verschaffen
+	// Extra close() functions to give the dialog an animated demise
 	virtual void close();
 	virtual void close(bool recursive);
 
-	// Dialog voll anzeigen, Animation beenden.
+	// Show the dialog fully, end the animation.
 	void finishAnim() { anim=1.0; }
 
-	// Titelleistentext neu setzen
+	// Set a new title bar text
 	void setCaption(const char* caption);
 
-	// Fenster Groesse setzen
+	// Set the window size
 	void setSize(double vw,double vh);
 };
 
 /**
- * Eine MessageBox, zeigt eine Fehlemeldung in einem roten Fenster mit Okay-Knopf an
+ * A message box; shows an error message in a red window with an Okay button
  **/
 class CMessageBox:public CDialog
 {
 public:
-	// Nachrichtenfenster, Farbe kann definiert werden, ist per default rot
+	// Message window; the colour can be defined and is red by default
 	CMessageBox(double w,double h,const char *caption,const char *text,double r=1.0,double g=0.2,double b=0.1);
 };
 
 
 /**
- * Ein Zaehler, der die Anzahl von execute() Aufrufen zaehlt, und nach 500ms eine FPS daraus errechnet.
+ * A counter that counts the number of execute() calls and computes an FPS value from it every 500 ms.
  **/
 class CFPS:public CStaticText
 {
 private:
 	int counter;
-	/* Und die Zeit, wie lange Frames gerendert werden. */
+	/* And the time for which frames have been rendered. */
 	double time;
 	TOptions *options;
 public:

@@ -1,11 +1,11 @@
 /*
 **dialogs.cpp
-**autor: Alex Besstschastnich
+**Author: Alex Besstschastnich
 **
-**Beschreibung:
-**Design des Men�s und der Untermen�s.
-**Alle Steuerelemente haben eine ID, damit man auf die Ereignisse dem entsprechend 
-**reagieren kann.
+**Description:
+**Design of the menu and its submenus.
+**Every control has an ID so that events can be handled
+**accordingly.
 */
 
 
@@ -31,14 +31,14 @@ const char* DEFAULT_SERVER="blokus.saschahlusiak.de";
 
 static const int maxNumberStones=10;
 
-/* ...[0] entspricht Anzahl "einer" Steine , ...[1] entspricht Anzahl "zweier" Steine usw. */
-/* im SinglePlayer Game */
+/* ...[0] is the number of monominoes, ...[1] the number of dominoes, etc. */
+/* in the single player game */
 static int numberOfStones[5]={1,1,1,1,1};
 
-/* Multithreading in der KI verwenden, oder nicht */
+/* Use multithreading in the AI or not */
 static int ai_multithreading=2;
 
-/* Ausgewaehlter Server */
+/* Selected server */
 static char* mp_oldserver=nullptr;
 static const char* oldname="";
 static char* oldname_buf=nullptr;
@@ -58,8 +58,8 @@ static int size_x=20,size_y=20;
 
 
 /**
- *Hauptmen� leitet sich von CDialog ab
- *es werden einige Buttons erstellt
+ *The main menu derives from CDialog
+ *and creates a few buttons
  **/
 CMainMenu::CMainMenu(CGUI* gui,bool time)
 :CDialog(500,380,"Main Menu")
@@ -83,8 +83,8 @@ CMainMenu::CMainMenu(CGUI* gui,bool time)
 }
 
 /**
- *Funktion zur Bearbeitung der ID's der Buttons nur im Hauptfenster des Men�s.
- *Es werden haupts�chlich weitere Fenster aufgamacht.
+ *Handles the button IDs of the main menu window only.
+ *Mostly this opens further windows.
  **/
 int CMainMenu::processMouseEvent(TMouseEvent *event)
 {
@@ -92,7 +92,7 @@ int CMainMenu::processMouseEvent(TMouseEvent *event)
 	switch (r)
 	{
 	case 1002:
-		/* Dialog wird f�r den SinglePlayer Modus erstellt */
+		/* Create the dialog for single player mode */
 		addSubChild(new CNewGameDialog(GUI,false));
 		break;
 	case 1003:
@@ -111,8 +111,8 @@ int CMainMenu::processMouseEvent(TMouseEvent *event)
 		addSubChild(new CAboutBox());
 		break;
 	case 1008:
-		/* Dieser return-Wert wird in der Klasse CDialogs bearbeitet
-		  und bedeutet das Beenden des Spiels ---> Quit Button */
+		/* This return value is handled in CDialogs
+		  and means quitting the game ---> Quit button */
 		return 2;
 		
 	default: return r;
@@ -123,8 +123,8 @@ int CMainMenu::processMouseEvent(TMouseEvent *event)
 
 
 /**
- *Dialog f�r den Single Player Modus
- *man kann den Spielmodus, Spielst�rke, Anzahl lokaler Spieler, und Feldgr�sse �ndern
+ *Dialog for single player mode
+ *Lets you change the game mode, AI strength, number of local players and board size
  **/
 CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 :CDialog(370,330,"Singleplayer Settings")
@@ -425,19 +425,19 @@ int CNewGameAdvancedDialog::processMouseEvent(TMouseEvent *event)
 	switch (r)
 	{
 	case 1013:
-		/* OK wurde gedr�ckt.. */
-		/* Wenn die Anzahl aller Steine auf Null steht, kommt eine Warnung */
-		/* Wenn die Anzahl der Steine ungleich null ist,
-		 * �bernehme die Werte, der Spinbxes */
+		/* OK was pressed. */
+		/* If the count of all stones is zero, show a warning */
+		/* If the count of stones is not zero,
+		 * take over the values of the spin boxes */
 		if (checkConsistency())
 		{
 			close();
-			// Wert zurueck geben, dass Werte uebernommen werden sollen
+			// Return a value meaning that the values are to be taken over
 			return 2001;
 		}
 		break;
 	case 1014:
-		/* Cancel wurde gedr�ckt, also einfach schliessen */
+		/* Cancel was pressed, so just close */
 		close();
 		break;
 

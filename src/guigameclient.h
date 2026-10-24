@@ -1,6 +1,6 @@
 /**
- * guispielclient.h
- * Autor: Sascha Hlusiak
+ * guigameclient.h
+ * Author: Sascha Hlusiak
  **/
 
 #ifndef __GUIGAMECLIENT_H_INCLUDED_
@@ -9,13 +9,13 @@
 #include "gameclient.h"
 
 /**
- * Die Klasse erweitert den Spielclient um Callbacks fuer die GUI
+ * The class extends the game client with callbacks for the GUI
  **/
 
 class CGUIGameClient:public CGameClient
 {
 private:
-	/* Manchmal muss der SpielClient Funktionen der GUI aufrufen */
+	/* Sometimes the game client has to call GUI functions */
 	CGUI *gui;
 public:
 	CGUIGameClient(CGUI* vgui);

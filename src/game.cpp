@@ -1,8 +1,8 @@
 /**
- * spielleiter.cpp
- * Autor: Sascha Hlusiak
+ * game.cpp
+ * Author: Sascha Hlusiak
  *
- * Erweiterung von CBoard um Grundlegende Funktionen eines Spielleiters
+ * Extends CBoard with the basic functions of a game master
  **/
 
 #ifdef HAVE_CONFIG_H

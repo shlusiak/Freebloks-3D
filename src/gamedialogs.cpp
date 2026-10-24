@@ -1,6 +1,6 @@
 /**
  * gamedialogs.cpp
- * Klassen fuer Spiel-Start und Spiel-Beendet Dialoge
+ * Classes for the game start and game finished dialogs
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -14,28 +14,28 @@
 
 
 /**
- * Dialog beim Start eines Multiplayerspiels. Es werden Daten ueber das zu startende Spiel angezeigt,
- * sowie ein Chat angeboten. Dies ist quasi eine Lobby, ueber die das Spiel endgueltig gestartet wird.
- * Es muessen der aktuelle SpielClient, die GUI und der Servername als Zeichenkette uebergeben werden.
+ * Dialog at the start of a multiplayer game. Shows data about the game to be started
+ * and offers a chat. It is effectively a lobby from which the game is finally started.
+ * Takes the current game client, the GUI and the server name as a string.
  **/
 CStartGameDialog::CStartGameDialog(CGameClient *vclient,CGUI* vgui,const char* servername)
 :CDialog(300,260,"Waiting for players")
 {
 	gui=vgui;
-	/* Die ChatBox soll nicht automatisch verschwinden, damit Nachrichten laenger gelesen werden koennen. */
+	/* The chat box should not hide automatically, so messages can be read for longer. */
 	gui->setChatBoxSticky(true);
 	client=vclient;
 	setColor(0.9,0.3,0);
 	statustext=nullptr;
-	/* Zeit auf 0 setzen. Jeweils nach 0.5 sek wird der StatusText aktualisiert. */
+	/* Set the time to 0. The status text is refreshed every 0.5 s. */
 	time=0.0;
 
-	/* Servername soll oben im Titel stehen. */
+	/* The server name goes at the top of the title. */
 	addChild(new CStaticText(10,25,280,servername,this));
-	/* Beschriftung des statustext. */
+	/* Labels of the status text. */
 	addChild(new CStaticText(10,60,"Connected clients:\nHuman players:\nComputer players:\n\nYou will play:",this));
 
-	/* Chat-Feld, mit Fokus */
+	/* Chat field, with focus */
 	addChild(chat=new CTextEdit(10,190,230,20,97,"",false,this));
 	chat->setFocus();
 
@@ -49,15 +49,15 @@ CStartGameDialog::CStartGameDialog(CGameClient *vclient,CGUI* vgui,const char* s
 int CStartGameDialog::processMouseEvent(TMouseEvent *event)
 {
 	int r=CDialog::processMouseEvent(event);
-	/* Spielstart wurde betaetigt. */
+	/* Start game was pressed. */
 	if (r==99)
 	{
-		/* Spiel starten. Der Dialog schliesst sich von allein, sobald das Spiel laeuft. */
+		/* Start the game. The dialog closes itself as soon as the game is running. */
 		if (client)client->request_start();
 		return 0;
 	}else if (r==98)
 	{
-		/* Close-Button wurde betaetigt. Verbindung zum Server kappen und Dialog schliessen. */
+		/* The close button was pressed. Cut the connection to the server and close the dialog. */
 		if (client)client->Disconnect();
 		gui->setChatBoxSticky(false);
 		close();
@@ -70,7 +70,7 @@ int CStartGameDialog::processMouseEvent(TMouseEvent *event)
 }
 
 /**
- * statustext mit neuen Daten aus NET_SERVER_STATUS fuettern.
+ * Feed the status text with new data from NET_SERVER_STATUS.
  **/
 void CStartGameDialog::updateStatus(NET_SERVER_STATUS *status)
 {
@@ -88,17 +88,17 @@ void CStartGameDialog::updateStatus(NET_SERVER_STATUS *status)
 void CStartGameDialog::execute(double elapsed)
 {
 	CDialog::execute(elapsed);
-	/* Wenn das Spiel entweder laeuft, oder der Client nicht mehr verbunden ist (Server down),
-	   Dialog schliessen. */
+	/* If the game is either running or the client is no longer connected (server down),
+	   close the dialog. */
 	if (client && (client->current_player()!=-1 || !client->isConnected()))
 	{
-		/* Chat-Box darf wieder automatisch geschlossen werden. */
+		/* The chat box may close automatically again. */
 		gui->setChatBoxSticky(false);
-		/* Dialog schliessen, aber nicht rekursiv, es koennten Fehlermeldungen oben liegen. */
+		/* Close the dialog, but not recursively; error messages may be on top. */
 		close(false);
 		client=0;
 	}
-	/* Nach 0.5 sek soll der Status aktualisiert werden. */
+	/* Refresh the status after 0.5 s. */
 	time+=elapsed;
 	if (time>0.5 && client)
 	{
@@ -108,7 +108,7 @@ void CStartGameDialog::execute(double elapsed)
 }
 
 /**
- * Sendet die Chat-Nachricht, die aktuell im EditFeld eingetragen ist.
+ * Sends the chat message currently entered in the edit field.
  **/
 void CStartGameDialog::sendChat()
 {
@@ -120,7 +120,7 @@ void CStartGameDialog::sendChat()
 }
 
 /**
- * Tastendruck verarbeiten.
+ * Handle a key press.
  **/
 bool CStartGameDialog::processKey(unsigned short key)
 {
@@ -128,14 +128,14 @@ bool CStartGameDialog::processKey(unsigned short key)
 	{
 		if (client)client->Disconnect();
 		client=0;
-		/* Chatbox darf wieder automatisch geschlosen werden. */
+		/* The chat box may close automatically again. */
 		gui->setChatBoxSticky(false);
-		/* Dialog schliessen. */
+		/* Close the dialog. */
 		close();
 		return true;
 	}
 	bool b=CDialog::processKey(key);
-	/* Und wenn ueber dem Chat EditFeld Enter gedrueckt wurde, die Nachricht abschicken. */
+	/* And if Enter was pressed in the chat edit field, send the message. */
 	if (chat->committed())sendChat();
 	return b;
 }
@@ -145,12 +145,12 @@ bool CStartGameDialog::processKey(unsigned short key)
 
 
 /**
- * Der Dialog, der ueber Ausgang einer Partie berichtet, mit Chat-Feld.
+ * The dialog that reports the outcome of a match, with a chat field.
  **/
 CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 :CDialog(390,220,"Game finished")
 {
-	/* Welcher Spieler auf dem entsprechenden Platz ist. Wird noch sortiert. */
+	/* Which player is in which place. Sorted below. */
 	int place[PLAYER_MAX]={0,1,2,3};
 	int i;
 	double y,w;
@@ -158,10 +158,10 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 	if (client->getServerStatus()->clients==1)this->h-=30;
 
 	gui=vgui;
-	/* Chat-Box wird nicht automatisch geschlossen. */
+	/* The chat box does not close automatically. */
 	gui->setChatBoxSticky(true);
 
-	/* Hier die Plaetze absteigend mit Bubble-Sort sortieren. */
+	/* Sort the places in descending order with bubble sort. */
 	i=0;
 	while (i<PLAYER_MAX-1)
 	{
@@ -176,14 +176,14 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 
 	y=40;
 	w=320;
-	int p=1;	/* Aktueller Platz */
-	/* Ein grosses Frame in den Dialog pflanschen */
+	int p=1;	/* Current place */
+	/* Put a large frame into the dialog */
 	CFrame *frame;
 	frame=new CFrame(x+15,this->y+30,this->w-40,115);
 	frame->setColor(0,0,0);
 	frame->setAlpha(0.70);
 	addChild(frame);
-	/* Alle Plaetze durchgehen, und sofern der Platz ueberhaupt existiert... */
+	/* Go through all places, and if the place exists at all... */
 	for (i=0;i<PLAYER_MAX;i++)if (
 		   (client->get_game_mode() == GAMEMODE_2_COLORS_2_PLAYERS && (place[i] == 0 || place[i] == 2))
 		|| (client->get_game_mode() == GAMEMODE_DUO && (place[i] == 0 || place[i] == 2))
@@ -192,12 +192,12 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 		|| (client->get_game_mode() == GAMEMODE_4_COLORS_2_PLAYERS && (place[i] == 0 || place[i] == 1))
 		)
 	{
-		/* Wenn lokaler Spieler, waehle Farben intensiver und mal einen * */
+		/* For a local player, use more intense colours and add a * */
 		bool local=client->is_local_player(place[i]);
 		char t[256];
 		CFrame *frame;
 
-		/* In diesem Spielmodi addieren wir die Punkte und malen zwei Frames in beiden Farben. */
+		/* In this game mode we add up the points and draw two frames in both colours. */
 		if (client->get_game_mode() == GAMEMODE_4_COLORS_2_PLAYERS)
 		{
 			frame=new CFrame(x+20+(this->w-w)/2.0,this->y+y,(w-20)/2.0,20);
@@ -231,12 +231,12 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 				break;
 			}
 			addChild(frame);
-			/* Punkte und Steine der beiden Farben addieren */
+			/* Add up the points and stones of both colours */
 			int points=-client->get_stone_points_left(place[i])
 			    -client->get_stone_points_left(client->get_teammate(place[i]));
 			int stones=client->get_stone_count(place[i])
 			    +client->get_stone_count(client->get_teammate(place[i]));
-			/* Text setzen. */
+			/* Set the text. */
 			snprintf(t, sizeof(t), "%s/%s: %d points (%d stones)", COLOR_NAME[place[i]], COLOR_NAME[client->get_teammate(place[i])],
 				points,stones);
 		}else{
@@ -255,11 +255,11 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 				break;
 			}
 			addChild(frame);
-			/* Text setzen. */
+			/* Set the text. */
 			snprintf(t, sizeof(t), "%s: %d points (%d stones)", COLOR_NAME[place[i]], -client->get_stone_points_left(place[i]), client->get_stone_count(place[i]));
 		}
 		addChild(new CStaticText(20,y+2,this->w-20,t,this));
-		/* Platz Nummer links daneben schreiben, mit *, falls Spieler lokal ist. */
+		/* Write the place number to the left, with * if the player is local. */
 		snprintf(t, sizeof(t), "%c %d.", local ? '*' :  ' ',p);
 		CStaticText *text=new CStaticText(17,y+2,t,this);
 		if (!local)text->setAlpha(0.5);
@@ -269,7 +269,7 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 		p++;
 	}
 
-	/* Nur Chat anbieten, wenn mehr als ein Client verbunden */
+	/* Only offer chat if more than one client is connected */
 	if (client->getServerStatus()->clients>1)
 	{
 		addChild(chat=new CTextEdit(30,155,270,20,97,"",false,this));
@@ -280,7 +280,7 @@ CGameFinishDialog::CGameFinishDialog(CGUI *vgui,CGameClient *client)
 // 	setColor(0.0,0.10,0.30);
 	setColor(0.9,0.3,0);
 	setAlpha(0.5);
-	/* Buttons hinzufuegen. */
+	/* Add buttons. */
 	addChild(new CButton(50,this->h-35,120,25,17,this,"New Round"));
 	addChild(new CButton((this->w-120.0-50.0),this->h-35,120,25,18,this,(client->getServerStatus()->clients>1)?"Disconnect":"Close"));
 }
@@ -290,13 +290,13 @@ int CGameFinishDialog::processMouseEvent(TMouseEvent *event)
 	int r=CDialog::processMouseEvent(event);
 	if (r==96)sendChat();
 	else if (r==17)
-	/* Neue Runde starten und Dialog schliessen. */
+	/* Start a new round and close the dialog. */
 	{
 		gui->game->request_start();
 		close();
 	}else if (r==18)
 	{
-		/* Verbindung zum Server trennen und Dialog schliessen. */
+		/* Disconnect from the server and close the dialog. */
 		close();
 		gui->game->Disconnect();
 	}else return r;
@@ -306,31 +306,31 @@ int CGameFinishDialog::processMouseEvent(TMouseEvent *event)
 void CGameFinishDialog::sendChat()
 {
 	gui->game->chat(chat->getText());
-	/* Eingabefeld leeren. */
+	/* Clear the input field. */
 	chat->setText("");
 	chat->setFocus();
 }
 
 /**
- * Tastendruck verarbeiten
+ * Handle a key press
  **/
 bool CGameFinishDialog::processKey(unsigned short key)
 {
 	if (key==VK_ESCAPE)
 	{
 		gui->game->Disconnect();
-		/* Dialog schliessen. */
+		/* Close the dialog. */
 		close();
 		return true;
 	}
 	bool b=CDialog::processKey(key);
-	/* Und wenn das Text-Feld mit Enter verlassen wurde, Nachricht verschicken */
+	/* And if the text field was left with Enter, send the message */
 	if (chat && chat->committed())sendChat();
 	return b;
 }
 
 /**
- * Dialog schliessen ueberschreiben. Das laesst das automatische Schliessen der ChatBox wieder zu.
+ * Override closing the dialog. This allows the chat box to close automatically again.
  **/
 void CGameFinishDialog::close()
 {

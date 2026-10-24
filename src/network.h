@@ -1,8 +1,8 @@
 /**
  * network.h
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
- * Zentrale fuer Netzwerknachrichten des eigenen Protokolls
+ * Central definitions of the network messages of our own protocol
  **/
 
 #ifndef __NETWORK_H_INCLUDED_
@@ -13,29 +13,29 @@
 
 const int TCP_PORT=59995;
 
-/* Pseudotypen fuer vorzeichenbehaftete/vorzeichenlose 8bit/16bit Zahlen */
+/* Pseudo types for signed/unsigned 8 bit/16 bit numbers */
 typedef signed short int16;
 typedef signed char int8;
 typedef unsigned short uint16;
 typedef unsigned char uint8;
 
-/* Die folgen Daten sollen nicht an Bytegrenzen ausgerichtet werden
-   um Compiler- und Betriebssystemunabhängig zu sein. */
+/* The following data must not be aligned to byte boundaries,
+   to be independent of compiler and operating system. */
 #pragma pack(1)
 
-/* Header, stets der Kopf einer Netzwerknachricht.
-   weitere Daten beinhalten als erstes Element immer einen NET_HEADER, damit die Pakete
-   gecastet werden koennen, und man universell Zugriff auf den Header erhaelt. */
+/* Header, always the head of a network message.
+   Other data always contains a NET_HEADER as its first element, so the packets
+   can be cast and the header is universally accessible. */
 typedef struct
 {
-	uint8  check1;		/* Eine Checksumme um falsche Header zu erkennen */
-	uint16 data_length;	/* Laenge des Datenpakets in Byte (network-byte-order) */
-	uint8 msg_type;		/* Kennzahl der Nachricht, um den Typ festzustellen */
-	uint8  check2;		/* Eine Checksumme um falsche Header zu erkennen */
+	uint8  check1;		/* A checksum to detect bad headers */
+	uint16 data_length;	/* Length of the packet in bytes (network byte order) */
+	uint8 msg_type;		/* Identifier of the message, to determine its type */
+	uint8  check2;		/* A checksum to detect bad headers */
 } NET_HEADER,NET_START_GAME,NET_GAME_FINISH,NET_REQUEST_UNDO;
 
 /**
- * Nachricht, um einen Spieler anzufordern. Enthält Wunschfarbe oder -1 für egal
+ * Message to request a player. Contains the preferred colour, or -1 for any
  **/
 
 typedef struct
@@ -47,37 +47,37 @@ typedef struct
 } NET_REQUEST_PLAYER;
 
 /**
- * NET_GRANT_PLAYER: Server gewaehrt dem Client einen Spieler
- * NET_CURRENT_PLAYER: Server hat aktuellen Spieler festgelegt
+ * NET_GRANT_PLAYER: the server grants the client a player
+ * NET_CURRENT_PLAYER: the server has set the current player
  **/
 
 typedef struct
 {
-	NET_HEADER header;	/* Erstes Element ist stets NET_HEADER, damit gecastet werden kann */
+	NET_HEADER header;	/* The first element is always NET_HEADER, so it can be cast */
 	int8 player;
 } NET_GRANT_PLAYER,NET_CURRENT_PLAYER,NET_REQUEST_HINT,NET_REVOKE_PLAYER;
 
 /**
- * Nachricht ueber die Aktion eines Steins (setzen oder Zuruecknahme)
+ * Message about an action on a stone (placing it or taking it back)
  **/
 typedef struct
 {
 	NET_HEADER header;
-	int8 player;	/* Nummer des Spielers, der den Stein setzt */
-	uint8 stone;	/* Nummer des Steins des Spielers */
-	uint8 mirror_count,rotate_count;	/* Spiegelung und Rotation des Steins */
-	int8 x,y;	/* Koordinaten des Steins, der aufs Spielfeld gesetzt wird */
+	int8 player;	/* Number of the player placing the stone */
+	uint8 stone;	/* Number of the player's stone */
+	uint8 mirror_count,rotate_count;	/* Mirroring and rotation of the stone */
+	int8 x,y;	/* Coordinates where the stone is placed on the board */
 } NET_SET_STONE,NET_UNDO_STONE;
 
 /**
- * Serverstatus Paket, das der Server gelegentlich an die Clients schickt
+ * Server status packet that the server sends to the clients from time to time
  **/
 typedef struct
 {
 	NET_HEADER header;
-	int8 player,computer,clients; /* Anzahl menschlicher Spieler, Computerspieler und verbundener Clients */
-	int8 width,height; /* Groesse des Spielfelds */
-	int8 stone_numbers_obsolete[STONE_SIZE_MAX]; /* Anzahl der Steine bestimmter Groessen, OBSOLETE */
+	int8 player,computer,clients; /* Number of human players, computer players and connected clients */
+	int8 width,height; /* Size of the board */
+	int8 stone_numbers_obsolete[STONE_SIZE_MAX]; /* Number of stones of certain sizes, OBSOLETE */
 	int8 gamemode;
 	/* added in 1.5, version 2 */
 	int8 player_owner[PLAYER_MAX];
@@ -85,7 +85,7 @@ typedef struct
 	/* added in 1.6, version 3 */
 	int8 version;
 	int8 version_min;
-	int8 stone_numbers[STONE_COUNT_ALL_SHAPES]; /* Anzahl bestimmter Steine */
+	int8 stone_numbers[STONE_COUNT_ALL_SHAPES]; /* Number of stones of each shape */
 } NET_SERVER_STATUS;
 
 #define NET_SERVER_STATUS_VERSION (3)
@@ -93,39 +93,39 @@ typedef struct
 
 
 /**
- * Eine Chat-Nachricht mit Text. Verschickt vom Client an die Server und zurueck.
+ * A chat message with text. Sent from the client to the server and back.
  **/
 typedef struct
 {
 	NET_HEADER header;
-	int8 client;	/* Server traegt hier die Nummer des Clients ein, der die Nachricht verschickt hat */
-	uint8 length;	/* Textlaenge */
-	uint8 text[1];	/* Array, das den Text beinhaltet. Ist NET_CHAT dynamisch und ausreichend
-			   gross, kann problemlos auf hintere Teile des Arrays zurueckgegriffen werden */
+	int8 client;	/* The server enters the number of the client that sent the message here */
+	uint8 length;	/* Text length */
+	uint8 text[1];	/* Array containing the text. If NET_CHAT is allocated dynamically and large
+			   enough, later parts of the array can be accessed without problems */
 } NET_CHAT;
 
 
 /**
- * Client moechte Spielmodus aendern (wenn in Lobby)
+ * The client wants to change the game mode (while in the lobby)
  */
 typedef struct
 {
 	NET_HEADER header;
-	int8 version;	/* Version dieser Nachricht, 1 */
+	int8 version;	/* Version of this message, 1 */
 	int8 width, height;
 	int8 gamemode;
-	int8 stone_numbers[STONE_COUNT_ALL_SHAPES]; /* Anzahl bestimmter Steine */
+	int8 stone_numbers[STONE_COUNT_ALL_SHAPES]; /* Number of stones of each shape */
 } NET_REQUEST_GAME_MODE;
 
 #define NET_REQUEST_GAME_MODE_VERSION (1)
 
 
 
-/* Unbedingt Byte-Align wieder zuruecksetzen */
+/* Be sure to reset the byte alignment */
 #pragma pack()
 
-/* Nachrichtentyp-Konstanten der obigen Netzwerknachrichten. Ueber diese Konstanten werden die
-   Pakete erst identifiziert. */
+/* Message type constants of the network messages above. These constants are what
+   identifies the packets. */
 const int MSG_REQUEST_PLAYER=1;
 const int MSG_GRANT_PLAYER=2;
 const int MSG_CURRENT_PLAYER=3;
@@ -155,15 +155,15 @@ inline bool network_check_set_stone(const NET_SET_STONE *s)
 
 int network_send(int target,NET_HEADER *header,uint16 data_length,uint8 msg_type);
 
-/* Testet eine empfangene Nachricht auf (Un-)Gueltigkeit */
+/* Checks a received message for (in)validity */
 bool network_check_message(NET_HEADER *data);
 
-/* Liest aus sock eine komplette Netzwerknachricht ein und speichert sie in *data */
+/* Reads a complete network message from sock and stores it in *data */
 const char* read_network_message(int sock,NET_HEADER *data,int size);
 
 
 #ifndef WIN32
-/* Unter Windows heissts closesocket(s), unter Linux hiermit auch, aber bedeutet close(s) */
+/* On Windows it is called closesocket(s); on Linux this provides it too, but it means close(s) */
 int closesocket(int s);
 #endif
 

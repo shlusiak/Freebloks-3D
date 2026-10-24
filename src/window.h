@@ -1,10 +1,10 @@
 /**
  * window.h
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
- * CWindow kapselt ein Fenster der grafischen Oberflaeche des Systems,
- * entweder ein normales WIN32-Fenster, oder ein X11-Fenster (unter Linux),
- * und richtet die Fenster fuer OpenGL ein.
+ * CWindow wraps a window of the system's graphical user interface,
+ * either a normal WIN32 window or an X11 window (on Linux),
+ * and sets the window up for OpenGL.
  **/
 
 #ifndef _WINDOW_H_INCLUDED_
@@ -22,26 +22,26 @@
 #endif
 
 
-// FOV der 3D-Szene, in Grad
+// FOV of the 3D scene, in degrees
 const double fov=60.0;
 
 
-// Fuer betriebssytemunabhaengige Behandlung von Mausereignissen
+// For operating-system-independent handling of mouse events
 struct TMouseEvent
 {
-	// Ist Ereignis das Druecken, Loslasen der Maustaste, oder eine Mausbewegung?
+	// Is the event a mouse button press, a release, or a mouse movement?
 	bool press,release,move;
 
-	// Welche Maustaste? 4 und 5 sind Mausrad
+	// Which mouse button? 4 and 5 are the mouse wheel
 	bool button1,button2,button3,button4,button5;
 
-	// Koordinaten des Mauszeigers in Fensterkoordinaten
+	// Coordinates of the mouse pointer in window coordinates
 	int x,y;
 };
 
 
 #ifndef WIN32
-/* Die Keycodes unter X11 fuer diverse Sondertasten */
+/* The X11 keycodes for various special keys */
 const unsigned short VK_LEFT=0xFF51;
 const unsigned short VK_UP=0xFF52;
 const unsigned short VK_RIGHT=0xFF53;
@@ -57,64 +57,64 @@ const unsigned short VK_F1=0xFFBE;
 class CGUI;
 
 /**
- * Die Klasse bietet gekapselten Zugriff auf ein GUI Fenster
+ * The class provides encapsulated access to a GUI window
  **/
 class CWindow
 {
 private:
-	// CWindow ruft rueckwaerts Funktionen der GUI auf, also wird ein Zeiger darauf benoetigt
+	// CWindow calls back into GUI functions, so it needs a pointer to it
 	CGUI *gui;
 
 #ifdef WIN32
 	HWND hWnd;
 	HDC hDC;
-	// Der OpenGL Kontext, der mit dem hDC verknuepft wird
+	// The OpenGL context associated with the hDC
 	HGLRC ctx;
 #else
 	Window window;
-	// Einen GLXContext, der mit dem Window verknuepft wird
+	// A GLXContext associated with the Window
 	GLXContext ctx;
 	Display *dpy;
 
-	// Sortiert und wandelt X11-Events und leitet sie an die GUI weiter
+	// Sorts and converts X11 events and forwards them to the GUI
 	void processEvent(XEvent e);
 #endif
 
 	bool closed;
 
-	// true, wenn der GL Kontext erfolgreich mit STENCIL-Buffer erstellt wurde,
-	// also prinzipiell Shadow-Volumes moeglich sind. Ohne, werden Schatten garnicht erst gerendert
+	// true if the GL context was successfully created with a stencil buffer,
+	// i.e. shadow volumes are possible in principle. Without it, shadows are not rendered at all
 	bool m_canShadow;
 public:
 	CWindow(CGUI *vgui);
 	~CWindow();
 
-	// Erstellt das Fenster, mit allem drum und dran. Gibt true zurueck bei Erfolg, sonst false
+	// Creates the window with all the trimmings. Returns true on success, otherwise false
 	bool createWindow();
 
 	void show();
 
-	// Gilt das Fenster als geschlossen? GUI reagiert darauf, und beendet sich und das Programm bei true
+	// Is the window considered closed? The GUI reacts to it and ends itself and the program on true
 	bool isClosed() { return closed; }
 
 	void close() { closed=true; }
 
-	// Grast alle anliegenden Events des Fensters ab und behandelt sie. Sollte immer mal aufgerufen werden,
-	// damit das Fenster nicht 'einfriert'
+	// Polls and handles all pending events of the window. Should be called regularly
+	// so the window does not 'freeze'
 	void processEvents();
 
-	// Vertauscht primary und secondary OpenGL-Buffer, und macht somit alle Zeichnungen 
-	// des Hintergrunds sichtbar.
+	// Swaps the primary and secondary OpenGL buffers, making everything drawn
+	// in the background visible.
 	void swapBuffers();
 
-	// Updated den OpenGL Zustand fuer die Verwendung einer neuen Fenstergroesse
+	// Updates the OpenGL state for a new window size
 	void reshape(int w,int h);
 
 	bool canShadow() { return m_canShadow; }
 
 #ifdef WIN32
-	// Die Fensterfunktion des Windows-Fensters. Sortiert und behandelt Window Messages.
-	// Reicht ggf. Nachrichten an die GUI weiter.
+	// The window procedure of the Windows window. Sorts and handles window messages.
+	// Forwards messages to the GUI if needed.
 	LRESULT processMessage(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
 #endif
 };

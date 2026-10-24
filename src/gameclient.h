@@ -1,6 +1,6 @@
 /**
- * spielclient.h
- * Autor: Sascha Hlusiak
+ * gameclient.h
+ * Author: Sascha Hlusiak
  **/
 
 #ifndef __GAMECLIENT_H_INCLUDED_
@@ -10,24 +10,24 @@
 #include "network.h"
 
 /**
- * Die Klasse erweitert den Spielleiter um Funktionen eines Spielclients
- * Die GUI kommuniziert direkt mit dem Spielclient
+ * The class extends the game master with the functions of a game client
+ * The GUI communicates directly with the game client
  **/
 
 class CGameClient:public CGame
 {
 private:
-	/* Socket Verbindung des Clients zum Spielserver */
+	/* Socket connection of the client to the game server */
 	int client_socket;
 
-	/* Letztes empfangene Status Pakets des Spielservers */
+	/* Last status packet received from the game server */
 	NET_SERVER_STATUS status;
 public:
 	CGameClient();
 	virtual ~CGameClient();
 
-	/* Spielclient mit angegebenen Server an port verbinden
-	   Gibt Fehlerstring zurueck, oder nullptr bei Erfolg */
+	/* Connect the game client to the given server at port
+	   Returns an error string, or nullptr on success */
 	const char* Connect(const char* host,int port, int blocking = 0);
 
 	void Connect(int client_socket, int blocking = 0);
@@ -36,9 +36,9 @@ public:
 
 	const bool isConnected()const { return client_socket!=0; }
 
-	/* Verarbeitet alle anstehenden Netzwerknachrichten.
-	 * nullptr: Erfolg
-	 * sonst: Zeiger auf Zeichenkette mit Fehlermeldung
+	/* Processes all pending network messages.
+	 * nullptr: success
+	 * otherwise: pointer to a string with the error message
 	 */
 	const char* poll();
 
@@ -53,16 +53,16 @@ public:
 
 	void process_message(NET_HEADER* data);
 
-	/* Von GUI aufgerufen: schickt eine Nachricht zum Setzen eines Steins an den Server */
+	/* Called by the GUI: sends a message to place a stone to the server */
 	TSingleField request_set_stone(const CStone& stone, int y, int x);
 
-	/* Gibt Pointer auf zuletzt empfangenes Status-Paket des Servers zurueck */
+	/* Returns a pointer to the last status packet received from the server */
 	NET_SERVER_STATUS* getServerStatus() { return &status; }
 
 	void chat(const char *text);
 
 	const bool is_local_player()const { return is_local_player(m_current_player); }
-	/* true, wenn der Spieler ein lokaler Spieler ist */
+	/* true if the player is a local player */
 	const bool is_local_player(const int player)const;
 
 private:

@@ -512,7 +512,7 @@ void* gameRunThread(void* param)
 	game->setLogger(&logger);
 	
 	lock_mutex();
-	/* Das Spiel laeuft jetzt */
+	/* The game is running now */
 	logger.logTime();
 	logger.logLine("Game started with %d clients / %d players. (%d games running)",game->num_clients(), game->num_players(),games_running);
 	unlock_mutex();
@@ -541,12 +541,12 @@ int main(int argc,char ** argv)
 	signal(SIGPIPE, SIG_IGN);
 #endif
 
-	/* Einen ServerListener erstellen, der auf Verbindungen lauschen kann
-	   und Clients connecten laesst */
+	/* Create a ServerListener that listens for connections
+	   and lets clients connect */
 	listener = new CServerListener();
 	CGameLogger logger(logWriter, 0);
 
-	/* Kommandozeilenparameter verarbeiten */
+	/* Process the command line parameters */
 	parse_params(argc,argv);
 
 	/* Clients (and the server's own seeding code) reject configurations like DUO on a field below 5x5 */
@@ -557,7 +557,7 @@ int main(int argc,char ** argv)
 	}
 
 #ifdef WIN32
-	/* Winsock initialisieren */
+	/* Initialise Winsock */
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2,0),&wsadata);
 #else
@@ -614,21 +614,21 @@ int main(int argc,char ** argv)
 
 	while (true)
 	{
-		/* Ein neues Spiel soll erstellt werden.
-		   KI-Stufe ist schwer*/
+		/* A new game is to be created.
+		   AI level is hard */
 		listener->new_game(max_humans,ai_strength,gamemode,ai_threads,force_delay);
-		/* Groesse setzen */
+		/* Set the size */
 		listener->get_game()->set_field_size(width, height);
 		listener->get_game()->start_new_game(gamemode);
 		lock_mutex();
 		listener->get_game()->setLogger((CLogger*)&logger);
 		unlock_mutex();
 
-		/* Ein Spiel wurde erstellt, der Listener lauscht. Jetzt Spiel fuellen lassen
-		   und solange warten, bis es von einem Client gestartet wurde */
+		/* A game was created and the listener is listening. Now let the game fill up
+		   and wait until a client has started it */
 		if (establish_game()==-1)return -1;
 
-		/* Das aktuelle Spiel in einen sekundaeren Thread auslagern */
+		/* Move the current game to a secondary thread */
 		lock_mutex();
 		games_ran++;
 		games_running++;
@@ -671,7 +671,7 @@ int main(int argc,char ** argv)
 			ret=listener->init(_interface,port);
 			if (ret!=0)
 			{
-				/* Konnte nicht "listen", evtl. Port durch andere Anwendung belegt? */
+				/* Could not "listen", maybe the port is used by another application? */
 				printf("Error calling listen: %s\n",strerror(errno));
 				return -1;
 			}
@@ -684,7 +684,7 @@ int main(int argc,char ** argv)
 	destroy_mutex();
 
 #ifdef WIN32
-	/* Winsock sauber beenden */
+	/* Shut down Winsock cleanly */
 	WSACleanup();
 #endif
 

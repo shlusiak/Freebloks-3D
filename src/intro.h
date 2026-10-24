@@ -1,7 +1,7 @@
 /**
  * intro.h
- * Autor: Sascha Hlusiak
- * Klasse zum Behandeln der Intro Animation
+ * Author: Sascha Hlusiak
+ * Class handling the intro animation
  **/
 #ifndef __INTRO_H_INCLUDED_
 #define __INTRO_H_INCLUDED_
@@ -13,40 +13,40 @@ class CGUI;
 class CStoneEffect;
 
 /**
- * Klasse kuemmert sich um die gesamte Intro Animation
+ * The class takes care of the whole intro animation
  **/
 class CIntro
 {
 private:
 	CGUI *gui;
-	/* Verkettete Liste aller Effekte, nur CPhysicalStone's */
+	/* Linked list of all effects, CPhysicalStones only */
 	CStoneEffect *effects;
-	/* Die einzelnen Formen der Steine muss ich selbst erstellen und merken. */
+	/* I have to create and keep the individual stone shapes myself. */
 	CStone stones[14];
-	/* Animatioin */
+	/* Animation */
 	double anim;
-	/* Feld-Animation: Wippen */
+	/* Board animation: tipping */
 	double field_anim;
-	/* Wippt das Feld gerade hoch, oder runter? */
+	/* Is the board currently tipping up or down? */
 	bool field_up;
-	/* Phase des Intros. */
+	/* Phase of the intro. */
 	int phase;
 
 	void init();
-	/* Einen fliegenden Stein erstellen, der auf dx/dy landet */
+	/* Create a flying stone that lands at dx/dy */
 	void add(int stone,int color,int dx,int dy);
-	/* Alle Steine eines Buchstabens erstellen, dass er an x/y landet. */
+	/* Create all stones of a letter so that it lands at x/y. */
 	void addChar(char c,int color,int x,int y);
 
-	/* Das Feld abraeumen, Wippen starten. */
+	/* Clear the board, start the tipping. */
 	void wipe();
 public:
 	CIntro(CGUI *vgui);
-	/* Aufraeumen */
+	/* Clean up */
 	~CIntro();
 
 	bool execute(double elapsed);
-	/* Intro rendern. */
+	/* Render the intro. */
 	void render();
 	void renderShadow();
 };

@@ -1,8 +1,8 @@
 /**
  * gui.cpp
- * Autor: Sascha Hlusiak
- * Implementation der GUI Klasse, zustaendig fuer die Grafik und Herz des
- * Spiels
+ * Author: Sascha Hlusiak
+ * Implementation of the GUI class, responsible for the graphics and the heart of the
+ * game
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -35,9 +35,9 @@
 
 
 
-// Breite der Erhohung auf den Spielfeld
+// Width of the bevel on the board
 const double bevel_size=0.18;
-// Der Rand des Spielfelds hat diese Hoehe
+// The border of the board has this height
 const double border_bottom=-0.6;
 static float light0_ambient[] = {0.35f, 0.35f, 0.35f, 1.0f};
 static float light0_diffuse[] = {0.8f, 0.8f, 0.8f, 1.0f};
@@ -45,17 +45,17 @@ static float light0_specular[] = {1.0,1.0,1.0, 1.0f};
 
 
 /**
- * Konstruktor, alles sinnvoll initialisieren, meistens mit nullptr
- * Wird in der run() Methode richtig initialisiert.
+ * Constructor, initialises everything sensibly, mostly with nullptr
+ * Properly initialised in the run() method.
  **/
 CGUI::CGUI()
 {
 #ifdef WIN32
-	/* Winsock initialisieren, damit wir Sockets unter Win verwenden koennen */
+	/* Initialise Winsock so we can use sockets on Windows */
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(2,0),&wsadata);
 #endif
-	/* Fenster erstellen */
+	/* Create the window */
 	window=new CWindow(this);
 
 	game=nullptr;
@@ -81,31 +81,31 @@ CGUI::CGUI()
 	startupParams.threads=2;
 
 
-	/* Kamera initialisieren */
+	/* Initialise the camera */
 	angx=60.0;
 	angy=0.0;
 	camera_distance=30.0;
 
-	// Optionen mit sinnvollen Voreinstellungen belegen, Voreinstellung ist 1!!
+	// Set the options to sensible defaults; the default is 1!
 	options.set(OPTION_SHOW_FPS,0);
 }
 
 CGUI::~CGUI()
 {
-	/* Dynamische Variablen sauber entfernen */
+	/* Remove dynamic variables cleanly */
 	if (intro)delete intro;
 	if (window)delete window;
 	if (font)delete font;
 	if (effects)delete effects;
 	if (game)delete game;
 #ifdef WIN32
-	/* Winsock sauber entladen */
+	/* Unload Winsock cleanly */
 	WSACleanup();
 #endif
 }
 
 /**
- * Hilfetext ausgeben
+ * Print the help text
  **/
 void CGUI::printHelp()const
 {
@@ -122,7 +122,7 @@ void CGUI::printHelp()const
 }
 
 /**
- * Kommandozeile parsen
+ * Parse the command line
  **/
 bool CGUI::parseCmdLine(int argc,char **argv)
 {
@@ -194,10 +194,10 @@ bool CGUI::parseCmdLine(int argc,char **argv)
 
 
 /**
- * Startet ein Singleplayerspiel, mit angegebenen
- * gamemode (Spielmodus), players (lokale Spieler), diff (Schwierigkeitsgrad),
- * width/height (breite/hoehe) und Anzahl Einer, Zweier, etc.
- * Rueckgabewert: Erfolg
+ * Starts a single player game with the given
+ * gamemode, players (local players), diff (difficulty),
+ * width/height and the stone counts per shape.
+ * Returns: success
  **/
 bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int width,int height,int8 stone_numbers[],int ai_threads)
 {
@@ -206,15 +206,15 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	char path[256];
 	int port;
 
-	/* Alle vorhandenen StoneEffects loeschen (bis auf Kopf der Liste) */
+	/* Delete all existing stone effects (except the head of the list) */
 	if (effects)effects->clear(); else effects=new CStoneEffect();
 	newCurrentPlayer(-1);
 	current_stone=-1;
 	if (game)delete game;
 
-	/* Einen lokalen Server in einem sekundaerem Thread
-	   mit den uebergebenen Parametern starten. Der Server laeuft an
-	   Port (TCP_PORT+1) */
+	/* Start a local server in a secondary thread
+	   with the given parameters. The server runs on
+	   port (TCP_PORT+1) */
 #ifdef WIN32
 	strcpy(path, "127.0.0.1");
 	port = TCP_PORT+1;
@@ -230,7 +230,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 		char t[512];
 		sprintf(t,"Could not run local server:\n%s.",strerror(errno));
 		widgets.addSubChild(new CMessageBox(270,150,"Error",t));
-		/* Aber nicht abbrechen, evtl. laeuft ein Server trotzdem. */
+		/* But do not abort; a server might be running anyway. */
 	}
 
 	game=new CGUIGameClient(this);
@@ -239,8 +239,8 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	if (port == 0)
 		unlink(path);
 		
-	/* Timer auf 0 setzen, damit das Connect keinen Sprung in der Animation
-	   bewirkt. */
+	/* Reset the timer so the connect does not cause a jump in the
+	   animation. */
 	timer.reset();
 	if (err!=nullptr)
 	{
@@ -249,21 +249,21 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 		widgets.addSubChild(new CMessageBox(300,150,"Error",t));
 		return false;
 	}
-	/* Jetzt [players] lokale Spieler anfordern. */
+	/* Now request [players] local players. */
 	for (int i=0;i<4;i++)
 		if ((players & (1 << i)) != 0)
 			game->request_player(i, nullptr);
-	/* Da das Spiel lokal ist, kann direkt losgelegt werden. Spielstart anfordern */
+	/* Since the game is local, it can start right away. Request the game start */
 	game->request_start();
-	/* Erfolg */
+	/* Success */
 	return true;
 }
 
 /**
- * Ein Multiplayerspiel erstellen (hosten).
- * Parameter wie oben,
- * maxhumans gibt maximale Anzahl menschlicher Spieler an, der Rest wird von
- * Computergegnern belegt
+ * Create (host) a multiplayer game.
+ * Parameters as above,
+ * maxhumans is the maximum number of human players; the rest is taken by
+ * computer opponents
  **/
 bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int width,int height,int8 stone_numbers[],int ai_threads, const char* name)
 {
@@ -280,25 +280,25 @@ bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int 
 }
 
 /**
- * einem Netzwerkspiel beitreten. 
- * _host ist der Name des Servers (in Form "rechner[:port]")
- * Es werden players lokale Spieler angefordert
+ * Join a network game.
+ * _host is the name of the server (in the form "host[:port]")
+ * players local players are requested
  **/
 bool CGUI::joinMultiplayerGame(const char *host, int port, int players, const char* name)
 {
 	const char *err;
 
 	if (effects)effects->clear();else effects=new CStoneEffect();
-	/* kein aktueller Spieler, und kein aktueller Stein ausgewaehlt */
+	/* no current player, and no current stone selected */
 	newCurrentPlayer(-1);
 	current_stone=-1;
 	if (game)delete game;
 	game=new CGUIGameClient(this);
 
-	/* Versuchen, zu Server zu verbinden */
+	/* Try to connect to the server */
 	err=game->Connect(host, port);
-	/* Timer auf 0 setzen, damit das Connect keinen Sprung in der Animation
-	   verursacht */
+	/* Reset the timer so the connect does not cause a jump in the
+	   animation. */
 	timer.reset();
 	if (err!=nullptr)
 	{
@@ -310,17 +310,17 @@ bool CGUI::joinMultiplayerGame(const char *host, int port, int players, const ch
 		for (int i=0;i<4;i++)
 			if ((players & (1 << i)) != 0)
 				game->request_player(i, name);
-		/* Dann modal den StartGameDialog als Lobby anzeigen. */
+		/* Then show the StartGameDialog modally as the lobby. */
 		widgets.addSubChild(new CStartGameDialog(game,this,host));
-		/* Erfolg, Verbindung steht. */
+		/* Success, the connection is up. */
 		return true;
 	}
 }
 
 /**
- * Hauptmethode der GUI, wird von der main() aufgerufen
- * Kuemmert sich um die richtige Initialisierung vor dem Start der
- * Hauptschleife, und durchlaeuft diese
+ * Main method of the GUI, called from main()
+ * Takes care of proper initialisation before starting the
+ * main loop, and runs it
  **/
 void CGUI::run()
 {
@@ -328,12 +328,12 @@ void CGUI::run()
 
 	game=new CGUIGameClient(this);
 
-	/* Fenster sichtbar machen. */
+	/* Make the window visible. */
 	window->show();
 	initGL();
 
-	/* Hier globales Font-Objekt erstellen. Auch wenn wirs nicht brauchen,
-	   es haelt die globale Textur aktiv. */
+	/* Create the global font object here. Even though we do not use it,
+	   it keeps the global texture alive. */
 	font=new CGLFont(1.0,2.0);
 	texture_ground.load("ground.bmp");
 	texture_wall.load("wall.bmp");
@@ -342,14 +342,14 @@ void CGUI::run()
 	createDisplayLists();
 
 	{
-		/* Einen transparenten Frame als Leiste */
+		/* A transparent frame as the toolbar */
 		CFrame *frame=new CFrame(0,0,640,25);
 		frame->setAlpha(0.70);
 		widgets.add(frame);
 
-		/* Dem frame subchilds hinzufuegen, die in gleicher Ebene
-		   wie die Leiste sind. Unterfenster von subchilds sind
-		   untereinander modal, aber die Leiste reagiert noch */
+		/* Add subchilds to the frame, on the same level
+		   as the toolbar. Subwindows of subchilds are
+		   modal to each other, but the toolbar still responds */
 		frame->add(subchilds=new CWidget());
 
 		frame->addChild(new CButton(5,3,60,19,9000,frame,"Menu"));
@@ -357,54 +357,54 @@ void CGUI::run()
 		frame->addChild(undo=new CButton(140,3,65,19,9,frame,"Undo"));
 		frame->addChild(new CButton(575,3,60,19,2,frame,"Quit"));
 
-		/* Frame fuer aktiven Spieler hinzufuegen und unsichtbar machen */
+		/* Add a frame for the active player and make it invisible */
 		frame->add(playerframe=new CFrame(310,0,250,25));
 		playerframe->setAlpha(0.0);
 		playerframe->add(playertext=new CStaticText(0,5,250,"",playerframe));
 	}
-	/* ChatBox als SubChild erstellen. Das Hauptmenu waere modal dazu. */
+	/* Create the chat box as a subchild. The main menu would be modal to it. */
 	subchilds->addSubChild(chatbox=new CChatBox(0,25,this));
-	/* FPS zaehler an unteren Bildschirmrand hinzufuegen. Rendert sich selber
-	   nur, wenn die Option dafuer aktiviert ist. */
+	/* Add the FPS counter at the bottom of the screen. It only renders itself
+	   when the corresponding option is enabled. */
 	widgets.add(new CFPS(2,465,this));
 
-	/* Die Introsequenz instantiieren, die zu Beginn gezeigt wird. */
+	/* Instantiate the intro sequence shown at start-up. */
 	if (startupParams.intro)showIntro();
 		else startFirstGame();
 
 	render();
 
-	/* Dann Timer auf 0 setzen, damits fluessig losgeht */
+	/* Then reset the timer so things start smoothly */
 	timer.reset();
 	while (!window->isClosed())
 	{
-		/* Abwechselnd immer Fensternachrichten verarbeiten. */
+		/* Keep processing window messages alternately. */
 		window->processEvents();
 		const char *err=game->poll();
 		if (err!=nullptr)
 		{
-			/* Und bei Fehler entsprechende Fehlermeldung ausgeben,
-			   wahrscheinlich "Connection Lost" oder sowas. */
+			/* And on error show the corresponding error message,
+			   probably "Connection Lost" or similar. */
 			char c[1000];
 			sprintf(c,"Connection to server lost:\n%s.",err);
-			/* absolut modalen Dialog anzeigen */
+			/* Show a fully modal dialog */
 			widgets.addSubChild(new CMessageBox(300,200,"Error",c));
 		}
-		/* checkPoint prueft, ob Zeit fuer einen Frame vorrueber ist,
-		   dann wird animiert und gerendert, ansonsten mal ~7ms geschlafen,
-		   um die CPU zu entlasten. */
+		/* checkPoint checks whether it is time for a frame;
+		   then it animates and renders, otherwise it sleeps for ~5 ms
+		   to relieve the CPU. */
 		if (checkPoint(options.get(OPTION_LIMITFPS)?(1.0/(double)options.get(OPTION_FPS)):0))timer.sleep(5);
 	}
 }
 
 /**
- * wenn mindestens mintime sek vergangen sind, Frame rendern und animieren.
- * gib true zurueck, wenn die Zeit noch nicht reif ist, dann wird geschlafen.
- * bei false wurde gerendert, dann nicht schlafen.
+ * If at least mintime seconds have passed, render and animate a frame.
+ * Returns true if it is not time yet, in which case the caller sleeps.
+ * On false a frame was rendered, so do not sleep.
  **/
 bool CGUI::checkPoint(double mintime)
 {
-	/* Vergangene Zeit seit letztem Frame. */
+	/* Time elapsed since the last frame. */
 	const double elapsed=timer.elapsed();
 	if (elapsed>=mintime)
 	{
@@ -417,14 +417,14 @@ bool CGUI::checkPoint(double mintime)
 }
 
 /**
- * Sauber das Intro beenden. Wenn das Menu nicht auf ist, handelt es sich
- * um die allererste Intro-Sequenz. Danach direkt ein Singleplayerspiel
- * starten.
+ * End the intro cleanly. If the menu is not open, this is
+ * the very first intro sequence. Start a single player game
+ * right after it.
  **/
 void CGUI::stopIntro()
 {
 	if (!intro)return;
-	/* Intro entfernen. */
+	/* Remove the intro. */
 	delete intro;
 	intro=nullptr;
 	startFirstGame();
@@ -448,12 +448,12 @@ void CGUI::showIntro()
 }
 
 /**
- * Wird von CWindow aufgerufen, wenn ein Mausereignis vorliegt.
- * Hier sortieren und ggf. bearbeiten.
+ * Called by CWindow when a mouse event occurs.
+ * Dispatch it here and handle it if appropriate.
  **/
 void CGUI::processMouseEvent(TMouseEvent *e)
 {
-	/* Wenn das Intro laeuft, kriegt das exklusiv die Maus */
+	/* While the intro runs, it gets the mouse exclusively */
 	if (intro)
 	{
 		if (e->press && e->button1){
@@ -462,23 +462,23 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 		}
 		return;
 	}
-	/* Wenn handleUI true zurueck gibt, existiert ein Dialog, der das
-	   Behandeln durch die GUI (Stein auswaehlen, ablegen) verhindert */
+	/* If handleUI returns true, a dialog exists that prevents
+	   handling by the GUI (selecting or placing stones) */
 	bool dialog=widgets.handleUI();
 	if (dialog || e->press)
 	{
-		/* Wenn Dialoge die Maus exklusiv behandeln wollen, erstmal
-		   Position merken */
+		/* If dialogs want to handle the mouse exclusively, first
+		   remember the position */
 		lastx=e->x;
 		lasty=e->y;
 		testSelection(e->x,e->y);
 	}
-	/* widgets die Maus auf jeden Fall behandeln lassen. */
+	/* Always let the widgets handle the mouse. */
 	int r=widgets.processMouseEvent(e);
 
 	switch(r)
 	{
-	/* Es wurde der Menu-Knopf der Leiste gedrueckt. */
+	/* The menu button of the toolbar was pressed. */
 	case 9000: 
 	{
 		if (menu){
@@ -489,27 +489,27 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 		}
 		break;
 	}
-	/* Der "Quit" Knopf wurde betaetigt, das Spiel durch Schliessen des Fensters beenden. */
+	/* The "Quit" button was pressed; end the game by closing the window. */
 	case 2: window->close();
 		break;
-	/* Das MainMenu moechte das Intro zeigen. */
+	/* The main menu wants to show the intro. */
 	case 5: showIntro();
 		break;
-	/* Der "Hint" Knopf wurde gedrueckt, Spielvorschlag anzeigen. */
+	/* The "Hint" button was pressed; show a suggested move. */
 	case 8: showHint();
 		break;
-	/* "Undo" Knopf. Wenn lokaler Spieler dran ist, versuchen, Spielzug rueckgaengig
-	   zu machen. */
+	/* "Undo" button. If a local player is to move, try to undo the
+	   turn. */
 	case 9: if (game->is_local_player())game->request_undo();
 		break;
 	}
 
-	/* Wenn r!=0, so wurde das Ereignis irgendwo von einem widget bearbeiten.
-	   wenn dialog, so fordert ein Dialog exklusive Behandlung, egal ob es gerade
-	   bearbeitet wurde, oder nicht. in beiden Faellen raus. */
+	/* If r!=0, the event was handled by some widget.
+	   If dialog, a dialog demands exclusive handling, whether or not it just
+	   handled the event. In both cases, bail out. */
 	if (r!=0 || dialog)return;
 
-	/* Sonst darf die GUI hier das Event behandeln, und Steine ablegen, etc. */
+	/* Otherwise the GUI may handle the event here, place stones, etc. */
 
 	if (e->press)
 	{
@@ -521,26 +521,26 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 				return;
 			}else if (selectedx!=-1 && selectedy!=-1 && current_stone!=-1)
 			{
-				/* Wenn ein Stein aktiv ist, und ein Feld ausgewaehlt ist */
+				/* If a stone is active and a square is selected */
 				if (selected_allowed)
 				{
-					/* Wenn auch noch dieses Feld als "erlaubt" gekennzeichnet wurde,
-					   diesen Zug ausfuehren. */
-					/* Zuerst ausgewaehlten CStone erhalten */
+					/* If this square is also marked as "allowed",
+					   make this move. */
+					/* First get the selected CStone */
 					CStone& stone=game->get_current_player()->get_stone(current_stone);
 					int x=selectedx-stone.get_stone_size()/2;
 					int y=selectedy-stone.get_stone_size()/2;
 					if (options.get(OPTION_ANIMATE_STONES))
 						addEffect(new CStoneRollEffect(this,&stone,current_stone,game->current_player(),x,y,false));
-					/* Den SpielClient den Stein setzen lassen. Schickt ne Anfrage an den SpielServer. */
+					/* Let the game client place the stone. Sends a request to the game server. */
 					if (game->request_set_stone(stone, y, x)==FIELD_ALLOWED)
 						newCurrentPlayer(game->current_player());
 					current_stone=-1;
 				}
 			}else if (selected_arrow>0 && current_stone!=-1)
 			{
-				/* Wenn ein Stein ausgewaehlt ist, UND ein Pfeil */
-				/* Ausgewaehlten CStone* holen. */
+				/* If a stone is selected AND an arrow */
+				/* Get the selected CStone*. */
 				CStone& stone=game->get_current_player()->get_stone(current_stone);
 
 				if (selected_arrow==1)stone.rotate_right();
@@ -548,40 +548,40 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 				if (selected_arrow==3)stone.mirror_over_y();
 				if (selected_arrow==4)stone.mirror_over_x();
 			}
-			/* Es wurde anscheinend ins Leere geklickt, keinen Stein auswaehlen. */
+			/* Apparently the click hit empty space; deselect the stone. */
 			else current_stone=-1;
 		}
-		/* Wenn rechte Maustaste gedrueckt wurde, Position merken. Wichtig fuers Loslassen spaeter */
+		/* If the right mouse button was pressed, remember the position. Needed for the release later */
 		if (e->button2 && !e->button1 && !e->button3 && !e->button4 && !e->button5)
 		{
 			clickx=e->x;
 			clicky=e->y;
 		}
-		/* Mausrad wurde gedreht. Wenn keine Maustaste dabei gedruckt ist, aktuellen Stein drehen. */
+		/* The mouse wheel was turned. If no mouse button is held, rotate the current stone. */
 		if (e->button4 && !e->button1 && !e->button2 && !e->button3 && !e->button5)
 			if (current_stone!=-1)game->get_current_player()->get_stone(current_stone).rotate_left();
 		if (e->button5 && !e->button1 && !e->button2 && !e->button3 && !e->button4)
 			if (current_stone!=-1)game->get_current_player()->get_stone(current_stone).rotate_right();
 
-		/* Mausrad wurde gedreht, aber rechte Maustaste ist down:
-		   Durch alle Steine durchscrollen. */
+		/* The mouse wheel was turned while the right mouse button is down:
+		   scroll through all stones. */
 		if (e->button4 && !e->button1 && e->button2 && !e->button3 && !e->button5)
 		{
-			/* Klick auf unmoegliche Pos. setzen, damit beim Loslassen nix gespiegelt wird. */
+			/* Set the click to an impossible position so nothing is mirrored on release. */
 			clickx=clicky=-1000;
 			for (int i=0;i<STONE_COUNT_ALL_SHAPES;i++)
 			{
 				current_stone--;
-				/* Vorne wieder hinten anfangen. */
+				/* Wrap around from the front to the back. */
 				if (current_stone<0)current_stone=STONE_COUNT_ALL_SHAPES-1;
-				/* Und wenn der Stein sogar verfuegbar ist, gluecklich sein und raus. */
+				/* And if the stone is even available, be happy and bail out. */
 				if (game->get_current_player()->get_stone(current_stone).get_available())
 					return;
 			}
-			/* Sonst keinen Stein auswaehlen, da keiner mehr da. */
+			/* Otherwise select no stone, since none is left. */
 			current_stone=-1;
 		}
-		/* Dasselbe andersrum */
+		/* The same the other way round */
 		if (e->button5 && !e->button1 && e->button2 && !e->button3 && !e->button4)
 		{
 			clickx=clicky=-1000;
@@ -603,13 +603,13 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 	}else if (e->release)
 	{
 		if (e->button2){
-			/* Und die Maus seit dem Klick hinreichend wenig bewegt wurde,
-			   und ein Stein ausgewaehlt ist und der Spieler auch noch dran ist. */
+			/* And the mouse moved little enough since the click,
+			   a stone is selected and the player is to move. */
 			if (abs(e->x-clickx)<4 && abs(e->y-clicky)<4 && game->is_local_player() && current_stone!=-1)
 			{
-				/* Dann spiegle den aktuellen Stein um die Y-Achse des Screens. */
+				/* Then mirror the current stone about the screen's Y axis. */
 				CStone &s=game->get_current_player()->get_stone(current_stone);
-				/* Das ist also abhaenig vom Blickwinkel, also angy */
+				/* So this depends on the viewing angle, i.e. angy */
 				if (angy<45.0 || angy>315.0 || ((angy<45+180) && (angy>-45+180)))
 					s.mirror_over_y();
 				else s.mirror_over_x();
@@ -620,12 +620,12 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 	{
 		if (e->button2)
 		{
-			/* delta x und delta y mit angy und angx verrechnen. */
+			/* Apply delta x and delta y to angy and angx. */
 			angy+=double(e->x-lastx)*0.35;
 			angx+=double(e->y-lasty)*0.30;
 			while (angy<0)angy+=360.0;
 			while (angy>360.0)angy-=360.0;
-			/* angx beschraenken. */
+			/* Clamp angx. */
 			if (angx<15.0)angx=15.0;
 			if (angx>90.0)angx=90.0;
 		}else if (e->button3)
@@ -634,48 +634,48 @@ void CGUI::processMouseEvent(TMouseEvent *e)
 			if (camera_distance<25.0)camera_distance=25.0;
 			if (camera_distance>40.0)camera_distance=40.0;
 		}else testSelection(e->x,e->y);
-		/* Letzte Mausposition merken. */
+		/* Remember the last mouse position. */
 		lastx=e->x;
 		lasty=e->y;
 	}
 }
 
 /**
- * Wird von CWindow aufgerufen, wenn ein Tastendruck anliegt.
- * Hier sortieren und verarbeiten.
+ * Called by CWindow when a key press occurs.
+ * Dispatch and handle it here.
  **/
 void CGUI::processKeyEvent(unsigned short key)
 {
 	if (intro)
 	{
-		/* Wenn Intro laeuft und Esc, Ret, oder Space gedrueckt ist, Intro beenden. */
+		/* If the intro runs and Esc, Return or Space is pressed, end the intro. */
 		if (key==VK_ESCAPE || key==VK_RETURN || key==VK_SPACE)stopIntro();
 		return;
 	}
 
 	if (widgets.processKey(key))return;
-	/* Bei Escape, das Menu erscheinen lassen, wenn noch nicht geschehen. Das Menu schliesst sich selber bei Escape. */
+	/* On Escape, show the menu if not already open. The menu closes itself on Escape. */
 	if (key==VK_ESCAPE && !menu)
 		subchilds->addSubChild(menu=new CMainMenu(this,false));
 	else if (key==VK_F1)
 		widgets.addSubChild(new CHelpBox());
-	/* Bei Leertaste und ausgewaehlten Stein */
+	/* On Space with a stone selected */
 	else if (key==VK_SPACE && game->is_local_player() && current_stone!=-1)
 	{
-		/* Diesen an der Y-Achse des Screens spiegeln. */
+		/* Mirror it about the screen's Y axis. */
 		CStone &s=game->get_current_player()->get_stone(current_stone);
 		if (angy<45.0 || angy>315.0 || ((angy<45+180) && (angy>-45+180)))
 			s.mirror_over_y();
 		else s.mirror_over_x();
 	}else 
-	/* Bei Return, wenn ein Spiel laeuft, die ChatBox sichtbar machen. */
+	/* On Return while a game is running, show the chat box. */
 		if (key==VK_RETURN && !menu && game->isConnected())chatbox->show();
 	else if (key=='h')showHint();
 	else if (game->is_local_player()) {
-		/* Taste rauf, dann aktuelle Stein nach links drehen */
+		/* Up key: rotate the current stone to the left */
 		if (key==VK_UP && current_stone!=-1)
 			game->get_current_player()->get_stone(current_stone).rotate_left();
-		/* Taste runter, den Rummel nach rechts. */
+		/* Down key: rotate it to the right. */
 		if (key==VK_DOWN && current_stone!=-1)
 			game->get_current_player()->get_stone(current_stone).rotate_right();
 
@@ -707,19 +707,19 @@ void CGUI::processKeyEvent(unsigned short key)
 
 void CGUI::initGL()
 {
-	/* Wir wollen ein blauaehnliches blau als Hintergrundfarbe. Sieht man eh nur, wenn Texturen deaktiviert sind. */
+	/* We want a bluish blue as the background colour. Only visible when textures are disabled anyway. */
 	glClearColor( 0.05f, 0.10f, 0.25f, 1.0f );
-	/* Stencilfarbe setzen */
+	/* Set the stencil clear value */
 	glClearStencil(0);
 	glClearDepth(1);
 	
 	glEnable(GL_DEPTH_TEST);
-	/* Rueckseiten entfernen */
+	/* Cull back faces */
 	glEnable(GL_CULL_FACE);
 	
-	/* Es werde Licht! */
+	/* Let there be light! */
 	glEnable(GL_LIGHTING);
-	/* OpenGL soll Normalen neu berechnen, da sonst komische Effekte beim Skalieren auftreten. */
+	/* OpenGL should renormalise normals, otherwise scaling causes odd effects. */
 	glEnable(GL_NORMALIZE);
 	
 	glEnable(GL_LIGHT0);
@@ -732,47 +732,47 @@ void CGUI::initGL()
 }
 
 /**
- * Erstellt ein paar OpenGL Kommandolisten, die spter schneller ausgefhrt werden knnen
+ * Creates a few OpenGL display lists that can be executed faster later
  **/
 void CGUI::createDisplayLists()
 {
-	// Umgebung
+	// Environment
 	glNewList(displayLists,GL_COMPILE);
 	{
-		/* Radius des Tischbretts */
+		/* Radius of the table board */
 		const double r=45.0;
-		/* Wie weit die Wand entfernt ist. */
+		/* How far away the wall is. */
 		const double wall_r=160.0;
-		/* Y-Position des Bretts. Genau unterhalb des Spielfelds */
+		/* Y position of the board. Right below the playing field */
 		const double y=border_bottom;
-		/* Wie oft soll die Textur des Bretts wiederholt werden. */
+		/* How often the board texture repeats. */
 		const double tile=5.0;
-		/* Wie oft soll die Textur der Wand wiederholt werden. */
+		/* How often the wall texture repeats. */
 		const double wall_tile=7;
 	
-		/* Farbe des Bretts */
+		/* Colour of the board */
 		float d[4]={0.6f,0.45f,0.25f,1.0f};
-		/* Specular Highlight des Bretts */
+		/* Specular highlight of the board */
 		float s[4]={0.35f,0.3f,0.3f,1.0f};
-		/* Shininess des Bretts */
+		/* Shininess of the board */
 		float sh[]={15.0f};
-		/* Material setzen */
+		/* Set the material */
 		glMaterialfv(GL_FRONT,GL_AMBIENT_AND_DIFFUSE,d);
 		glMaterialfv(GL_FRONT,GL_SPECULAR,s);
 		glMaterialfv(GL_FRONT,GL_SHININESS,sh);
 		
 		glDepthFunc(GL_ALWAYS);
 		
-		/* Wand wird ohne Beleuchtung gerendert. */
+		/* The wall is rendered without lighting. */
 		glDisable(GL_LIGHTING);
-		/* Wand-Textur aktivieren. */
+		/* Activate the wall texture. */
 		texture_wall.activate();
-		/* 4 Seiten */
+		/* 4 sides */
 		for (int i=0;i<4;i++)
 		{
-			/* Die Wand ist vertikal etwas ueber 0 gerendert, da man eh nicht so weit drunter gucken kann */
+			/* The wall is rendered slightly above 0 vertically, since you cannot look that far below anyway */
 			const double offs=+wall_r/2.0;
-			/* 100% Textur */
+			/* 100% texture */
 			glColor3d(1,1,1);
 			glBegin(GL_QUADS);
 			glNormal3d(0,0,+1);
@@ -781,11 +781,11 @@ void CGUI::createDisplayLists()
 			glTexCoord2d(wall_tile,wall_tile);	glVertex3d(+wall_r,offs+wall_r,-wall_r);
 			glTexCoord2d(0,wall_tile);		glVertex3d(-wall_r,offs+wall_r,-wall_r);
 			glEnd();
-			/* Dann um 90 Grad drehen, dann kann naechste Wand gerendert werden. */
+			/* Then rotate by 90 degrees so the next wall can be rendered. */
 			glRotated(90.0,0,1,0);
 		}
 		texture_wall.deactivate();
-		/* Light wieder anschalten. */
+		/* Switch the light on again. */
 		glEnable(GL_LIGHTING);
 
 
@@ -798,7 +798,7 @@ void CGUI::createDisplayLists()
 		glTexCoord2d(tile,tile);	glVertex3d(r,y,-r);
 		glTexCoord2d(0,tile);		glVertex3d(-r,y,-r);
 		glEnd();
-		/* Textur brav deaktivieren. */
+		/* Deactivate the texture properly. */
 		texture_ground.deactivate();
 		
 		glDepthFunc(GL_LESS);
@@ -807,44 +807,44 @@ void CGUI::createDisplayLists()
 
 	glNewList(displayLists+1,GL_COMPILE);
 	{
-		/* Aeusserer Radius, und innerer Radius */
+		/* Outer radius and inner radius */
 		const double r1=stone_size;
 		const double r2=stone_size-bevel_size;
-		/* Richtung der Normalen */
+		/* Direction of the normals */
 		static const double normal_y=0.7;
 		static const double normal_x=sqrt(1.0-normal_y*normal_y);
 		
 		glBegin(GL_QUADS);
 
-		/* Oberseite rendern. */
+		/* Render the top side. */
 		glNormal3d(0,1,0);
 		glVertex3d(-r2,bevel_height,+r2);
 		glVertex3d(+r2,bevel_height,+r2);
 		glVertex3d(+r2,bevel_height,-r2);
 		glVertex3d(-r2,bevel_height,-r2);
 	
-		/* dann Schraege oben */
+		/* then the bevel on top */
 		glNormal3d(0,normal_y,-normal_x);
 		glVertex3d(-r2,bevel_height,-r2);
 		glVertex3d(+r2,bevel_height,-r2);
 		glVertex3d(+r1,0,-r1);
 		glVertex3d(-r1,0,-r1);
 
-		/* Schraege unten */
+		/* Bevel at the bottom */
 		glNormal3d(0,normal_y,normal_x);
 		glVertex3d(+r2,bevel_height,+r2);
 		glVertex3d(-r2,bevel_height,+r2);
 		glVertex3d(-r1,0,+r1);
 		glVertex3d(+r1,0,+r1);
 
-		/* Schraege links */
+		/* Bevel on the left */
 		glNormal3d(-normal_x,normal_y,0);
 		glVertex3d(-r2,bevel_height,+r2);
 		glVertex3d(-r2,bevel_height,-r2);
 		glVertex3d(-r1,0,-r1);
 		glVertex3d(-r1,0,+r1);
 
-		/* Schraege rechts */
+		/* Bevel on the right */
 		glNormal3d(normal_x,normal_y,0);
     		glVertex3d(+r2,bevel_height,-r2);
 		glVertex3d(+r2,bevel_height,+r2);
@@ -856,53 +856,53 @@ void CGUI::createDisplayLists()
 }
 
 /**
- * Alle Objekte, sonstwas, um delta t=elapsed [sek] animieren.
+ * Animate all objects by delta t=elapsed [s].
  **/
 void CGUI::execute(double elapsed)
 {
-	/* Globalen Animationszaehler erhoehen. Greift z.B. bei den Pfeilen, und sonstigen Animationen. */
+	/* Increase the global animation counter. Used e.g. by the arrows and other animations. */
 	anim+=elapsed;
-	/* Effekte animieren. */
+	/* Animate the effects. */
 	if (effects)effects->execute(elapsed);
 	widgets.execute(elapsed);
-	/* Wenn nach dem Animieren, das menu existiert, aber entfernt werden moechte, dann auf 0 setzen. */
-	/* Die Widgets existieren noch exakt einen Durchlauf, wenn sie entfernt werden wollen. */
+	/* If after animating the menu exists but wants to be removed, set it to 0. */
+	/* Widgets that want to be removed still exist for exactly one more pass. */
 	if (menu && menu->deleted())menu=0;
-	/* Wenn Intro, und Intro sagt, dass es abgelaufen ist, dann stoppen. */
+	/* If there is an intro and it says it has finished, stop it. */
 	if (intro)
 		if (intro->execute(elapsed))stopIntro();
 }
 
 /**
- * Rendert die Szene um die Fensterposition x/y in den Selectionbuffer, und guckt an,
- * Ueber welchem Face der Mauszeiger gerade steht. Uebergibt das dann an die zustaendigen Programmteile.
+ * Renders the scene around window position x/y into the selection buffer and checks
+ * which face is under the mouse pointer. Passes that on to the responsible parts of the program.
  **/
 void CGUI::testSelection(int x,int y)
 {
-	/* Hier kommen die "names" der Faces unter der Maus rein. 512 sollten reichen. */
+	/* The "names" of the faces under the mouse go here. 512 should be enough. */
 	static GLuint buffer[512];
 	GLint viewport[4];
 	int hits;
 	int type;
 	int i,j;
-	/* Bei laufendem Intro eruebrigt sich das alles. */
+	/* While the intro is running, none of this is needed. */
 	if (intro)return;
-	/* SelectBuffer initialisieren. */
+	/* Initialise the select buffer. */
 	glSelectBuffer(sizeof(buffer)/sizeof(GLuint), buffer);
 	
 	glGetIntegerv(GL_VIEWPORT,viewport);
-	/* Select Modus anschalten, und Namen initialisieren. */
+	/* Switch on select mode and initialise the names. */
 	glRenderMode(GL_SELECT);
 	glInitNames();
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	/* Wichtig: Die PickMatrix */
+	/* Important: the pick matrix */
 	gluPickMatrix(x,viewport[3]-y,3.0,3.0,viewport);
 	glPushMatrix();
 	gluPerspective(fov, (float)viewport[2]/(float)viewport[3], 1.0, 300.0);
 
-	/* Ansichtsmatrix basteln. */
+	/* Build the view matrix. */
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslated(0,4,0);
@@ -912,40 +912,40 @@ void CGUI::testSelection(int x,int y)
 		0,0,0,
 		0,1,0);
 
-	/* Wenn Dialog exklusiv Maus behandeln wuerde, kann man hier manches an Renderarbeit sparen. */
+	/* If a dialog handles the mouse exclusively, some rendering work can be saved here. */
 	if (!widgets.handleUI())
 	{
 		glPushMatrix();
-		/* Wenn ein Stein des Spielers aktiv ist, das Spielfeld mit Quadraten pflastern,
-		   damit man rauskriegt, welches Feld der Spieler ausgewaehlt hat. */
+		/* If one of the player's stones is active, tile the board with squares
+		   to find out which square the player selected. */
 		if (current_stone!=-1)
 		{
 			glTranslated(	-(game->get_field_size_x()-1)*stone_size,
 					0,
 					-(game->get_field_size_y()-1)*stone_size);
-			/* type=1, also zeigen, dass es das Spielfeld ist. */
+			/* type=1, i.e. indicate that this is the board. */
 			glPushName(1);
 			for (i=0;i<game->get_field_size_x();i++)
 			{
-				/* Zweiter Name ist X-Koordinate. */
+				/* The second name is the X coordinate. */
 				glPushName(i);
 				for (j=0;j<game->get_field_size_y();j++)
 				{
-					/* Dritter Name ist Y */
+					/* The third name is Y */
 					glPushName(j);
 					renderQuad(stone_size);
 					glPopName();
-					/* Zu naechsten Stein in Z-Richtung gehen */
+					/* Move to the next stone in Z direction */
 					glTranslated(0,0,stone_size*2.0);
 				}
 				glPopName();
-				/* Und naechste Reihe beginnen. */
+				/* And start the next row. */
 				glTranslated(stone_size*2.0,0,-(game->get_field_size_y())*stone_size*2.0);
 			}
 			glPopName();
 		}
 		glPopMatrix();
-		/* Wenn lokaler Spieler, dann in SelectionBuffer auch die Steine des Spielers rendern. */
+		/* For a local player, also render the player's stones into the selection buffer. */
 		if (game->is_local_player())
 			renderPlayerStones(game->current_player(),1.0,true);
 	}
@@ -954,9 +954,9 @@ void CGUI::testSelection(int x,int y)
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
-	/* Matrix-Stack wieder saeubern */
+	/* Clean up the matrix stack again */
 	
-	/* Selection-Mode beenden. hits sind die Anzahl der zutreffenden Faces */
+	/* End selection mode. hits is the number of faces hit */
 	hits = glRenderMode(GL_RENDER);
 
 	GLuint names, *ptr, minZ,*ptrNames=0, numberOfNames=0;
@@ -969,7 +969,7 @@ void CGUI::testSelection(int x,int y)
 		widgets.processSelection(0);
 		return;
 	}
-	/* Durch alle Faces gehen und dasjenige, mit dem geringstem Z-Value merken. */
+	/* Go through all faces and remember the one with the lowest Z value. */
 	ptr = (GLuint *) buffer;
 	minZ = 0xffffffff;
 	for (i = 0; i < hits; i++) {
@@ -990,10 +990,10 @@ void CGUI::testSelection(int x,int y)
 		widgets.processSelection(0);
 		return;
 	}
-	/* Der Typ steht im ersten Name */
+	/* The type is in the first name */
 	type=*(ptrNames+2);
 	ptr=ptrNames+3;
-	/* type==1 ist Spielfeld */
+	/* type==1 is the board */
 	if (type==1 && numberOfNames==3)
 	{
 		selectedx=*(ptr);
@@ -1002,26 +1002,26 @@ void CGUI::testSelection(int x,int y)
 		selected_allowed=true;
 		if (current_stone!=-1)
 		{
-			/* Gucken, ob aktueller Stein so an die Position passen wuerde. */
+			/* Check whether the current stone would fit at this position. */
 			const CStone &stone=game->get_current_player()->get_stone(current_stone);
 			int vx=selectedx-stone.get_stone_size()/2,vy=selectedy-stone.get_stone_size()/2;
-			/* Und merken, ob der Stein passen taete. */
+			/* And remember whether the stone would fit. */
 			selected_allowed = game->is_valid_turn(stone, game->current_player(),vy,vx);
 		}
 	}else if (type==2 && numberOfNames==2)
 	{
-		/* Maus ist ueber Stein des Spielers. Diesen Stein hervorheben. */
+		/* The mouse is over one of the player's stones. Highlight that stone. */
 		hovered_stone=*(ptr);
 	}else if (type==3 && numberOfNames==2)
 	{
-		/* Maus befindet sich ueber einem Pfeil. */
+		/* The mouse is over an arrow. */
 		selected_arrow=*(ptr);
 	}
 
-	/* Maus ist ueber einem Widget. Alle Widgets darueber in Kenntnis setzen */
+	/* The mouse is over a widget. Inform all widgets about it */
 	if (type==4 && numberOfNames==2)
 		widgets.processSelection(*(ptr));
-	/* Sonst ist die Maus ueber keinem Widget, auch stets davon in Kenntnis setzen */
+	/* Otherwise the mouse is over no widget; always inform them about that too */
 	else widgets.processSelection(0);
 }
 
@@ -1030,14 +1030,14 @@ void CGUI::render()
 	int i,j;
 	GLint viewport[4];
 
-	/* Buffer leeren */
+	/* Clear the buffer */
 //	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	unsigned int c=0;
 	if (!options.get(OPTION_ENVIRONMENT))c|=GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT;
 	if (options.get(OPTION_SHADOW) && window->canShadow() && (intro || (effects && effects->hasShadow())))c|=GL_STENCIL_BUFFER_BIT;
 	if (c)glClear(c);
 
-	/* Groesse des Viewports erhalten, und daraus eine Perspective-Matrix basteln */
+	/* Get the size of the viewport and build a perspective matrix from it */
 	glGetIntegerv(GL_VIEWPORT,viewport);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -1046,7 +1046,7 @@ void CGUI::render()
 	glMatrixMode(GL_MODELVIEW);
 	if (!intro)
 	{
-		/* Wenn das Intro _nicht_ laeuft, bauen wir uns hier eine Modelview-Matrix */
+		/* If the intro is _not_ running, build a modelview matrix here */
 		glLoadIdentity();
 		glTranslated(0,4,0);
 		gluLookAt(camera_distance*sin(-angy*M_PI/180.0)*cos(angx*M_PI/180.0),
@@ -1055,25 +1055,25 @@ void CGUI::render()
 			0,0,0,
 			0,1,0);
 
-		/* Und setzen hier das Licht neu, damit es mit der aktuellen Position des Betrachters wieder
-		   stimmt. Sonst sind z.B. Specular Hightlights falsch. */
+		/* And set the light again here so it matches the viewer's current position
+		   again. Otherwise e.g. specular highlights are wrong. */
 		glLightfv(GL_LIGHT0,GL_POSITION,light0_pos);
 	}
 
 	if (intro)
 	{
-		/* Das Intro sorgt komplett um sich selbst, auch um die ModelView-Matrix. */
+		/* The intro takes care of everything itself, including the modelview matrix. */
  		intro->render();
 	}else {
-		/* Erst Umgebung rendern, Boden, Wand */
+		/* First render the environment: floor, wall */
 		renderGround();
 		renderField();
 		for (i=0;i<game->get_field_size_x();i++)
 		for (j=0;j<game->get_field_size_y();j++)
 			if (game->get_game_field(j,i)!=FIELD_FREE)
 		{
-			/* aber nur rendern, wenn nicht durch einen Effekt behandelt. In dem Falle rendert
-			   der Effekt diesen Stein. */
+			/* but only render if not handled by an effect. In that case the effect
+			   renders this stone. */
 			if (!effects || !effects->is_effected(i,j))
 				renderStone(i,j,game->get_game_field(j,i),0.65f,false);
 		}
@@ -1086,43 +1086,43 @@ void CGUI::render()
 		}
 	}
 
-	/* Wenn Schatten an sind, und das Intro oder Effekte Schatten wollen, dann hier Schatten rendern! */
+	/* If shadows are on and the intro or effects want shadows, render the shadows here! */
 	if (options.get(OPTION_SHADOW) && window->canShadow() && (intro || (effects && effects->hasShadow())))
 	{
 		glPushAttrib( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | GL_POLYGON_BIT | GL_STENCIL_BUFFER_BIT );
 
-		/* Nicht in Depth-Buffer malen, aber ihn immer noch abfragen */
+		/* Do not write to the depth buffer, but still test against it */
 		glDepthMask( GL_FALSE );
 		glDepthFunc( GL_LEQUAL );
-		/* Immer in Stencil-Buffer zeichnen */
+		/* Always draw into the stencil buffer */
 		glEnable( GL_STENCIL_TEST );
 		glStencilFunc( GL_ALWAYS, 1, 0xFFFFFFFFL );
-		/* Bloss nicht in Color-Buffer zeichnen */
+		/* Do not draw into the colour buffer */
 		glColorMask( GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE );
 		
-		/* Zuerst nur Vorderseiten der Shadow-Volumes zeichnen, dabei Stencil-Wert erhoehen. */
+		/* First draw only the front faces of the shadow volumes, incrementing the stencil value. */
 		glFrontFace( GL_CCW );
 		glStencilOp( GL_KEEP, GL_KEEP, GL_INCR );
 		if (intro)intro->renderShadow(); else if (effects)effects->renderShadow();
 
-		/* Dann nur Rueckseiten der Shadow-Volumes rendern, dabei Stencil dekrementieren. */
+		/* Then render only the back faces of the shadow volumes, decrementing the stencil. */
 		glFrontFace( GL_CW );
 		glStencilOp( GL_KEEP, GL_KEEP, GL_DECR );
 		if (intro)intro->renderShadow(); else if (effects)effects->renderShadow();
 
-		/* Wieder zuruecksetzen, also Vorderseiten rendern, in Colorbuffer, etc. */
+		/* Reset again, i.e. render front faces, into the colour buffer, etc. */
 		glFrontFace( GL_CCW );
 		glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
 		
-		/* Alpha-Blending an, Licht aus, wir malen die matt-shadow-plane */
+		/* Alpha blending on, lighting off; we draw the matte shadow plane */
 		glEnable( GL_BLEND );
 		glDisable(GL_LIGHTING);
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		/* Rendern, wenn im Stencil-Buffer keine 0 drin steht */
+		/* Render where the stencil buffer is not 0 */
 		glStencilFunc( GL_NOTEQUAL, 0, 0xFFFFFFFFL );
 		glStencilOp( GL_KEEP, GL_KEEP, GL_KEEP );
 
-		/* Stinknormale Modelview und Ortho-Projection Matrix bauen */
+		/* Build a plain modelview and orthographic projection matrix */
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
@@ -1131,7 +1131,7 @@ void CGUI::render()
 		glLoadIdentity();
 		glOrtho(0,1,0,1,0,1);
 
-		/* Schwarzes, stark transparentes Quad rendern. */
+		/* Render a black, highly transparent quad. */
 		glColor4f( 0.0f, 0.0f, 0.0f, 0.25f );
 		glBegin( GL_TRIANGLE_STRIP );
 		glVertex3f(-1,1,0);
@@ -1145,7 +1145,7 @@ void CGUI::render()
 		glPopAttrib();
 	}
 
-	/* Wenn kein Intro laeuft, rendern wir mal die Widgets. */
+	/* If no intro is running, render the widgets. */
 	if (!intro)
 	{
 		widgets.render(false);
@@ -1165,23 +1165,23 @@ void CGUI::renderPlayerStones(int player,double alpha,bool selectionbuffer)const
 	for (int num=0;num<STONE_COUNT_ALL_SHAPES;num++)
 	{
 		CStone &stone=game->get_player(player)->get_stone(num);
-		/* Wenn der Stein noch vorhanden ist, aber nicht von einem Effekt behandelt */
+		/* If the stone is still available but not handled by an effect */
 		if (stone.get_available()>1 || (stone.get_available()==1 && (!effects || !effects->handle_player_stone(player,num))))
 		{
 			glPushName(2);
 			glPushName(num);
-			/* Wenn der Stein zum aktuellem lokalen Spieler gehoert, current_stone und hovered_stone
-			   mit einbeziehen. */
+			/* If the stone belongs to the current local player, take current_stone and hovered_stone
+			   into account. */
 			if (player==game->current_player() && game->is_local_player())
 				renderPlayerStone(player,&stone,num,(num==current_stone),(num==hovered_stone),alpha,selectionbuffer);
-			/* Sonst statisch rendern, und auch nur, wenn nicht in selectionBuffer. Da haben
-			   Steine vom Computer nix verloren. */
+			/* Otherwise render statically, and only when not in the selection buffer. The
+			   computer's stones have no business being there. */
 			else if (!selectionbuffer)renderPlayerStone(player,&stone,num,false,false,alpha,false);
 			glPopName();
 			glPopName();
 		}
 	}
-	/* Wenn ein Spieler lokal dran ist und einen Stein ausgewaehlt hat */
+	/* If a local player is to move and has selected a stone */
 	if (current_stone!=-1 && player==game->current_player() && game->is_local_player())
 	{
 		glPushName(3);
@@ -1192,15 +1192,15 @@ void CGUI::renderPlayerStones(int player,double alpha,bool selectionbuffer)const
 
 void CGUI::renderPlayerStoneArrows(int player,CStone* stone,int stone_number,bool selectionbuffer)const
 {
-	/* Nehme an, dass Stein 0.61 von stone_size gross ist */
+	/* Assume the stone is 0.61 of stone_size */
 	const double scale=0.61;
-	/* Wo ist der Rand des Steins? */
+	/* Where is the edge of the stone? */
 	const double rand=stone_size*(stone->get_stone_size()+2);
 	/* Animation */
 	const double anim2=sin(anim*6.0)*10.0;
 	const double arrow_scale=0.9;
 
-	/* Der Pfeil liegt immer ueber allen anderen, egal was der DepthBuffer sagt */
+	/* The arrow is always on top of everything else, whatever the depth buffer says */
 	glDepthFunc(GL_ALWAYS);
 
 	glPushMatrix();
@@ -1211,10 +1211,10 @@ void CGUI::renderPlayerStoneArrows(int player,CStone* stone,int stone_number,boo
 	glScaled(scale,scale,scale);
 	glScaled(1.2,1.2,1.2);
 
-	/* Wenn Stein keine Rotationssymmetrie hat */
+	/* If the stone has no rotational symmetry */
 	if (stone->get_rotateable()!=ROTATEABLE_NOT)
 	{
-		// Nach rechts-drehen-Pfeil
+		// Rotate right arrow
 		glPushMatrix();
 		glTranslated(rand,0,-rand);
 		glRotated(-90.0-45.0,0,1,0);
@@ -1227,7 +1227,7 @@ void CGUI::renderPlayerStoneArrows(int player,CStone* stone,int stone_number,boo
 		glPopName();
 		glPopMatrix();
 
-		// Nach links-drehen-Pfeil
+		// Rotate left arrow
 		glPushMatrix();
 		glTranslated(-rand,0,-rand);
 		glRotated(90+45,0,1,0);
@@ -1241,7 +1241,7 @@ void CGUI::renderPlayerStoneArrows(int player,CStone* stone,int stone_number,boo
 		glPopMatrix();
 	}
 
-	/* Wenn Stein keine Spiegel-symmetrie hat */
+	/* If the stone has no mirror symmetry */
 	if (stone->get_mirrorable()!=MIRRORABLE_NOT)
 	{
 		// An Y Spiegeln
@@ -1272,13 +1272,13 @@ void CGUI::renderPlayerStoneArrows(int player,CStone* stone,int stone_number,boo
 		glPopMatrix();
 	}
 
-	/* DepthFunc wieder zuruecksetzen. */
+	/* Reset the depth function again. */
 	glDepthFunc(GL_LEQUAL);
 	glPopMatrix();
 }
 
-/** 
- * Rendert ein x/z-planares Viereck der Groesse size an Hoehe bevel_height
+/**
+ * Renders an x/z-planar quad of size size at height bevel_height
  **/
 void CGUI::renderQuad(double size)const
 {
@@ -1291,30 +1291,30 @@ void CGUI::renderQuad(double size)const
 }
 
 /**
- * Rendert einen Pfeil an den Ursprung in die x/z-Ebene. doublearrow: Hat der Pfeil 2 Spitzen?
- * selected: Ist der Pfeil ausgewaehlt? Beeinflusst nur Farbe.
+ * Renders an arrow at the origin in the x/z plane. doublearrow: does the arrow have 2 heads?
+ * selected: is the arrow selected? Only affects the colour.
  **/
 void CGUI::renderArrow(bool doublearrow,bool selected)const
 {
-	/* Y-Position des Pfeils */
+	/* Y position of the arrow */
 	const double vpos=bevel_height;
-	/* Koordinaten der Ecken des Pfeils, Abstaende, etc. Was weiss ich */
+	/* Coordinates of the arrow's corners, distances, etc. Who knows */
 	const double x1=0.6;
 	const double x2=0.20;
 	const double y1=-1.0;
 	const double y2=-0.3;
 	const double y3=0.3;
-	/* Farbe fuer nicht ausgewaehlten Pfeil: Gelb */
+	/* Colour of an unselected arrow: yellow */
 	const float diffuse1[]={1.0f,0.7f,0.1f,0.65f};
-	/* Fare fuer ausgewaehlten Pfeil: Rot */
+	/* Colour of a selected arrow: red */
 	const float diffuse2[]={1.0f,0.1f,0.0f,0.85f};
-	/* Entsprechendes Material setzen */
+	/* Set the corresponding material */
 	glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE,selected?diffuse2:diffuse1);
-	/* Alpha-Blending anschalten */
+	/* Switch on alpha blending */
 	glEnable(GL_BLEND);
 
 
-	/* Das obere Polygon zeichnen, eine Spitze des Pfeils mit Rumpf. */
+	/* Draw the upper polygon, one arrow head with its shaft. */
 	glBegin(GL_POLYGON);
 	glNormal3d(0,1,0);
 	glVertex3d(0,vpos,y1);
@@ -1336,23 +1336,23 @@ void CGUI::renderArrow(bool doublearrow,bool selected)const
 		glVertex3d(+x2,vpos,y3);
 		glEnd();
 	}
-	/* Alpha-Blending wieder deaktivieren. */
+	/* Deactivate alpha blending again. */
 	glDisable(GL_BLEND);
 }
 
 /**
- * Gibt die Position eines Steins eines Spielers in Weltkoordinaten zurueck.
- * Rueckgabewert wird in *dx, *dy und *dz gespeichert.
+ * Returns the position of one of a player's stones in world coordinates.
+ * The result is stored in *dx, *dy and *dz.
  **/
 void CGUI::getPlayerStonePos(int player,int stone,double *dx,double *dy,double *dz)const
 {
-	/* Der Radius, in dem die Steine angeordnet werden. Das ist der groessere Wert von
-	   field_size_x und field_size_y, mindestens aber 20. */
+	/* The radius at which the stones are arranged. This is the larger of
+	   field_size_x and field_size_y, but at least 20. */
 	int s=game->get_field_size_x();
 	if (game->get_field_size_y()>s)s=game->get_field_size_y();
 	if (s<20)s=20;
 
-	/* x, *dy und z fuer den ersten Spieler errechnen. */
+	/* Compute x, *dy and z for the first player. */
 	const double x=stone_size*(5*(stone%7)-16)*1.4;
 	*dy=border_bottom+bevel_height;
 	const double z=stone_size*(s+5+5*(stone/7)*1.1);
@@ -1365,17 +1365,17 @@ void CGUI::getPlayerStonePos(int player,int stone,double *dx,double *dy,double *
 		*dz=z;
 		break;
 	case 1:
-		/* Der zweite Spieler vertauscht x und -z */
+		/* The second player swaps x and -z */
 		*dx=-z;
 		*dz=x;
 		break;
 	case 2:
-		/* Dritte Spieler ist um 180 Grad gedreht zum 1. */
+		/* The third player is rotated by 180 degrees relative to the 1st. */
 		*dx=-x;
 		*dz=-z;
 		break;
 	case 3:
-		/* Und der 4. Spieler ist um 180 Grad gedreht zum 2. */
+		/* And the 4th player is rotated by 180 degrees relative to the 2nd. */
 		*dx=z;
 		*dz=-x;
 		break;
@@ -1391,15 +1391,15 @@ void CGUI::renderPlayerStone(int player,CStone* stone,int stone_number,bool curr
 	glPushMatrix();
 	getPlayerStonePos(player,stone_number,&px,&py,&pz);
 
-	/* An Position begeben, und Steine was kleiner skalieren. */
+	/* Move to the position and scale the stones down a bit. */
 	glTranslated(px,py,pz);
 	glScaled(scale,scale,scale);
 	if (current)glScaled(1.2,1.2,1.2);
 
 	if (selectionbuffer)
 	{
-		/* Beim Rendern in den SelectionBuffer, den kompletten Stein als grosses Quad auffassen.
-		   geht schneller zu Rendern und man verliert nix dabei. */
+		/* When rendering into the selection buffer, treat the whole stone as one big quad.
+		   It renders faster and nothing is lost. */
 		const double x1=-(double)stone->get_stone_size()/2.0*stone_size*2.0;
 // 		const double x2=+(double)stone->get_stone_size()/2.0*stone_size*2.0;
 		const double x2=-x1;
@@ -1420,9 +1420,9 @@ void CGUI::renderPlayerStone(int player,CStone* stone,int stone_number,bool curr
 				0,
 			     	+stone_size+((double)j-(double)stone->get_stone_size()/2.0)*stone_size*2.0);
 			if (current)
-			/* Wenn Stein ausgewaehlt, animieren und in weiss rendern. */
+			/* If the stone is selected, animate it and render it white. */
 				renderStone(-1,0.4f+((float)sin((float)anim*7.0f)*0.5f+0.5f)*0.3f,false);
-			/* Sonst ist er evtl. hovered, dann nicht animieren (aber weiss) ansonsten ganz normal rendern. */
+			/* Otherwise it may be hovered: then do not animate (but white), otherwise render normally. */
 			else renderStone(hovered?-1:player,0.6f*(float)alpha,false);
 			glPopMatrix();
 		}
@@ -1431,7 +1431,7 @@ void CGUI::renderPlayerStone(int player,CStone* stone,int stone_number,bool curr
 			char c[5];
 			sprintf(c,"%dx",stone->get_available());
 			glTranslated(0,1.5,+stone_size+((double)stone->get_stone_size()/2.0)*stone_size*2.0);
-			/* Ziffer aber immer in Kamera blicken lassen. */
+			/* But always let the digit face the camera. */
 			glRotated(-angy,0,1,0);
 			glRotated(180-angx,1,0,0);
 
@@ -1449,43 +1449,43 @@ void CGUI::renderGround()const
 }
 
 /**
- * Rendert das Spielfeld, ohne Steine, aber ggf. werden manche Quadrate farblich markiert (steuert withgame).
- * Das Feld wird in w x h gerendert.
+ * Renders the board without stones, but some squares may be highlighted in colour (controlled by withgame).
+ * The board is rendered as w x h.
  **/
 void CGUI::renderField(bool withgame,int w,int h)const
 {
-	/* Wenn withgame, dann sollte auch Breite und Hoehe mit der des Felds uebereinstimmen. */
+	/* If withgame, the width and height should match those of the board. */
 	if (withgame)w=game->get_field_size_x();
 	if (withgame)h=game->get_field_size_y();
 	float diffuse[]={0.43f,0.43f,0.30f,1.0f};
 	float specular[]={0.27f,0.25f,0.25f,1.0f};
 	float shininess[]={35.0};
 
-	/* Aeusserer Radius */
+	/* Outer radius */
 	const double r1=stone_size;
-	/* Innerer Radius */
+	/* Inner radius */
 	const double r2=stone_size-bevel_size;
-	/* Wie weit der Rahmen des Felds nach oben rausweicht */
+	/* How far the frame of the board sticks out at the top */
 	const double border_height=0.5;
 	int i,j;
 	
 	glPushMatrix();
-	/* Materialien setzen */
+	/* Set the materials */
 	glMaterialfv(GL_FRONT,GL_AMBIENT_AND_DIFFUSE,diffuse);
 	glMaterialfv(GL_FRONT,GL_SPECULAR,specular);
 	glMaterialfv(GL_FRONT,GL_SHININESS,shininess);
 	
-	/* An linke obere Ecke des Felds wandern. */
+	/* Move to the top left corner of the board. */
 	glTranslated(-(w-1)*r1,0,-(h-1)*r1);
 
 	if (options.get(OPTION_ENVIRONMENT))
 	{
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
-		/* Textur wird in Weltkoordinaten aufgetragen, d.h. bei 0.25 als Faktor 
-		   wiederholt sie sich alle 4 Einheiten. */
+		/* The texture is applied in world coordinates, i.e. with a factor of 0.25
+		   it repeats every 4 units. */
 		glScaled(0.25,0.25,1);
-		/* Bissel drehen, ums spannender zu machen. */
+		/* Rotate a little, to make it more exciting. */
 		glRotated(88,0,0,1);
 		glMatrixMode(GL_MODELVIEW);
 		texture_field.activate();
@@ -1498,35 +1498,35 @@ void CGUI::renderField(bool withgame,int w,int h)const
 		const double y=(double)j*r1*2.0;
 		const double y1=0.0;
 		const double y2=bevel_height;
-		/* Lage der Normalen im Raum */
+		/* Orientation of the normals in space */
 		static const double normal_y=0.8;
 		static const double normal_x=sqrt(1.0-normal_y*normal_y);
 		bool inside;
 
-		/* Wenn Spieler lokal ist, und mit Spieldaten gerendert werden soll */
+		/* If the player is local and rendering should include game data */
 		if (game->is_local_player() && withgame)
 		{
-			/* Gucke, ob das Feld zur Auswahl des aktuellen Steins auf dem Feld gehoert. */
+			/* Check whether the square belongs to the current stone's selection on the board. */
 			inside=isInSelection(i,j);
-			/* Wenn das Feld nicht zur Auswahl gehoert, aber es eine erlaubte Ecke ist */
+			/* If the square is not part of the selection but is an allowed corner */
 			if (!inside && game->get_game_field(game->current_player(),j,i)==FIELD_ALLOWED && options.get(OPTION_SHOW_HINTS))
 			{
-				/* So faerbe dieses Feld in hellem Gruen */
+				/* Colour this square light green */
 				float allowed[]={0.5f,0.65f,0.5f,1.0f};
 				glMaterialfv(GL_FRONT,GL_AMBIENT_AND_DIFFUSE,allowed);
 			}
-			/* Wenn das Feld zur Auswahl gehoert, und die Auswahl gueltig ist */
+			/* If the square is part of the selection and the selection is valid */
 			if (inside && selected_allowed)
 			{
-				/* Faerbe das Feld in animiertes helles Gruen */
+				/* Colour the square in animated light green */
 				const float c=(float)((sin(anim*7.0)+1.0f)/2.0f);
 				float allowed[]={0.5f+c*0.2f,0.7f+c*0.25f,0.5f+c*0.2f,1.0f};
 				glMaterialfv(GL_FRONT,GL_AMBIENT_AND_DIFFUSE,allowed);
 			}
-			/* Wenn das Feld zur Auswahl gehoert, aber nicht erlaubt ist */
+			/* If the square is part of the selection but not allowed */
 			if (inside && !selected_allowed)
 			{
-				/* So faerbe das Feld in animiertes Rot */
+				/* Colour the square in animated red */
 				const float c=(float)((sin(anim*10.0)+1.0f)/2.0f);
 				float denied[]={0.65f+c*0.3f,0.55f,0.55f,1.0f};
 				glMaterialfv(GL_FRONT,GL_AMBIENT_AND_DIFFUSE,denied);
@@ -1534,7 +1534,7 @@ void CGUI::renderField(bool withgame,int w,int h)const
 		}
 	
 		glBegin(GL_QUADS);
-		/* Zuerst Unterseite des Felds rendern. */
+		/* First render the underside of the square. */
 		glNormal3d(0,1,0);
 		glTexCoord2d(x-r2,y+r2);
 		glVertex3d(x-r2,y1,y+r2);
@@ -1545,7 +1545,7 @@ void CGUI::renderField(bool withgame,int w,int h)const
 		glTexCoord2d(x-r2,y-r2);
 		glVertex3d(x-r2,y1,y-r2);
 	
-		/* Dann Schraege oben */
+		/* Then the bevel on top */
 		glNormal3d(0,normal_y,normal_x);
 		glTexCoord2d(x-r2,y-r2);
 		glVertex3d(x-r2,y1,y-r2);
@@ -1556,7 +1556,7 @@ void CGUI::renderField(bool withgame,int w,int h)const
 		glTexCoord2d(x-r1,y-r1);
 		glVertex3d(x-r1,y2,y-r1);
 
-		/* Schraege unten rendern. */
+		/* Render the bevel at the bottom. */
 		glNormal3d(0,normal_y,-normal_x);
 		glTexCoord2d(x+r2,y+r2);
 		glVertex3d(x+r2,y1,y+r2);
@@ -1567,7 +1567,7 @@ void CGUI::renderField(bool withgame,int w,int h)const
 		glTexCoord2d(x+r1,y+r1);
 		glVertex3d(x+r1,y2,y+r1);
 
-		/* Schraege links */
+		/* Bevel on the left */
 		glNormal3d(normal_x,normal_y,0);
 		glTexCoord2d(x-r2,y+r2);
 		glVertex3d(x-r2,y1,y+r2);
@@ -1578,7 +1578,7 @@ void CGUI::renderField(bool withgame,int w,int h)const
 		glTexCoord2d(x-r1,y+r1);
 		glVertex3d(x-r1,y2,y+r1);
 
-		/* Schraege rechts */
+		/* Bevel on the right */
 		glNormal3d(-normal_x,normal_y,0);
 		glTexCoord2d(x+r2,y-r2);
 		glVertex3d(x+r2,y1,y-r2);
@@ -1589,17 +1589,17 @@ void CGUI::renderField(bool withgame,int w,int h)const
 		glTexCoord2d(x+r1,y-r1);
 		glVertex3d(x+r1,y2,y-r1);
 		glEnd();
-		/* Wieder normales Material setzen, falls wir es vorher umgebogen haben */
+		/* Restore the normal material in case we changed it before */
 		glMaterialfv(GL_FRONT,GL_AMBIENT_AND_DIFFUSE,diffuse);
 	}
-	/* Jetzt sind die 4 Seitenwaende dran. */
-	/* Zuerst oben */
+	/* Now the 4 side walls. */
+	/* First the top */
 	renderCube(-r1*2.0,-r1*2.0,w*r1*2.0,-r1,border_bottom,border_height);
-	/* Dann unten */
+	/* Then bottom */
 	renderCube(-r1*2.0,h*r1*2.0-r1,w*r1*2.0,h*r1*2.0,border_bottom,border_height);
-	/* Dann links */
+	/* Then left */
 	renderCube(-r1*2.0,-r1,-r1,(h-1)*r1*2.0+r1,border_bottom,border_height);
-	/* Dann rechts */
+	/* Then right */
 	renderCube(w*r1*2.0-r1,-r1,w*r1*2.0,(h-1)*r1*2.0+r1,border_bottom,border_height);
 
 	if (options.get(OPTION_ENVIRONMENT))
@@ -1618,8 +1618,8 @@ void CGUI::renderField(bool withgame)const
 }
 
 /**
- * Ueberladene Funktion. Rendert einen Stein der angegebenen Farbe an Position
- * x/y (Spielfeldkoordinaten).
+ * Overloaded function. Renders a stone of the given colour at position
+ * x/y (board coordinates).
  **/
 void CGUI::renderStone(int x,int y,int color,float alpha,bool selectionbuffer)const
 {
@@ -1633,7 +1633,7 @@ void CGUI::renderStone(int x,int y,int color,float alpha,bool selectionbuffer)co
 }
 
 /**
- * Rendert einen Single-Stone an den Ursprung des Koordinatensystems
+ * Renders a single stone at the origin of the coordinate system
  **/
 void CGUI::renderStone(int color,float alpha,bool selectionbuffer)const
 {
@@ -1645,7 +1645,7 @@ void CGUI::renderStone(int color,float alpha,bool selectionbuffer)const
 	const float specular[]={0.4f,0.4f,0.4f,1.0f};
 	const float shininess[]={40.0f};
 
-	/* Wenn in Color-Buffer, dann waehle Farbe anhand des Spielers aus. */
+	/* When rendering to the colour buffer, choose the colour by player. */
 	if (!selectionbuffer) switch(color)
 	{
 	    case -1:	glMaterialfv(GL_FRONT,GL_AMBIENT_AND_DIFFUSE,white);
@@ -1667,60 +1667,60 @@ void CGUI::renderStone(int color,float alpha,bool selectionbuffer)const
 	}
 	glMaterialfv(GL_FRONT,GL_SHININESS,shininess);
 
-	/* Wenn hinreichend transparent, Alpha-Blending aktivieren */
+	/* If transparent enough, enable alpha blending */
 	if (alpha<0.95)
 	{
     		glEnable(GL_BLEND);
     		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	/* Fuer die obere und untere Haelfte */
+	/* For the upper and lower half */
 	for (int i=0;i<2;i++)
 	{
 		glCallList(displayLists+1);
-		/* Wenn wir in SelectionBuffer rendern, brauchen wir nur Oberseite */
+		/* When rendering into the selection buffer we only need the top side */
 		if (selectionbuffer)
 			return;
-		/* Und um 180 Grad drehen und Unterseite rendern. */
+		/* And rotate by 180 degrees and render the underside. */
 		glRotated(180.0,1,0,0);
 	}
-	/* Alpha-Blending deaktivieren */
+	/* Deactivate alpha blending */
 	if (alpha<0.95)glDisable(GL_BLEND);
 }
 
 /**
- * rendert einen Singlestone, aber extrudiert ihn in Richtung von dir.
- * Wenn dies die Roichtung des Lichtstrahls ist, erhalten wir ein feines
- * Shadow-Volume, fuer volumetrischen Schatten.
+ * Renders a single stone, but extrudes it in direction dir.
+ * If this is the direction of the light ray, we get a neat
+ * shadow volume for volumetric shadows.
  **/
 void CGUI::renderStoneShadow(float dir[3])const
 {
 	const double r1=stone_size;
-	/* Den Schatten soo weit extrudieren. Mehr macht keinen Sinn. */
+	/* Extrude the shadow this far. More makes no sense. */
 	const double infinity=50.0;
-	/* Wo mit dem Schatten anfangen: Mitte des Steins. */
+	/* Where to start the shadow: the middle of the stone. */
 	const double yoffs=0;
 	
-	/* Merken, wie rum Faces gerendert werden. */
+	/* Remember the winding in which faces are rendered. */
 	int ffc;
 	glGetIntegerv(GL_FRONT_FACE,&ffc);
-	/* Wenn unser Stein auf dem Kopf steht, also Licht quasi von unten. */
+	/* If our stone is upside down, i.e. light comes from below. */
 	if (dir[1]>0.0)
 	{
-		/* Drehen wir die Faces um, da unser Shadow-Volume "umgekrempelt" ist. */
+		/* Flip the faces, since our shadow volume is "turned inside out". */
 		if (ffc==GL_CCW)glFrontFace(GL_CW); else glFrontFace(GL_CCW);
 	}
-	/* Farbe ist eigentlich wurscht, da wir wahrscheinlich in den Stencil-Buffer rendern. */
+	/* The colour does not really matter, since we are probably rendering into the stencil buffer. */
 	glColor4f(1,1,1,1);
 	glBegin(GL_QUADS);
 
-	/* Die Decke rendern. */
+	/* Render the top. */
 	glVertex3d(-r1,yoffs,+r1);
 	glVertex3d(+r1,yoffs,r1);
 	glVertex3d(+r1,yoffs,-r1);
 	glVertex3d(-r1,yoffs,-r1);
 	
-	/* Die 4 Seitenwaende rendern. */
+	/* Render the 4 side walls. */
 	glVertex3d(-r1,yoffs,-r1);
 	glVertex3d(+r1,yoffs,-r1);
 	glVertex3d(+r1+dir[0]*infinity,dir[1]*infinity,-r1+dir[2]*infinity);
@@ -1741,25 +1741,25 @@ void CGUI::renderStoneShadow(float dir[3])const
 	glVertex3d(+r1+dir[0]*infinity,dir[1]*infinity,+r1+dir[2]*infinity);
 	glVertex3d(+r1+dir[0]*infinity,dir[1]*infinity,-r1+dir[2]*infinity);
 
-	/* Und Boden rendern. */
+	/* And render the bottom. */
 	glVertex3d(+r1+dir[0]*infinity,dir[1]*infinity,+r1+dir[2]*infinity);
 	glVertex3d(-r1+dir[0]*infinity,dir[1]*infinity,+r1+dir[2]*infinity);
 	glVertex3d(-r1+dir[0]*infinity,dir[1]*infinity,-r1+dir[2]*infinity);
 	glVertex3d(+r1+dir[0]*infinity,dir[1]*infinity,-r1+dir[2]*infinity);
 	glEnd();
-	/* Original Face-Order wiederherstellen. */
+	/* Restore the original face order. */
 	glFrontFace(ffc);
 }
 
 /**
- * Rendert einen (texturierten) Wuerfel, mit den angegebenen Koordinaten.
- * Texturkoordinaten sind Weltkoordinaten.
+ * Renders a (textured) cube with the given coordinates.
+ * Texture coordinates are world coordinates.
  */
 void CGUI::renderCube(double x1,double z1,double x2,double z2,double y1,double y2)const
 {
 	glBegin(GL_QUADS);
 
-	/* Oben */
+	/* Top */
 	glNormal3d(0,1.0,0);
 	glTexCoord2d(x2,z1);
 	glVertex3d(x2,y2,z1);
@@ -1770,7 +1770,7 @@ void CGUI::renderCube(double x1,double z1,double x2,double z2,double y1,double y
 	glTexCoord2d(x2,z2);
 	glVertex3d(x2,y2,z2);
 
-	/* Links */
+	/* Left */
 	glNormal3d(-1,0,0);
 	glTexCoord2d(x2-(y1-y2),z2);
 	glVertex3d(x2,y1,z2);
@@ -1781,7 +1781,7 @@ void CGUI::renderCube(double x1,double z1,double x2,double z2,double y1,double y
 	glTexCoord2d(x2,z2);
 	glVertex3d(x2,y2,z2);
 
-	/* Rechts */
+	/* Right */
 	glNormal3d(1,0,0);
 	glTexCoord2d(x1+(y2-y1),z1);
 	glVertex3d(x1,y1,z1);
@@ -1792,7 +1792,7 @@ void CGUI::renderCube(double x1,double z1,double x2,double z2,double y1,double y
 	glTexCoord2d(x1,z1);
 	glVertex3d(x1,y2,z1);
 
-	/* Vorne */
+	/* Front */
 	glNormal3d(0,0,1);
 	glTexCoord2d(x1,z2-(y1-y2));
 	glVertex3d(x1,y1,z2);
@@ -1803,7 +1803,7 @@ void CGUI::renderCube(double x1,double z1,double x2,double z2,double y1,double y
 	glTexCoord2d(x1,z2);
 	glVertex3d(x1,y2,z2);
 
-	/* Hinten */
+	/* Back */
 	glNormal3d(0,0,-1);
 	glTexCoord2d(x2,z1-(y1-y2));
 	glVertex3d(x2,y1,z1);
@@ -1817,29 +1817,29 @@ void CGUI::renderCube(double x1,double z1,double x2,double z2,double y1,double y
 }
 
 /**
- * true, wenn das Feld x/y auf dem Spielfeld zur Auswahl des aktuellen Steins auf dem
- * Feld gehoert. Sonst false.
+ * true if square x/y on the board belongs to the current stone's selection on the
+ * board. Otherwise false.
  **/
 bool CGUI::isInSelection(int x,int y)const
 {
-	/* Wenn kein Stein oder kein Quadrat auf dem Spielfeld ausgewaehlt ist, false */
+	/* If no stone or no square on the board is selected, false */
 	if (current_stone==-1)return false;
 	if (selectedx==-1 || selectedy==-1)return false;
 
 	CStone &stone=game->get_current_player()->get_stone(current_stone);
-	/* x/y in Koordinaten relativ zum Stein umrechnen. */
+	/* Convert x/y into coordinates relative to the stone. */
 	y=y-selectedy+stone.get_stone_size()/2;
 	x=x-selectedx+stone.get_stone_size()/2;
-	/* Wenn ausserhalb des Steins, ists auf jeden Fall ausserhalb. */
+	/* If outside the stone, it is outside in any case. */
 	if (x<0 || y<0 || x>=stone.get_stone_size() || y>=stone.get_stone_size())return false;
 
-	/* Sonst true, wenn der Stein dort tatsaechlich ein Feld besitzt */
+	/* Otherwise true if the stone actually has a square there */
 	if (stone.get_stone_field(y,x)!=STONE_FIELD_FREE)return true;
 	return false;
 }
 
 /**
- * Der Chat-Box eine Nachricht hinzufuegen, von [client] (-1 fuer Servernachricht)
+ * Add a message from [client] to the chat box (-1 for a server message)
  **/
 void CGUI::addChatMessage(int client,const char* text)
 {
@@ -1847,7 +1847,7 @@ void CGUI::addChatMessage(int client,const char* text)
 }
 
 /**
- * Die Chat-Box sticky setzen. Wenn true, dann verschwindet sie nicht nach 7 sek automatisch.
+ * Make the chat box sticky. If true, it does not hide automatically after 7 s.
  **/
 void CGUI::setChatBoxSticky(bool sticky)
 {
@@ -1855,17 +1855,17 @@ void CGUI::setChatBoxSticky(bool sticky)
 }
 
 /**
- * Der SpielClient signalisiert hier, dass ein neuer Spieler dran ist. Bitte GUI dafuer
- * updaten.
+ * The game client signals here that a new player is to move. Please update the
+ * GUI accordingly.
  **/
 void CGUI::newCurrentPlayer(int player)
 {
 	if (player==-1)
 	{
-		/* Es ist kein Spieler aktiv. z.B. Spielende, oder Pause oder sonstwas. */
+		/* No player is active, e.g. game over, a pause or whatever. */
 		playerframe->setAlpha(0.0);
 		playertext->setText("");
-		/* Knoepfe deaktivieren, die man nun nicht benutzen sollte. */
+		/* Disable buttons that should not be used now. */
 		hint->setEnabled(false);
 		undo->setEnabled(false);
 		/* Without a current player there is nothing to select; the rendering and event code
@@ -1874,8 +1874,8 @@ void CGUI::newCurrentPlayer(int player)
 		selectedx=selectedy=-1;
 	}else{
 		char text[500];
-		/* Frame entsprechend transparent setzen, abhaengig, ob der Spieler lokal
-		   ist, oder nicht. */
+		/* Set the frame's transparency depending on whether the player is local
+		   or not. */
 		playerframe->setAlpha(game->is_local_player()?0.75:0.20);
 		switch (player)
 		{
@@ -1892,11 +1892,11 @@ void CGUI::newCurrentPlayer(int player)
 		if (game->is_local_player())
 		{
 			sprintf(text,"%s, it's your turn!",COLOR_NAME[player]);
-			/* Hint soll nur aktiv sein, wenn nur ein Client, oder nur ein
-			   lokaler Spieler mitspielen. */
+			/* Hint should only be enabled if only one client, or only one
+			   local player, is playing. */
 			bool b=game->getServerStatus()->clients<=1;
 			b=b||(game->getServerStatus()->player<=1);
-			/* Knoepfe entsprechend aktivieren. */
+			/* Enable the buttons accordingly. */
 			hint->setEnabled(true);
 			undo->setEnabled(b);
 			testSelection(lastx,lasty);
@@ -1912,10 +1912,10 @@ void CGUI::newCurrentPlayer(int player)
 void CGUI::showHint()
 {
 	CPlayer *p=game->get_current_player();
-	/* Nur anzeigen, wenn tatsaechlich gerade ein lokaler Spieler dran ist. */
+	/* Only show it if a local player is actually to move right now. */
 	if (p && game->is_local_player() && hint->isEnabled())
 	{
-		/* Die KI soll mal einen Zug vorschlagen. */
+		/* Let the AI suggest a move. */
 #if (1)
 		NET_REQUEST_HINT data;
 		data.player=game->current_player();
@@ -1923,13 +1923,13 @@ void CGUI::showHint()
 		hint->setEnabled(false);
 #else
 		CTurn *t=board->get_ai_turn(board->current_player(),AI_HARD);
-		/* Animation nicht weiterlaufen lassen, da sonst Spruenge auftreten. */
+		/* Do not let the animation advance, otherwise there are jumps. */
 		timer.reset(); 
 		if (t)
 		{
-			/* Effekt zu dem Zug anzeigen, seicht blinken lassen. */
+			/* Show an effect for the move, blinking gently. */
 			effects->add(new CStoneFadeEffect(this,t,board->current_player()));
-			/* Den vorgeschlagenen Zug sogar auswaehlen. */
+			/* Even select the suggested move. */
 			current_stone=t->get_stone_number();
 			board->get_current_player()->get_stone(t->get_stone_number())->mirror_rotate_to(t->get_mirror_count(),t->get_rotate_count());
 		}

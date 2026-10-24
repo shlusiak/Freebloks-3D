@@ -1,8 +1,8 @@
 /**
  * timer.cpp
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
- * Bietet gekapselten Zugriff auf genaue Zeitmessungen
+ * Provides encapsulated access to precise time measurement
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -25,30 +25,30 @@ __int64 CTimer::frequency;
 CTimer::CTimer()
 {
 #ifdef WIN32
-	/* Unter Windows wird der PerformanceCounter benutzt.
-	   Hier Frequenz davon anfordern und fuer spaeter merken. */
+	/* On Windows the performance counter is used.
+	   Request its frequency here and remember it for later. */
 	QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
 #endif
 	reset();
 }
 
 /**
- * Gibt einen Zeitstempel zurueck, in Sekunden, aber bei sehr hoher Aufloesung
- * Der Zeitstempel ist relativ zu irgendeinem Wert, kann nur fuer Zeitdifferenzen gebraucht werden
+ * Returns a timestamp in seconds, but with very high resolution
+ * The timestamp is relative to some arbitrary value and can only be used for time differences
  **/
 const double CTimer::getTick()const
 {
 #ifdef WIN32
 	__int64 tick;
 	QueryPerformanceCounter((LARGE_INTEGER*)&tick);
-	/* PerformanceCounter/PerformanceCounterFrequency=Zeitstempel in sek */
+	/* PerformanceCounter/PerformanceCounterFrequency=timestamp in s */
 	return (double)tick/(double)frequency;
 #else
 	timeval t1;
-	/* Tageszeit holen */
+	/* Get the time of day */
 	gettimeofday(&t1,0);
-	/* gettimeofday hat eine Aufloesung im Mikrosekundenbereich
-	   sek+usek/1000000=Zeitstempel in sek */
+	/* gettimeofday has a resolution in the microsecond range
+	   s+us/1000000=timestamp in s */
 	return (double)(t1.tv_usec)/1000000.0+(double)(t1.tv_sec);
 #endif
 }
@@ -59,7 +59,7 @@ void CTimer::reset()
 }
 
 /**
- * Vergangene Zeit ist die (aktuelle Zeit)-(vorher gemerkte Zeit)
+ * Elapsed time is (current time)-(previously remembered time)
  **/
 const double CTimer::elapsed()const
 {
@@ -67,14 +67,14 @@ const double CTimer::elapsed()const
 }
 
 /**
- * Funktion zum Schlafen von ms Millisekunden
+ * Function to sleep for ms milliseconds
  **/
 void CTimer::sleep(const int ms)
 {
 #ifdef WIN32
 	Sleep(ms);
 #else
-	/* Linux Funktion erwartet Mikrosekunden */
+	/* The Linux function expects microseconds */
 	usleep(ms*1000);
 #endif
 }

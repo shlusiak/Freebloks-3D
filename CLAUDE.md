@@ -20,9 +20,9 @@ Windows (.sln/.vcproj/.dsp, config-win32.h), debian/, build/, *.ebuild and .deb 
 
 ## Architecture
 
-Flat C++ code base in src/, C-prefixed classes. Some files are Latin-1 encoded; do not re-encode.
+Flat C++ code base in src/, C-prefixed classes.
 
-Language policy: all documentation, comments, identifiers and file names are English. German is legacy and is being removed. Write new code, comments, docs and file names in English only, and translate or rename German ones when touching them. File names and identifiers are already English; comments are still largely German. Glossary for reading them: Spiel=game, Spieler=player, Stein=stone, Zug=turn, KI=AI. Renaming a NET_* field does not change the wire format; renaming files requires updating src/Makefile.am.
+Language policy: all documentation, comments, identifiers and file names are English. Write new code, comments, docs and file names in English only. Sources are plain ASCII. Renaming a NET_* field does not change the wire format; renaming files requires updating src/Makefile.am.
 
 - Core: CBoard (grid + rules) -> CGame (state, current player, game mode, turn history). player[] holds a socket fd or PLAYER_COMPUTER (-2) / PLAYER_LOCAL (-1). Game modes in constants.h.
 - AI: CAI (ai.cpp), strength AI_* and thread count configurable.

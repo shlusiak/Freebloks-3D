@@ -1,8 +1,8 @@
 /**
- * spielclient.cpp
- * Autor: Sascha Hlusiak
+ * guigameclient.cpp
+ * Author: Sascha Hlusiak
  *
- * Klasse fuer einen Netzwerk-Client. Das ist die Klasse mit direkter Verbindung zur GUI
+ * Class for a network client. This is the class directly connected to the GUI
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -31,7 +31,7 @@ void CGUIGameClient::newCurrentPlayer(const int player)
 
 void CGUIGameClient::stoneWasSet(NET_SET_STONE *s)
 {
-	/* Wenn kein lokaler Spieler, zeige eine Blink-Animation an */
+	/* If not a local player, show a blink animation */
 	if (gui && !is_local_player(s->player) && gui->getOptions()->get(OPTION_ANIMATE_STONES))
 		gui->addEffect(new CStoneRollEffect(
 			gui,&get_player(s->player)->get_stone(s->stone),s->stone,s->player,s->x,s->y,false));
@@ -61,15 +61,15 @@ void CGUIGameClient::chatReceived(NET_CHAT* chat)
 
 void CGUIGameClient::gameStarted()
 {
-	// Den ersten lokalen Spieler ermitteln, und Ansicht der GUI genau
-	// dorthin rotieren
+	// Find the first local player and rotate the GUI view exactly
+	// towards it
 	for (int i=0;i<PLAYER_MAX;i++)if (player[i] == PLAYER_LOCAL)
 	{
 		gui->setAngy(i*90.0);
 		break;
 	}
-	/* Entfernung der Kamera zum Spielfeld angemessen setzen, dass die 
-	Steine immer alle drauf passen. */
+	/* Set the camera distance to the board so that all
+	stones always fit. */
 	int s=get_field_size_x();
 	if (get_field_size_y()>s)s=get_field_size_y();
 	if (s>20)gui->setZoom(30.0+(double)s-20.0);

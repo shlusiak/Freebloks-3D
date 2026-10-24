@@ -1,8 +1,8 @@
 /**
  * timer.h
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
- * CTimer kapselt betriebssystemabhaengige Zeitfunktionen zu einer Schnittstelle
+ * CTimer wraps operating-system-dependent time functions in one interface
  **/
 
 #ifndef _TIMER_H_INCLUDED_
@@ -14,32 +14,32 @@ class CTimer
 {
 private:
 #ifdef WIN32
-	/* Unter Windows wird der PerformanceCounter verwendet. Hier wird die Frequenz davon gemerkt */
+	/* On Windows the performance counter is used. Its frequency is stored here */
 	static __int64 frequency;
 #endif
-	/* Ein relativer Zeit-Wert, gespeichert in Sekunden */
+	/* A relative time value, stored in seconds */
 	double value;
 
-	/* Gibt den aktuellen, nicht absoluten Zeitstempel zurueck, in Sekunden */
+	/* Returns the current, non-absolute timestamp, in seconds */
 	const double getTick()const;
 public:
 	CTimer();
 
 	void reset();
 
-	/* Gibt Zeitdifferenz von jetzt bis zum vorherigem reset() zurueck, in Sekunden */
+	/* Returns the time difference from now to the previous reset(), in seconds */
 	const double elapsed()const;
 
-	/* Gibt Zeitdifferenz vom letzten Checkpoint zurueck und setzt den Timer zurueck */
+	/* Returns the time difference since the last checkpoint and resets the timer */
 	const double checkPoint() { double bla=elapsed(); reset(); return bla; }
 
-	/* Wartet die angegebene Anzahl von Millisekunden */
+	/* Waits the given number of milliseconds */
 	static void sleep(const int ms);
 };
 
 
 /**
- * Baut CTimer zu einem simplen Zeitmesser zum Debuggen um
+ * Turns CTimer into a simple stopwatch for debugging
  **/
 class CTimeCheck:public CTimer
 {
@@ -48,7 +48,7 @@ private:
 public:
 	CTimeCheck(const char* vtext):text(vtext) { }
 
-	/* Destruktor gibt Text und die exakte Lebensdauer des Objekts aus. */
+	/* The destructor prints the text and the exact lifetime of the object. */
 	~CTimeCheck() { printf("%s: %.5f sek.\n",text,elapsed()); }
 };
 

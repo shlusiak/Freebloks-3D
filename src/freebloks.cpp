@@ -1,8 +1,8 @@
 /**
  * freebloks.cpp
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  *
- * Hauptprogramm! Hier befindet sich die main() Routine
+ * Main program. This is where main() lives
  **/
 
 #ifdef HAVE_CONFIG_H
@@ -21,12 +21,12 @@
 extern HINSTANCE hInstance;
 
 /**
- * Unter Windows der WinMain()-Einsprungspunkt.
+ * The WinMain() entry point on Windows.
  **/
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpcmdline, int cmdShow)
 {
 	::hInstance=hInstance;
-	/* Zufallsgenerator starten */
+	/* Seed the random number generator */
 	srand((unsigned int)time(0));
 	CGUI *gui=new CGUI();
 	gui->run();
@@ -37,7 +37,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance, LPSTR lpcmdline,
 #else 
 
 /**
- * Unter Linux oder Sonstwas eine handelsuebliche main()
+ * A plain main() on Linux and everything else
  **/
 int main(int argc, char *argv[])
 {
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     /* A write to a closed socket must fail with EPIPE instead of killing the process */
     signal(SIGPIPE, SIG_IGN);
 #endif
-    /* Zufallsgenerator starten */
+    /* Seed the random number generator */
     srand(time(0));
     CGUI *gui=new CGUI();
     if (gui->parseCmdLine(argc,argv))

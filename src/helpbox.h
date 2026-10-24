@@ -1,6 +1,6 @@
-/** 
+/**
  * helpbox.h
- * Autor: Sascha Hlusiak
+ * Author: Sascha Hlusiak
  **/
 #ifndef __HELPBOX_H_INCLUDED_
 #define __HELPBOX_H_INCLUDED_
@@ -8,7 +8,7 @@
 #include "widgets.h"
 
 /**
- * Help-Box, die man im MainMenu aufrufen kann und kurze Hilfe zum Spiel bietet.
+ * Help box that can be opened from the main menu and gives brief help about the game.
  **/
 class CHelpBox:public CDialog
 {
