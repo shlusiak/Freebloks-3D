@@ -45,7 +45,8 @@ static HANDLE mutex;
 static pthread_mutex_t mutex;
 #endif
 static char* logfile = nullptr;
-static CStdoutWriter logWriter;
+/* Never destroyed on purpose: detached game threads may still log while main() returns */
+static CStdoutWriter& logWriter = *new CStdoutWriter();
 static CServerListener* listener = nullptr; /* the primary listener for new games */
 static const char* stats_socket_file = "/tmp/freebloks_stats";
 
@@ -185,17 +186,21 @@ static void* stat_thread(void* param) {
 
 	if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {
 		perror("error binding stats socket");
+		close(fd);
 		return nullptr;
 	}
 
 	if (listen(fd, 5) == -1) {
 		perror("error listening on stats socket");
+		close(fd);
 		return nullptr;
 	}
 
 	while (1) {
 		if ( (cl = accept(fd, nullptr, nullptr)) == -1) {
 			perror("stats socket accept error");
+			/* Do not spin when descriptors run out */
+			if (errno != EINTR && errno != ECONNABORTED) CTimer::sleep(1000);
 			continue;
 		}
 
@@ -507,7 +512,10 @@ void* gameRunThread(void* param)
 #endif
 {
 	CGameServer* game=(CGameServer*) param;
-	CGameLogger logger(logWriter, games_ran);
+	lock_mutex();
+	const int game_number = games_ran;
+	unlock_mutex();
+	CGameLogger logger(logWriter, game_number);
 	
 	game->setLogger(&logger);
 	
@@ -571,12 +579,19 @@ int main(int argc,char ** argv)
 	if (gid != 0)
 	{
 		if (setregid(gid,gid))
+		{
+			/* Never keep running with more privileges than requested */
 			perror("setregid: ");
+			exit(1);
+		}
 	}
 	if (uid != 0)
 	{
 		if (setreuid(uid,uid))
+		{
 			perror("setreuid: ");
+			exit(1);
+		}
 	}
 #endif
 

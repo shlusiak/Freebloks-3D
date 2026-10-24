@@ -94,10 +94,15 @@ CGUI::~CGUI()
 {
 	/* Remove dynamic variables cleanly */
 	if (intro)delete intro;
-	if (window)delete window;
+	/* GL resources must be released while the window's GL context still exists */
 	if (font)delete font;
 	if (effects)delete effects;
+	texture_ground.unload();
+	texture_wall.unload();
+	texture_field.unload();
+	if (window)delete window;
 	if (game)delete game;
+	if (startupParams.remotehost)free(startupParams.remotehost);
 #ifdef WIN32
 	/* Unload Winsock cleanly */
 	WSACleanup();
@@ -228,7 +233,7 @@ bool CGUI::startSingleplayerGame(GAMEMODE gamemode,int players,int diff,int widt
 	if (r!=0)
 	{
 		char t[512];
-		sprintf(t,"Could not run local server:\n%s.",strerror(errno));
+		snprintf(t,sizeof(t),"Could not run local server:\n%s.",r>0?strerror(r):strerror(errno));
 		widgets.addSubChild(new CMessageBox(270,150,"Error",t));
 		/* But do not abort; a server might be running anyway. */
 	}
@@ -271,7 +276,7 @@ bool CGUI::startMultiplayerGame(GAMEMODE gamemode,int localplayers,int diff,int 
 	if (r!=0)
 	{
 		char t[300];
-		sprintf(t,"Could not run server:\n%s.",strerror(errno));
+		snprintf(t,sizeof(t),"Could not run server:\n%s.",r>0?strerror(r):strerror(errno));
 		widgets.addSubChild(new CMessageBox(270,150,"Error",t));
 		return false;
 	}

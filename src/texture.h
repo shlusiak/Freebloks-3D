@@ -14,7 +14,6 @@ class CTexture
 private:
 	GLuint m_texture;
 
-	void unload();
 public:
 	CTexture();
 
@@ -24,6 +23,9 @@ public:
 
 	/* Loads a file as a texture. true on success, otherwise false */
 	bool load(const char *filename);
+
+	/* Releases the GL texture; needs a current GL context. Safe to call repeatedly. */
+	void unload();
 	
 	void activate()const;
 

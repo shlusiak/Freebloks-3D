@@ -33,7 +33,7 @@ CGLFont::CGLFont(const double vchar_width,const double vchar_height)
 CGLFont::~CGLFont()
 {
 	/* The last one turns off the lights */
-	if ((ref_count--)==0)
+	if (--ref_count==0)
 	{
 		delete m_texture;
 		m_texture=0;

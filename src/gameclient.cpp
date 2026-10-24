@@ -75,7 +75,12 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 	
 		client_socket=socket(PF_UNIX,SOCK_STREAM,0);
 
-		if (client_socket==-1)return strerror(errno);
+		if (client_socket==-1)
+		{
+			// -1 would be reported as connected by isConnected()
+			client_socket=0;
+			return strerror(errno);
+		}
 		if (connect(client_socket,(sockaddr*)&addr,sizeof(addr))==-1)
 		{
 			/* Connection failed */

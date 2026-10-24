@@ -829,7 +829,7 @@ int CGameServer::run_server(const char* interface_,int port,int maxhumans,int ai
 	if (r!=0)
 	{
 	    delete listener;
-	    return errno;
+	    return r;
 	}
 
 	listener->new_game(maxhumans, ai_mode, gamemode, ai_threads, true);
@@ -842,7 +842,14 @@ int CGameServer::run_server(const char* interface_,int port,int maxhumans,int ai
 	CloseHandle(CreateThread(nullptr,0,LocalServerThread,(void*)listener,0,&id));
 #else
 	pthread_t thread;
-	pthread_create(&thread,nullptr,LocalServerThread,(void*)listener);
+	int rc=pthread_create(&thread,nullptr,LocalServerThread,(void*)listener);
+	if (rc!=0)
+	{
+		delete listener;
+		return rc;
+	}
+	// Nobody joins the server thread, so release its resources when it ends
+	pthread_detach(thread);
 #endif
 	// Success
 	return 0;
@@ -953,23 +960,20 @@ int CServerListener::init(const char* interface_,int port)
 		{
 			// nop
 		}
-		if (errno) return errno;
 
 		if (bind(listen_socket,(struct sockaddr*)&my_addr,sizeof(my_addr.sun_family) + addr_len + 1)!=0)
 		{
+			int e = errno ? errno : -1;
 			closesocket(listen_socket);
-			if (errno) return errno;
+			return e;
 		}
 		if (listen(listen_socket,5)==0)
 		{
 			listen_sockets[num_listen_sockets++] = listen_socket;
 		} else {
+			int e = errno ? errno : -1;
 			closesocket(listen_socket);
-		}
-		if (num_listen_sockets == 0)
-		{
-			if (errno) return errno;
-			return -1;
+			return e;
 		}
 		/* Success */
 
