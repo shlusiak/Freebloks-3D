@@ -10,7 +10,7 @@ Generated autotools files (configure, Makefile.in, aclocal.m4, config.h) are git
     ./configure --without-gui --disable-dependency-tracking
     make
 
-configure options: --without-gui, --without-dedicated, --without-client, --without-benchmark. The GUI needs X11, GL, GLU, Xpm. C++ is gnu++17 -O3 (src/Makefile.am).
+configure options: --without-gui, --without-dedicated, --without-client, --without-benchmark. The GUI needs X11, GL, GLU. C++ is gnu++17 -O3 (src/Makefile.am).
 
 Binaries: freebloks (OpenGL/X11 GUI), freebloks_dedicated (headless server), freebloks_client (console client), freebloks_benchmark (AI benchmark; spins up server + clients). There is no test suite or make check; the benchmark is the closest thing.
 

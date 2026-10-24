@@ -52,11 +52,10 @@ then
     CXXFLAGS="${CXXFLAGS} ${X_CFLAGS}"
     CPPFLAGS="${CPPFLAGS} ${X_CFLAGS}"
     LIBS="${LIBS} ${X_LIBS}"
-    AC_CHECK_HEADERS([GL/glx.h GL/glu.h X11/Xlib.h X11/xpm.h])
+    AC_CHECK_HEADERS([GL/glx.h GL/glu.h X11/Xlib.h])
     AC_CHECK_LIB([GL],[glBegin])
     AC_CHECK_LIB([GLU], [gluLookAt])
     AC_CHECK_LIB([X11],[XCreateWindow])
-    AC_CHECK_LIB([Xpm],[XpmCreatePixmapFromXpmImage])
 fi
 
 AC_FUNC_MALLOC

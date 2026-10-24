@@ -51,7 +51,7 @@ freebloks_SOURCES = \
 	gui.cpp gui.h \
 	freebloks.cpp \
 	timer.cpp timer.h \
-	window.cpp window.h \
+	window.cpp window.h icon.h \
 	player.cpp player.h \
 	board.cpp board.h \
 	stone.cpp stone.h \
@@ -94,7 +94,7 @@ freebloks_client_SOURCES = \
 
 textures = font.bmp wall.bmp ground.bmp field.bmp
 EXTRA_DIST = Freebloks.dsp Freebloks.dsw Freebloks.sln Freebloks.vcproj dedicated.vcproj dedicated.dsp \
-			Freebloks.ico Freebloks.rc freebloks.png freebloks.xpm freebloks.desktop \
+			Freebloks.ico Freebloks.rc freebloks.png freebloks.desktop \
 			resource.h $(textures)
 
 if WITH_GUI
