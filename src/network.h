@@ -143,6 +143,17 @@ const int MSG_REVOKE_PLAYER=13;
 const int MSG_REQUEST_GAME_MODE=14;
 
 
+/* Range check for the player, stone and orientation fields of a received NET_SET_STONE.
+   The fields are used as array indices and rotation counters and must never be trusted. */
+inline bool network_check_set_stone(const NET_SET_STONE *s)
+{
+	if (s->player < 0 || s->player >= PLAYER_MAX) return false;
+	if (s->stone >= STONE_COUNT_ALL_SHAPES) return false;
+	if (s->mirror_count > 1) return false;
+	if (s->rotate_count > 3) return false;
+	return true;
+}
+
 /* Bereitet die Netzwerknachricht *header vor und schickt sie an target.*/
 int network_send(int target,NET_HEADER *header,uint16 data_length,uint8 msg_type);
 

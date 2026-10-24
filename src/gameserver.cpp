@@ -436,6 +436,13 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				return;
 			}
 
+			if (!network_check_set_stone(s)) {
+				if (logger)
+					logger->logLine("WARNING: Ignoring move with invalid stone or orientation.\n");
+				send_current_player();
+				return;
+			}
+
 			CStone &stone = get_player(s->player)->get_stone(s->stone);
 			stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
 
