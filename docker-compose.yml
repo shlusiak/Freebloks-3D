@@ -1,0 +1,8 @@
+services:
+  freebloks:
+    build: .
+    image: freebloks
+    container_name: freebloks
+    network_mode: host
+    user: "1001:1001"
+    restart: always

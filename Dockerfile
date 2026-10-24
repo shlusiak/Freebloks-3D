@@ -23,7 +23,7 @@ ENV LOGFILE=/logs/freebloks_dedicated.log
 ENV LIMIT=15
 
 RUN apk add libgcc libstdc++
-RUN mkdir /logs/
+RUN mkdir /logs/ && chmod 0777 /logs/
 
 WORKDIR /install
 COPY --from=builder /install/src/freebloks_* ./
