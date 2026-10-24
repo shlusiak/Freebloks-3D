@@ -444,6 +444,12 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 			}
 
 			CStone &stone = get_player(s->player)->get_stone(s->stone);
+			if (stone.get_available() <= 0) {
+				if (logger)
+					logger->logLine("WARNING: Ignoring move with a stone that is not available.\n");
+				send_current_player();
+				return;
+			}
 			stone.mirror_rotate_to(s->mirror_count,s->rotate_count);
 
 			/* Den Stein lokal setzen */
