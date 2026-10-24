@@ -18,6 +18,14 @@ Docker: Dockerfile builds --without-gui on Alpine and runs freebloks_dedicated. 
 
 Windows (.sln/.vcproj/.dsp, config-win32.h), debian/, build/, *.ebuild and .deb files are legacy and not maintained alongside src/Makefile.am.
 
+## Android consumer
+
+The server portion of this repository (game logic, AI, networking, CGameServer) is used by the Android project in a JNI module. The Android project includes this repository as a git submodule and compiles the sources itself with a custom config.h, not through autotools or src/Makefile.am. Consequences:
+
+- Server-side sources (everything except the GUI, client.cpp, dedicated.cpp and benchmark.cpp) must compile without the autotools-generated config.h; do not rely on HAVE_* macros or other configure results being defined.
+- The Android project pins a specific commit of this repository, so changes here do not break its existing build. Breaking changes (including adding, renaming or removing server-side source files, since Android keeps its own file list) are acceptable, but refactoring must keep the server portion compilable for Android with a custom config.h once the Android project is updated to the new commit.
+- Keep server-side code free of X11, GL and other GUI dependencies.
+
 ## Architecture
 
 Flat C++ code base in src/, C-prefixed classes.
