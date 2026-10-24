@@ -486,7 +486,7 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 				return;
 			}
 // 			printf("Client %d requesting undo. ",client);
-			NET_UNDO_STONE undo;
+			NET_UNDO_STONE undo{};
 			int i=0;
 
 			/* Keep taking back stones until there are none left in the history,
@@ -600,6 +600,8 @@ void CGameServer::process_message(int client,NET_HEADER* data)
 					}
 				}
 
+				// Turns recorded on the old board must not be replayed on the new one
+				history.delete_all_turns();
 				start_new_game((GAMEMODE)r->gamemode);
 				set_stone_numbers(r->stone_numbers);
 			}
@@ -637,6 +639,10 @@ void CGameServer::send_server_status()
 {
 	NET_SERVER_STATUS status;
 	int i;
+	// Do not send uninitialised stack bytes to the clients
+	memset(&status, 0, sizeof(status));
+	for (i = 0; i < PLAYER_MAX; i++)
+		status.player_owner[i] = PLAYER_COMPUTER;
 	int max= (m_game_mode == GAMEMODE_2_COLORS_2_PLAYERS || m_game_mode == GAMEMODE_DUO || m_game_mode == GAMEMODE_JUNIOR) ? 2 : PLAYER_MAX;
 	status.player=num_players();
 	status.computer=max-num_players();
@@ -677,6 +683,7 @@ void CGameServer::send_server_status()
 void CGameServer::send_server_msg(const char *text)
 {
 	NET_CHAT *chat=(NET_CHAT*)malloc(sizeof(NET_CHAT)+strlen(text)+1);
+	memset(chat, 0, sizeof(NET_CHAT)+strlen(text)+1);
 	/* The sender is -1, the server */
 	chat->client=-1;
 	strcpy((char*)(&chat->text[0]),text);
@@ -702,6 +709,7 @@ void CGameServer::start_game()
 			get_player(1)->get_stone(n).set_available(0);
 			get_player(3)->get_stone(n).set_available(0);
 		}
+		refresh_player_data();
 	}
 
 	/* The starting player is always player 0 (= blue) */
@@ -709,7 +717,7 @@ void CGameServer::start_game()
 	/* Send the server status, the game start notice and the current player */
 	send_server_status();
 
-	NET_START_GAME data;
+	NET_START_GAME data{};
 	send_all((NET_HEADER*)&data,sizeof(data),MSG_START_GAME);
 	send_current_player();
 
@@ -735,7 +743,7 @@ void CGameServer::next_player()
 	m_current_player=-1;
 
 	/* Send the clients an MSG_GAME_FINISH message announcing the end of the game. */
-	NET_GAME_FINISH data;
+	NET_GAME_FINISH data{};
 	send_all((NET_HEADER*)&data,sizeof(data),MSG_GAME_FINISH);
 
 	/* Print status messages to the console (e.g. for the dedicated server) */
@@ -762,7 +770,7 @@ void CGameServer::set_stone_numbers(int8 stone_numbers[])
 			this->stone_numbers[i] = 1;
 	} else {
 		for (int i = 0; i < STONE_COUNT_ALL_SHAPES; i++)
-			this->stone_numbers[i] = stone_numbers[i];
+			this->stone_numbers[i] = stone_numbers[i] < 0 ? 0 : stone_numbers[i];
 	}
 	/* CBoard sets up the players correctly here */
 	CBoard::set_stone_numbers(this->stone_numbers);
@@ -813,12 +821,15 @@ void* LocalServerThread(void* param)
  **/
 int CGameServer::run_server(const char* interface_,int port,int maxhumans,int ai_mode,int width,int height,GAMEMODE gamemode,int8 stone_numbers[],int ai_threads)
 {
+	if (!is_valid_game_config(gamemode, width, height))
+		return EINVAL;
+
 	CServerListener *listener=new CServerListener();
 	int r=listener->init(interface_,port);
 	if (r!=0)
 	{
 	    delete listener;
-	    return errno;
+	    return r;
 	}
 
 	listener->new_game(maxhumans, ai_mode, gamemode, ai_threads, true);
@@ -831,7 +842,14 @@ int CGameServer::run_server(const char* interface_,int port,int maxhumans,int ai
 	CloseHandle(CreateThread(nullptr,0,LocalServerThread,(void*)listener,0,&id));
 #else
 	pthread_t thread;
-	pthread_create(&thread,nullptr,LocalServerThread,(void*)listener);
+	int rc=pthread_create(&thread,nullptr,LocalServerThread,(void*)listener);
+	if (rc!=0)
+	{
+		delete listener;
+		return rc;
+	}
+	// Nobody joins the server thread, so release its resources when it ends
+	pthread_detach(thread);
 #endif
 	// Success
 	return 0;
@@ -942,23 +960,20 @@ int CServerListener::init(const char* interface_,int port)
 		{
 			// nop
 		}
-		if (errno) return errno;
 
 		if (bind(listen_socket,(struct sockaddr*)&my_addr,sizeof(my_addr.sun_family) + addr_len + 1)!=0)
 		{
+			int e = errno ? errno : -1;
 			closesocket(listen_socket);
-			if (errno) return errno;
+			return e;
 		}
 		if (listen(listen_socket,5)==0)
 		{
 			listen_sockets[num_listen_sockets++] = listen_socket;
 		} else {
+			int e = errno ? errno : -1;
 			closesocket(listen_socket);
-		}
-		if (num_listen_sockets == 0)
-		{
-			if (errno) return errno;
-			return -1;
+			return e;
 		}
 		/* Success */
 
@@ -978,7 +993,8 @@ int CServerListener::init(const char* interface_,int port)
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_STREAM;
 
-	if (getaddrinfo(interface_,s_port,&hints,&res)<0)
+	// getaddrinfo reports errors as non-zero EAI_* codes, whose sign differs between platforms
+	if (getaddrinfo(interface_,s_port,&hints,&res)!=0)
 		return errno?errno:-1;
 
 	num_listen_sockets = 0;
@@ -1007,7 +1023,7 @@ int CServerListener::init(const char* interface_,int port)
 #endif
 			if (bind(listen_socket,res->ai_addr,res->ai_addrlen)==0)
 			{
-				if (listen(listen_socket,5)==0)
+				if (listen(listen_socket,5)==0 && num_listen_sockets < LISTEN_SOCKETS_MAX)
 				{
 					listen_sockets[num_listen_sockets++] = listen_socket;
 				} else {

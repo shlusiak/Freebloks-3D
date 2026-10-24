@@ -140,6 +140,7 @@ void* aiThread(void* p)
 
 const CTurn* CAI::get_ultimate_turn(CBoard& board, const int current_player, const int ai_error) {
 	build_up_turnpool_biggest_x_stones(board, current_player, BIGGEST_X_STONES);
+	if (m_turnpool.size() == 0) return nullptr;
 
 	const CTurn* best;
 	int best_points;

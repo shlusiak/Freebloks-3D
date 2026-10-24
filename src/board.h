@@ -28,13 +28,14 @@ private:
 
     const bool is_position_inside_field(const int y, const int x) const;
 
-    void refresh_player_data();
-
     void set_single_stone_for_player(const int player_number, const int y, const int x);
 
     void free_game_field(int y, int x);
 
 public:
+
+    // Recomputes the possible turns of all players, needed after changing stone availability
+    void refresh_player_data();
 
     CBoard();
 

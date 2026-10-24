@@ -80,11 +80,15 @@ CWindow::~CWindow()
 	if (hWnd)DestroyWindow(hWnd);
 #else
 	if (ctx)glXMakeCurrent(dpy,0,0);
+	if (ctx)glXDestroyContext(dpy,ctx);
+	ctx=0;
 	if (window)
 	{
 		XUnmapWindow(dpy,window);
 		XDestroyWindow(dpy,window);
 	}
+	if (dpy)XCloseDisplay(dpy);
+	dpy=nullptr;
 #endif
 }
 
@@ -375,6 +379,8 @@ bool CWindow::createWindow()
 	visinfo = glXChooseVisual( dpy, scrnum, attrib );
 	if (!visinfo) {
 		printf("Error: couldn't get an RGB, Double-buffered visual\n");
+		XCloseDisplay(dpy);
+		dpy=nullptr;
 		return false;
 	}
 
@@ -392,6 +398,9 @@ bool CWindow::createWindow()
 	if (wnd==0)
 	{
 		printf("Error: couldn't create window\n");
+		XFree(visinfo);
+		XCloseDisplay(dpy);
+		dpy=nullptr;
 		return false;
 	}
 
@@ -428,6 +437,10 @@ bool CWindow::createWindow()
 	ctx = glXCreateContext( dpy, visinfo, nullptr, True );
 	if (!ctx) {
 		printf("Error: glXCreateContext failed\n");
+		XFree(visinfo);
+		XDestroyWindow(dpy,wnd);
+		XCloseDisplay(dpy);
+		dpy=nullptr;
 		return false;
 	}
 

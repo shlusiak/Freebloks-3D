@@ -75,9 +75,9 @@ static void parseParams(int argc,char **argv)
 				exit(1);
 			}
 			int w=atoi(argv[i]);
-			if (w<3 || w>30)
+			if (w<FIELD_SIZE_MIN || w>30)
 			{
-				printf("%s: Invalid width (%d). Must be between 3 and 30.\n",argv[i-1],w);
+				printf("%s: Invalid width (%d). Must be between %d and 30.\n",argv[i-1],w,FIELD_SIZE_MIN);
 				exit(1);
 			}
 			width=w;
@@ -92,9 +92,9 @@ static void parseParams(int argc,char **argv)
 				exit(1);
 			}
 			int h=atoi(argv[i]);
-			if (h<3 || h>30)
+			if (h<FIELD_SIZE_MIN || h>30)
 			{
-				printf("%s: Invalid height (%d). Must be between 3 and 30.\n",argv[i-1],h);
+				printf("%s: Invalid height (%d). Must be between %d and 30.\n",argv[i-1],h,FIELD_SIZE_MIN);
 				exit(1);
 			}
 			height=h;
@@ -208,6 +208,7 @@ int main(int argc,char ** argv)
 
 	if (pthread_create(&pt, nullptr, clientThread, (void*)&s[0])) {
         perror("pthread_create");
+        return 1;
     }
 
 	if (pthread_detach(pt)) {

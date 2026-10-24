@@ -88,8 +88,8 @@ void CWidget::execute(double elapsed)
 		if (child->deleted())
 		{
 			CWidget* w=child;
-			child=child->child;
-			w->child=0;
+			child=child->next;
+			w->next=0;
 			/* Delete only the child. Its successors are kept. */
 			delete w;
 		}
