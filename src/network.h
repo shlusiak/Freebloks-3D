@@ -165,6 +165,21 @@ const char* read_network_message(int sock,NET_HEADER *data,int size);
 #ifndef WIN32
 /* On Windows it is called closesocket(s); on Linux this provides it too, but it means close(s) */
 int closesocket(int s);
+
+#include <sys/socket.h>
+#include <sys/un.h>
+
+/* Fills *addr with the local (Unix domain) socket address for name: in the abstract
+   namespace on Linux, as a filesystem path everywhere else. Returns the address length
+   to pass to bind()/connect(), or 0 if name does not fit. */
+socklen_t local_socket_address(sockaddr_un *addr, const char *name);
+
+/* true if local_socket_address() names a file, which a server must unlink() */
+#ifdef __linux__
+const bool LOCAL_SOCKET_IS_FILE = false;
+#else
+const bool LOCAL_SOCKET_IS_FILE = true;
+#endif
 #endif
 
 

@@ -28,6 +28,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <unistd.h>
 #endif
 
 #include "game.h"
@@ -928,7 +929,7 @@ int CServerListener::init(const char* interface_,int port)
 #ifndef WIN32
 	if (port == 0)
 	{
-		// Try abstract unix domain socket
+		// Unix domain socket: abstract namespace on Linux, a socket file elsewhere
 
 		int listen_socket;
 		int i;
@@ -936,24 +937,16 @@ int CServerListener::init(const char* interface_,int port)
 		errno=0;
 
 		num_listen_sockets = 0;
+		/* An empty abstract name is valid on Linux; a socket file needs a path */
+		if (interface_ == nullptr && LOCAL_SOCKET_IS_FILE)
+			return EINVAL;
+		socklen_t addr_len = local_socket_address(&my_addr, interface_ ? interface_ : "");
+		if (addr_len == 0)
+			return ENAMETOOLONG;
+
 		listen_socket=socket(PF_UNIX,SOCK_STREAM,0);
 		if (listen_socket <= 0)
 			return errno;
-
-		my_addr.sun_family=AF_UNIX;
-		memset(my_addr.sun_path, 0, sizeof(my_addr.sun_path));
-		// This moves it into the abstract namespace, copying interface_ after the null byte
-		int addr_len = 0;
-		if (interface_ != nullptr) {
-			/* One byte is taken by the leading null, and the address length must fit as well */
-			if (strlen(interface_) + 1 > sizeof(my_addr.sun_path)) {
-				closesocket(listen_socket);
-				return ENAMETOOLONG;
-			}
-			strcpy(&my_addr.sun_path[1], interface_);
-			addr_len = strlen(interface_);
-		}
-		my_addr.sun_path[0] = '\0';
 
 		i = 1;
 		if (setsockopt(listen_socket,SOL_SOCKET,SO_REUSEADDR,&i,sizeof(i))==-1)
@@ -961,7 +954,11 @@ int CServerListener::init(const char* interface_,int port)
 			// nop
 		}
 
-		if (bind(listen_socket,(struct sockaddr*)&my_addr,sizeof(my_addr.sun_family) + addr_len + 1)!=0)
+		/* A socket file left behind by a crashed run would make bind() fail with EADDRINUSE */
+		if (LOCAL_SOCKET_IS_FILE)
+			unlink(interface_);
+
+		if (bind(listen_socket,(struct sockaddr*)&my_addr,addr_len)!=0)
 		{
 			int e = errno ? errno : -1;
 			closesocket(listen_socket);

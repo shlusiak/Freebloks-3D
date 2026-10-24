@@ -67,12 +67,10 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 		sockaddr_un addr;
 
 		errno=0;
-		memset(&addr, 0, sizeof(addr));
-		addr.sun_family=AF_UNIX;
-		if (strlen(host) >= sizeof(addr.sun_path))
+		socklen_t addr_len = local_socket_address(&addr, host);
+		if (addr_len == 0)
 			return "Socket path too long";
-		strcpy(addr.sun_path, host);
-	
+
 		client_socket=socket(PF_UNIX,SOCK_STREAM,0);
 
 		if (client_socket==-1)
@@ -81,7 +79,7 @@ const char* CGameClient::Connect(const char* host,int port, int blocking)
 			client_socket=0;
 			return strerror(errno);
 		}
-		if (connect(client_socket,(sockaddr*)&addr,sizeof(addr))==-1)
+		if (connect(client_socket,(sockaddr*)&addr,addr_len)==-1)
 		{
 			/* Connection failed */
 			closesocket(client_socket);

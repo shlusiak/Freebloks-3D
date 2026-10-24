@@ -9,6 +9,7 @@
   #include "config.h"
 #endif
 
+#include <stddef.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -192,6 +193,27 @@ const char* read_network_message(int sock,NET_HEADER *data,int size)
 int closesocket(int s)
 {
 	return close(s);
+}
+
+/**
+ * The abstract namespace (leading NUL in sun_path) only exists on Linux, see unix(7).
+ * Other systems such as macOS and the BSDs treat it as an empty path and fail with ENOENT,
+ * so they get a filesystem path instead. The length is computed from offsetof(sun_path),
+ * because some systems have a sun_len byte before sun_family.
+ **/
+socklen_t local_socket_address(sockaddr_un *addr, const char *name)
+{
+	memset(addr, 0, sizeof(*addr));
+	addr->sun_family = AF_UNIX;
+	/* Linux: the leading NUL takes one byte. Elsewhere: the terminating NUL does. */
+	if (strlen(name) + 1 > sizeof(addr->sun_path)) return 0;
+#ifdef __linux__
+	memcpy(&addr->sun_path[1], name, strlen(name));
+	return (socklen_t)(offsetof(sockaddr_un, sun_path) + 1 + strlen(name));
+#else
+	strcpy(addr->sun_path, name);
+	return (socklen_t)(offsetof(sockaddr_un, sun_path) + strlen(name) + 1);
+#endif
 }
 #endif
 
