@@ -119,7 +119,7 @@ void CLogger::logLine(const char* fmt, ...)
 	va_start(va, fmt);
 	logHeader();
 	logva(fmt, va);
-	if (fmt[strlen(fmt) - 1] !=  '\n')
+	if (fmt[0] == '\0' || fmt[strlen(fmt) - 1] !=  '\n')
 		log("\n");
 	va_end(va);
 }
@@ -134,9 +134,20 @@ void CLogger::logTime()
 	time_t now;
 	char *c;
 	now=time(nullptr);
+#ifdef WIN32
+	/* The MS runtime keeps this buffer per thread */
 	c=ctime(&now);
-	strcpy(time_string,c);
-	time_string[strlen(time_string)-1]='\0';
+#else
+	/* Game threads log concurrently, ctime() would share one static buffer */
+	char time_buffer[64];
+	c=ctime_r(&now, time_buffer);
+#endif
+	if (c == nullptr)
+		return;
+	strncpy(time_string,c,sizeof(time_string)-1);
+	time_string[sizeof(time_string)-1]='\0';
+	if (time_string[0] != '\0')
+		time_string[strlen(time_string)-1]='\0';
 	log("         %s\n", time_string);
 }
 
