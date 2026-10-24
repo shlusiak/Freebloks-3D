@@ -41,6 +41,17 @@ static int ai_multithreading=2;
 /* Ausgewaehlter Server */
 static char* mp_oldserver=nullptr;
 static const char* oldname="";
+static char* oldname_buf=nullptr;
+
+/* Remembers the player name for the next dialog, releasing the previously remembered one */
+static void remember_name(const char* name)
+{
+	char* copy=strdup(name);
+	if (copy==nullptr)return;
+	free(oldname_buf);
+	oldname_buf=copy;
+	oldname=oldname_buf;
+}
 
 static int size_x=20,size_y=20;
 
@@ -346,7 +357,7 @@ int CNewGameDialog::processMouseEvent(TMouseEvent *event)
 				GUI->startSingleplayerGame(m, players, kindOfDiff, size_x, size_y,a,::ai_multithreading);
 			else {
 				GUI->startMultiplayerGame(m, players, kindOfDiff, size_x, size_y,a,::ai_multithreading, name);
-				oldname = strdup(nameField->getText());
+				remember_name(nameField->getText());
 			}
 			return 1;
 		}
@@ -572,7 +583,7 @@ int CConnectToMPlayer::processMouseEvent(TMouseEvent *event)
 		{
 			if (mp_oldserver)free(mp_oldserver);
 			mp_oldserver=strdup(serverField->getText());
-			oldname = strdup(nameField->getText());
+			remember_name(nameField->getText());
 			return 1;
 		}
 		break;
