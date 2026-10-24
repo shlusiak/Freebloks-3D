@@ -186,7 +186,7 @@ CNewGameDialog::CNewGameDialog(CGUI* gui,bool multiplayer)
 	diffEasy->addCheckBox(diffHard);
 
 
-	for (i=0;i<sizeof(numberOfStones)/sizeof(numberOfStones[0]);i++)
+	for (i=0;i<(int)(sizeof(numberOfStones)/sizeof(numberOfStones[0]));i++)
 		this->numberOfStones[i]=::numberOfStones[i];
 	addChild(new CStaticText(30,h-70,"Use Threads",this));
 	multithreading=new CSpinBox(150,h-73,40,20,5011,1,8,::ai_multithreading,this);

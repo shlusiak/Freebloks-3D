@@ -1,4 +1,4 @@
-AM_CXXFLAGS=-std=gnu++17 -O3
+AM_CXXFLAGS=-std=gnu++17 -O2 -Wall -Wextra
 freebloks_CXXFLAGS=$(AM_CXXFLAGS) -DDATA_PREFIX=\"$(datadir)/freebloks/\"
 
 bin_PROGRAMS =

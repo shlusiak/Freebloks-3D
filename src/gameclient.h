@@ -66,13 +66,13 @@ public:
 	bool is_local_player(const int player)const;
 
 private:
-	virtual void newCurrentPlayer(const int player){};
-	virtual void stoneWasSet(NET_SET_STONE *s){};
-	virtual void hintReceived(NET_SET_STONE *s){};
+	virtual void newCurrentPlayer(const int){};
+	virtual void stoneWasSet(NET_SET_STONE *){};
+	virtual void hintReceived(NET_SET_STONE *){};
 	virtual void gameFinished(){};
-	virtual void chatReceived(NET_CHAT* c){};
+	virtual void chatReceived(NET_CHAT*){};
 	virtual void gameStarted(){};
-	virtual void stoneUndone(const CStone &s, const CTurn *t){};
+	virtual void stoneUndone(const CStone &, const CTurn *){};
 };
 
 #endif
